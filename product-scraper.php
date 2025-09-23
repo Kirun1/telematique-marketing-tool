@@ -1,0 +1,38 @@
+<?php
+/**
+ * Plugin Name: Product Scraper
+ * Description: Scrapes product data from multi-page WooCommerce sites
+ * Version: 1.0.0
+ * Author: Your Name
+ */
+
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Define plugin constants
+define('PRODUCT_SCRAPER_VERSION', '1.0.0');
+define('PRODUCT_SCRAPER_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('PRODUCT_SCRAPER_PLUGIN_PATH', plugin_dir_path(__FILE__));
+
+// Include required files
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-scraper.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-admin.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-woocommerce-importer.php';
+
+class ProductScraper {
+    
+    public function __construct() {
+        add_action('init', array($this, 'init'));
+    }
+    
+    public function init() {
+        if (is_admin()) {
+            new ProductScraperAdmin();
+        }
+    }
+}
+
+new ProductScraper();
+?>
