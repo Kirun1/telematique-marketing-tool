@@ -48,12 +48,12 @@ class ProductScraperEngine {
         return $all_products;
     }
     
-    /**
-     * Generate URL for specific page
-     */
-    private function get_page_url($page_number) {
-        return $this->base_url . 'page/' . $page_number . '/';
-    }
+    // /**
+    //  * Generate URL for specific page
+    //  */
+    // private function get_page_url($page_number) {
+    //     return $this->base_url . 'page/' . $page_number . '/';
+    // }
     
     /**
      * Fetch page content using WordPress HTTP API
@@ -96,26 +96,20 @@ class ProductScraperEngine {
         
         $xpath = new DOMXPath($dom);
         
-        // Common WooCommerce product selectors
-        $product_selectors = array(
-            '//li[contains(@class, "product")]',
-            '//div[contains(@class, "product")]',
-            '//article[contains(@class, "product")]'
-        );
-        
-        foreach ($product_selectors as $selector) {
-            $product_nodes = $xpath->query($selector);
-            
-            if ($product_nodes->length > 0) {
-                break;
-            }
-        }
+        // Target the specific product list structure
+        $product_nodes = $xpath->query('//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]');
         
         if ($product_nodes->length === 0) {
             return $products;
         }
         
         foreach ($product_nodes as $product_node) {
+            // Skip promotional items that aren't actual products
+            $is_promotion = $xpath->query('.//div[contains(@class, "type-promotions")]', $product_node)->length > 0;
+            if ($is_promotion) {
+                continue;
+            }
+            
             $product_data = $this->parse_single_product($product_node, $xpath);
             if ($product_data) {
                 $products[] = $product_data;
@@ -131,22 +125,31 @@ class ProductScraperEngine {
     private function parse_single_product($node, $xpath) {
         $product = array();
         
-        // Product name
-        $name_nodes = $xpath->query('.//h2[contains(@class, "woocommerce-loop-product__title")] | .//h3 | .//a[contains(@class, "product-title")]', $node);
+        // Product name - targeting the specific structure
+        $name_nodes = $xpath->query('.//p[contains(@class, "product-item-link")]', $node);
         if ($name_nodes->length > 0) {
             $product['name'] = trim($name_nodes->item(0)->textContent);
         }
         
         // Product URL
-        $link_nodes = $xpath->query('.//a[contains(@class, "woocommerce-LoopProduct-link")] | .//a[@href]', $node);
+        $link_nodes = $xpath->query('.//a[@href]', $node);
         if ($link_nodes->length > 0) {
-            $product['url'] = $link_nodes->item(0)->getAttribute('href');
+            $href = $link_nodes->item(0)->getAttribute('href');
+            // Only include product links, not promotional links
+            if (strpos($href, '/de/') !== false && strpos($href, 'javascript:') === false) {
+                $product['url'] = $href;
+            }
         }
         
-        // Price
-        $price_nodes = $xpath->query('.//span[contains(@class, "price")] | .//div[contains(@class, "price")]', $node);
+        // Price - specific to Nahrin.ch structure
+        $price_nodes = $xpath->query('.//span[@class="price"]', $node);
         if ($price_nodes->length > 0) {
             $product['price'] = trim($price_nodes->item(0)->textContent);
+            // Also get price amount from data attribute if available
+            $price_wrapper = $xpath->query('.//span[@data-price-amount]', $node);
+            if ($price_wrapper->length > 0) {
+                $product['price_amount'] = $price_wrapper->item(0)->getAttribute('data-price-amount');
+            }
         }
         
         // Image
@@ -155,10 +158,31 @@ class ProductScraperEngine {
             $product['image'] = $img_nodes->item(0)->getAttribute('src');
         }
         
-        // Description (short)
-        $desc_nodes = $xpath->query('.//div[contains(@class, "product-description")] | .//p', $node);
-        if ($desc_nodes->length > 0) {
-            $product['description'] = trim($desc_nodes->item(0)->textContent);
+        // Rating stars count
+        $filled_stars = $xpath->query('.//svg[contains(@class, "fill-current") and contains(@style, "#FFC000")]', $node)->length;
+        $partial_stars = $xpath->query('.//svg[.//linearGradient]', $node)->length;
+        $product['rating_stars'] = $filled_stars + ($partial_stars * 0.5);
+        
+        // Review count
+        $review_nodes = $xpath->query('.//span[@itemprop="reviewCount"]', $node);
+        if ($review_nodes->length > 0) {
+            $product['review_count'] = intval(trim($review_nodes->item(0)->textContent));
+        }
+        
+        // Product badges (Bestseller, Aktion, etc.)
+        $badge_nodes = $xpath->query('.//div[contains(@class, "product-sticker")]', $node);
+        $badges = array();
+        foreach ($badge_nodes as $badge_node) {
+            $badges[] = trim($badge_node->textContent);
+        }
+        if (!empty($badges)) {
+            $product['badges'] = $badges;
+        }
+        
+        // Product ID from data attribute
+        $product_id = $node->getAttribute('data-bx-item-id');
+        if ($product_id && is_numeric($product_id)) {
+            $product['product_id'] = $product_id;
         }
         
         return !empty($product['name']) ? $product : false;
@@ -182,28 +206,31 @@ class ProductScraperEngine {
         $xpath = new DOMXPath($dom);
         $details = array();
         
-        // Full description
-        $desc_nodes = $xpath->query('//div[contains(@class, "product_description")] | //div[contains(@class, "woocommerce-product-details__short-description")]');
+        // Full description - look for product description sections
+        $desc_nodes = $xpath->query('//div[contains(@class, "product-description")] | //div[contains(@class, "description")] | //div[@itemprop="description"]');
         if ($desc_nodes->length > 0) {
             $details['full_description'] = trim($desc_nodes->item(0)->textContent);
         }
         
         // SKU
-        $sku_nodes = $xpath->query('//span[contains(@class, "sku")]');
+        $sku_nodes = $xpath->query('//span[contains(@class, "sku")] | //div[contains(text(), "SKU")]');
         if ($sku_nodes->length > 0) {
             $details['sku'] = trim($sku_nodes->item(0)->textContent);
         }
         
         // Categories
-        $cat_nodes = $xpath->query('//span[contains(@class, "posted_in")]//a');
+        $cat_nodes = $xpath->query('//a[contains(@href, "/category/")] | //span[contains(@class, "category")]//a');
         $categories = array();
         foreach ($cat_nodes as $cat_node) {
-            $categories[] = trim($cat_node->textContent);
+            $category = trim($cat_node->textContent);
+            if (!empty($category) && !in_array($category, $categories)) {
+                $categories[] = $category;
+            }
         }
         $details['categories'] = $categories;
         
-        // Additional images
-        $gallery_nodes = $xpath->query('//div[contains(@class, "product-gallery")]//img | //div[contains(@class, "woocommerce-product-gallery")]//img');
+        // Additional images from gallery
+        $gallery_nodes = $xpath->query('//img[contains(@class, "gallery")] | //div[contains(@class, "gallery")]//img');
         $gallery_images = array();
         foreach ($gallery_nodes as $img_node) {
             $src = $img_node->getAttribute('src');
@@ -213,7 +240,51 @@ class ProductScraperEngine {
         }
         $details['gallery_images'] = $gallery_images;
         
+        // Product specifications/attributes
+        $spec_nodes = $xpath->query('//table[contains(@class, "specifications")]//tr | //div[contains(@class, "attribute")]');
+        $specifications = array();
+        foreach ($spec_nodes as $spec_node) {
+            $label = $xpath->query('.//td[1] | .//strong', $spec_node);
+            $value = $xpath->query('.//td[2] | .//span', $spec_node);
+            
+            if ($label->length > 0 && $value->length > 0) {
+                $spec_label = trim($label->item(0)->textContent);
+                $spec_value = trim($value->item(0)->textContent);
+                if (!empty($spec_label)) {
+                    $specifications[$spec_label] = $spec_value;
+                }
+            }
+        }
+        $details['specifications'] = $specifications;
+        
         return $details;
+    }
+
+    /**
+     * Enhanced method to get page URLs for Nahrin.ch pagination
+     */
+    private function get_page_url($page_number) {
+        if ($page_number === 1) {
+            return $this->base_url;
+        }
+        return $this->base_url . 'page/' . $page_number . '/';
+    }
+    
+    /**
+     * Check if there are more pages to scrape
+     */
+    private function has_next_page($html) {
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+        
+        $xpath = new DOMXPath($dom);
+        
+        // Look for next page link or pagination
+        $next_links = $xpath->query('//a[contains(@class, "next")] | //a[contains(text(), "Next")]');
+        
+        return $next_links->length > 0;
     }
 }
 ?>

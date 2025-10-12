@@ -20,10 +20,15 @@ define('PRODUCT_SCRAPER_PLUGIN_PATH', plugin_dir_path(__FILE__));
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-scraper.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-admin.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-woocommerce-importer.php';
+// Include the new storage class
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-data-storage.php';
 
 class ProductScraper {
+
+    public $storage;
     
     public function __construct() {
+        $this->storage = new ProductScraperDataStorage();
         add_action('init', array($this, 'init'));
     }
     
