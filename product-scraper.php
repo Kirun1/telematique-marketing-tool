@@ -3,7 +3,8 @@
  * Plugin Name: Product Scraper
  * Description: Scrapes product data from multi-page WooCommerce sites
  * Version: 1.0.0
- * Author: Your Name
+ * Author: Telematique LTD
+ * Text Domain: product-scraper
  */
 
 // Prevent direct access
