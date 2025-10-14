@@ -8,10 +8,13 @@ class ProductScraperAnalytics
         add_action('admin_menu', array($this, 'add_analytics_menu'));
         add_action('wp_ajax_get_scraper_analytics', array($this, 'ajax_get_analytics'));
         add_action('wp_ajax_get_keyword_data', array($this, 'ajax_get_keyword_data'));
+
+        // Initialize the admin class for the scraper functionality
+        $this->admin = new ProductScraperAdmin();
     }
 
     /**
-     * Add standalone analytics menu
+     * Add standalone analytics menu with scraper as subpage
      */
     public function add_analytics_menu()
     {
@@ -52,6 +55,25 @@ class ProductScraperAnalytics
             'scraper-competitors',
             array($this, 'display_competitor_analysis')
         );
+
+        // Add Product Scraper as a subpage
+        add_submenu_page(
+            'scraper-analytics',
+            'Product Scraper',
+            'Product Scraper',
+            'manage_options',
+            'product-scraper',
+            array($this, 'display_product_scraper')
+        );
+    }
+
+    /**
+     * Display the product scraper page
+     */
+    public function display_product_scraper()
+    {
+        // Call the existing admin page from ProductScraperAdmin class
+        $this->admin->admin_page();
     }
 
     /**
@@ -96,7 +118,7 @@ class ProductScraperAnalytics
                         <div class="lego-nav-section">
                             <h3>DATA</h3>
                             <ul class="lego-nav">
-                                <li><a href="<?php echo admin_url('options-general.php?page=product-scraper'); ?>">🛠️ Scraper</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
                                 <li><a href="#">📊 Reports</a></li>
                                 <li><a href="#">⚙️ Settings</a></li>
                             </ul>
@@ -316,7 +338,6 @@ class ProductScraperAnalytics
     ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
-                <!-- Similar LEGO-style structure for keyword analysis -->
                 <div class="lego-header">
                     <div class="lego-brand">
                         <h1>🚀 <strong>Scraper Analytics</strong></h1>
@@ -325,15 +346,50 @@ class ProductScraperAnalytics
                 </div>
 
                 <div class="lego-container">
-                    <!-- Sidebar (same as dashboard) -->
+                    <!-- Sidebar -->
                     <div class="lego-sidebar">
-                        <!-- Same sidebar navigation -->
+                        <div class="lego-nav-section">
+                            <h3>ANALYSIS</h3>
+                            <ul class="lego-nav">
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="lego-nav-section">
+                            <h3>DATA</h3>
+                            <ul class="lego-nav">
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
+                                <li><a href="#">📊 Reports</a></li>
+                                <li><a href="#">⚙️ Settings</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="lego-feature-notice">
+                            <div class="feature-badge">NEW</div>
+                            <p><strong>New features available</strong></p>
+                            <p class="feature-desc">Check out the new dashboard view, pages now load faster.</p>
+                        </div>
+
+                        <div class="lego-footer">
+                            <button class="lego-btn lego-btn-premium">
+                                ⭐ Get Premium
+                            </button>
+                            <div class="user-details">
+                                <strong>Steven Smith</strong>
+                                <span>smith@gmail.com</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="lego-main-content">
                         <div class="lego-section">
                             <h2>Keyword Analysis</h2>
-                            <!-- Keyword-specific content here -->
+                            <div class="lego-stat-card">
+                                <h3>Keyword Performance Overview</h3>
+                                <p>Detailed keyword analysis and performance metrics will be displayed here.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -350,7 +406,6 @@ class ProductScraperAnalytics
     ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
-                <!-- Similar LEGO-style structure for competitor analysis -->
                 <div class="lego-header">
                     <div class="lego-brand">
                         <h1>🚀 <strong>Scraper Analytics</strong></h1>
@@ -359,15 +414,50 @@ class ProductScraperAnalytics
                 </div>
 
                 <div class="lego-container">
-                    <!-- Sidebar (same as dashboard) -->
+                    <!-- Sidebar -->
                     <div class="lego-sidebar">
-                        <!-- Same sidebar navigation -->
+                        <div class="lego-nav-section">
+                            <h3>ANALYSIS</h3>
+                            <ul class="lego-nav">
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="lego-nav-section">
+                            <h3>DATA</h3>
+                            <ul class="lego-nav">
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
+                                <li><a href="#">📊 Reports</a></li>
+                                <li><a href="#">⚙️ Settings</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="lego-feature-notice">
+                            <div class="feature-badge">NEW</div>
+                            <p><strong>New features available</strong></p>
+                            <p class="feature-desc">Check out the new dashboard view, pages now load faster.</p>
+                        </div>
+
+                        <div class="lego-footer">
+                            <button class="lego-btn lego-btn-premium">
+                                ⭐ Get Premium
+                            </button>
+                            <div class="user-details">
+                                <strong>Steven Smith</strong>
+                                <span>smith@gmail.com</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="lego-main-content">
                         <div class="lego-section">
                             <h2>Competitor Analysis</h2>
-                            <!-- Competitor-specific content here -->
+                            <div class="lego-stat-card">
+                                <h3>Competitor Performance</h3>
+                                <p>Competitor analysis and comparison metrics will be displayed here.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
