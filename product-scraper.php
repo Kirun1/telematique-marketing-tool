@@ -27,6 +27,21 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-analytics-dashboard.p
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-seo-assistant.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-keyword-research.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-voice-search.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-social-optimizer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-schema-generator.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-roi-tracker.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-redirect-manager.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-rank-tracker.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-onpage-analyzer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-local-seo.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-international-seo.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ecommerce-seo.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-analytics.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-competitor-analysis.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ai-title-optimizer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ai-content-writer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-advanced-sitemap.php';
 
 class ProductScraper
 {
