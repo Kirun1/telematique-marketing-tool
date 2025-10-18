@@ -2,7 +2,7 @@
     <div class="scraper-analytics-dashboard">
         <div class="sa-header">
             <div class="sa-brand">
-                <h1>🚀 <strong>SEO Assistant</strong></h1>
+                <h1><strong>SEO Assistant</strong></h1>
                 <span class="sa-subtitle">Optimize your content for search engines</span>
             </div>
         </div>
@@ -13,10 +13,10 @@
                 <div class="sa-nav-section">
                     <h3>SEO TOOLS</h3>
                     <ul class="sa-nav">
-                        <li class="active"><a href="#">📊 SEO Dashboard</a></li>
-                        <li><a href="#">🔍 Content Analysis</a></li>
-                        <li><a href="#">🔑 Keyword Research</a></li>
-                        <li><a href="#">📈 Rank Tracking</a></li>
+                        <li class="active"><a href="#">SEO Dashboard</a></li>
+                        <li><a href="#">Content Analysis</a></li>
+                        <li><a href="#">Keyword Research</a></li>
+                        <li><a href="#">Rank Tracking</a></li>
                     </ul>
                 </div>
             </div>

@@ -88,7 +88,7 @@ class ProductScraperAnalytics
                 <!-- sa-style Header -->
                 <div class="sa-header">
                     <div class="sa-brand">
-                        <h1>🚀 <strong>Scraper Analytics</strong></h1>
+                        <h1><strong>Scraper Analytics</strong></h1>
                         <span class="sa-subtitle">Dashboard</span>
                     </div>
                     <div class="sa-actions">
@@ -105,18 +105,18 @@ class ProductScraperAnalytics
                         <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
                             <ul class="sa-nav">
-                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">Dashboard</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">Key Words</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">Competitors</a></li>
                             </ul>
                         </div>
 
                         <div class="sa-nav-section">
                             <h3>DATA</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
-                                <li><a href="#">📊 Reports</a></li>
-                                <li><a href="#">⚙️ Settings</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">Product Scraper</a></li>
+                                <li><a href="#">Reports</a></li>
+                                <li><a href="#">Settings</a></li>
                             </ul>
                         </div>
 
@@ -128,7 +128,7 @@ class ProductScraperAnalytics
 
                         <div class="sa-footer">
                             <button class="sa-btn sa-btn-premium">
-                                ⭐ Get Premium
+                                Get Premium
                             </button>
                             <div class="user-details">
                                 <strong>Steven Smith</strong>
@@ -336,7 +336,7 @@ class ProductScraperAnalytics
             <div class="scraper-analytics-dashboard">
                 <div class="sa-header">
                     <div class="sa-brand">
-                        <h1>🚀 <strong>Scraper Analytics</strong></h1>
+                        <h1><strong>Scraper Analytics</strong></h1>
                         <span class="sa-subtitle">Keyword Analysis</span>
                     </div>
                 </div>
@@ -347,18 +347,18 @@ class ProductScraperAnalytics
                         <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
-                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">Dashboard</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">Key Words</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">Competitors</a></li>
                             </ul>
                         </div>
 
                         <div class="sa-nav-section">
                             <h3>DATA</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
-                                <li><a href="#">📊 Reports</a></li>
-                                <li><a href="#">⚙️ Settings</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">Product Scraper</a></li>
+                                <li><a href="#">Reports</a></li>
+                                <li><a href="#">Settings</a></li>
                             </ul>
                         </div>
 
@@ -370,7 +370,7 @@ class ProductScraperAnalytics
 
                         <div class="sa-footer">
                             <button class="sa-btn sa-btn-premium">
-                                ⭐ Get Premium
+                                Get Premium
                             </button>
                             <div class="user-details">
                                 <strong>Steven Smith</strong>
@@ -404,7 +404,7 @@ class ProductScraperAnalytics
             <div class="scraper-analytics-dashboard">
                 <div class="sa-header">
                     <div class="sa-brand">
-                        <h1>🚀 <strong>Scraper Analytics</strong></h1>
+                        <h1><strong>Scraper Analytics</strong></h1>
                         <span class="sa-subtitle">Competitor Analysis</span>
                     </div>
                 </div>
@@ -415,18 +415,18 @@ class ProductScraperAnalytics
                         <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
-                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">Dashboard</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">Key Words</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">Competitors</a></li>
                             </ul>
                         </div>
 
                         <div class="sa-nav-section">
                             <h3>DATA</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
-                                <li><a href="#">📊 Reports</a></li>
-                                <li><a href="#">⚙️ Settings</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">Product Scraper</a></li>
+                                <li><a href="#">Reports</a></li>
+                                <li><a href="#">Settings</a></li>
                             </ul>
                         </div>
 
@@ -438,7 +438,7 @@ class ProductScraperAnalytics
 
                         <div class="sa-footer">
                             <button class="sa-btn sa-btn-premium">
-                                ⭐ Get Premium
+                                Get Premium
                             </button>
                             <div class="user-details">
                                 <strong>Steven Smith</strong>

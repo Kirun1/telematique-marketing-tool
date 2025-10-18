@@ -523,10 +523,10 @@ class ProductScraper_AI_Content_Writer
     private function generate_tweet($topic)
     {
         $tweet_templates = array(
-            "🚀 Just published: The Ultimate Guide to {topic}! Learn expert strategies and avoid common mistakes. #{hashtag}",
-            "📚 Mastering {topic} just got easier! Check out our comprehensive guide with step-by-step instructions. #{hashtag}",
-            "💡 Struggling with {topic}? Our new guide breaks it down into simple, actionable steps. #{hashtag}",
-            "🎯 Want to excel at {topic}? Discover proven techniques in our latest deep dive. #{hashtag}"
+            "Just published: The Ultimate Guide to {topic}! Learn expert strategies and avoid common mistakes. #{hashtag}",
+            "Mastering {topic} just got easier! Check out our comprehensive guide with step-by-step instructions. #{hashtag}",
+            "Struggling with {topic}? Our new guide breaks it down into simple, actionable steps. #{hashtag}",
+            "Want to excel at {topic}? Discover proven techniques in our latest deep dive. #{hashtag}"
         );
 
         $hashtag = str_replace(' ', '', ucwords($topic));
@@ -575,12 +575,12 @@ class ProductScraper_AI_Content_Writer
      */
     private function generate_instagram_post($topic)
     {
-        return "Level up your skills! 🚀\n\n" .
+        return "Level up your skills!\n\n" .
                "Our latest guide covers everything you need to know about " . $topic . "!\n\n" .
                "Swipe up to learn:\n" .
-               "👉 Step-by-step techniques\n" .
-               "👉 Pro tips and tricks\n" .
-               "👉 Common mistakes to avoid\n\n" .
+               "Step-by-step techniques\n" .
+               "Pro tips and tricks\n" .
+               "Common mistakes to avoid\n\n" .
                "Perfect for beginners and experts alike! 💫\n\n" .
                "#LearnWithUs #SkillBuilding #" . str_replace(' ', '', $topic) . " #EducationalContent";
     }
