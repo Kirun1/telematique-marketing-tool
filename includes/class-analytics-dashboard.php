@@ -3,11 +3,16 @@
 class ProductScraperAnalytics
 {
 
+    private $api;
+
     public function __construct()
     {
+        $this->api = new ProductScraper_API_Integrations();
+
         add_action('admin_menu', array($this, 'add_analytics_menu'));
         add_action('wp_ajax_get_scraper_analytics', array($this, 'ajax_get_analytics'));
         add_action('wp_ajax_get_keyword_data', array($this, 'ajax_get_keyword_data'));
+        add_action('wp_ajax_sync_seo_data', array($this, 'ajax_sync_seo_data'));
 
         // Initialize the admin class for the scraper functionality
         $this->admin = new ProductScraperAdmin();
@@ -451,16 +456,18 @@ class ProductScraperAnalytics
      */
     private function get_dashboard_stats()
     {
+        $seo_data = $this->api->get_seo_dashboard_data();
         $plugin = new ProductScraper();
         $scraper_stats = $plugin->storage->get_stats();
 
         return array(
-            'organic_traffic' => 32000,
-            'traffic_target' => 140000,
-            'referring_domains' => 95000,
-            'digital_score' => 76,
+            'organic_traffic' => $seo_data['organic_traffic']['current'],
+            'traffic_target' => $seo_data['organic_traffic']['current'] * 1.4, // 40% growth target
+            'referring_domains' => $seo_data['referring_domains']['count'],
+            'digital_score' => $seo_data['digital_score'],
             'total_products' => $scraper_stats['total_products'] ?? 0,
-            'imported_products' => $scraper_stats['imported_products'] ?? 0
+            'imported_products' => $scraper_stats['imported_products'] ?? 0,
+            'engagement' => $seo_data['engagement_metrics']
         );
     }
 
@@ -486,34 +493,21 @@ class ProductScraperAnalytics
             wp_die('Security check failed');
         }
 
-        $keywords = array(
-            array(
-                'phrase' => 'UI & Graphic Design Tips',
-                'volume' => '190k',
-                'traffic_share' => 25,
-                'last_updated' => '30 July'
-            ),
-            array(
-                'phrase' => 'UK Design & Research Tips',
-                'volume' => '200k',
-                'traffic_share' => 23,
-                'last_updated' => '28 July'
-            ),
-            array(
-                'phrase' => 'Figma Tutorial - Components',
-                'volume' => '195k',
-                'traffic_share' => 12,
-                'last_updated' => '25 July'
-            ),
-            array(
-                'phrase' => 'Dashboard Design Tips',
-                'volume' => '222k',
-                'traffic_share' => 12,
-                'last_updated' => '25 July'
-            )
-        );
+        $seo_data = $this->api->get_seo_dashboard_data();
+        wp_send_json_success(array('keywords' => $seo_data['top_keywords']));
+    }
 
-        wp_send_json_success(array('keywords' => $keywords));
+    /**
+     * AJAX handler for data sync
+     */
+    public function ajax_sync_seo_data()
+    {
+        if (!wp_verify_nonce($_POST['nonce'], 'analytics_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        $new_data = $this->api->get_seo_dashboard_data();
+        wp_send_json_success($new_data);
     }
 }
 ?>
