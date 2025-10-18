@@ -141,7 +141,7 @@ class ProductScraperEngine {
             }
         }
         
-        // Price - specific to Nahrin.ch structure
+        // Price - specific to shop/wocommerce structure
         $price_nodes = $xpath->query('.//span[@class="price"]', $node);
         if ($price_nodes->length > 0) {
             $product['price'] = trim($price_nodes->item(0)->textContent);
@@ -261,7 +261,7 @@ class ProductScraperEngine {
     }
 
     /**
-     * Enhanced method to get page URLs for Nahrin.ch pagination
+     * Enhanced method to get page URLs of the scraped site pagination
      */
     private function get_page_url($page_number) {
         if ($page_number === 1) {

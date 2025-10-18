@@ -13,9 +13,9 @@
                 <div class="sa-nav-section">
                     <h3>SEO TOOLS</h3>
                     <ul class="sa-nav">
-                        <li class="active"><a href="#">SEO Dashboard</a></li>
+                        <li class="active"><a href="#"><span class="dashicons dashicons-dashboard"></span> &nbsp; SEO Dashboard</a></li>
                         <li><a href="#">Content Analysis</a></li>
-                        <li><a href="#">Keyword Research</a></li>
+                        <li><a href="#"><span class="dashicons dashicons-tag"></span> &nbsp; Keyword Research</a></li>
                         <li><a href="#">Rank Tracking</a></li>
                     </ul>
                 </div>

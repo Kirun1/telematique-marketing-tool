@@ -105,18 +105,18 @@ class ProductScraperAnalytics
                         <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
                             <ul class="sa-nav">
-                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">Dashboard</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">Key Words</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">Competitors</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>"><span class="dashicons dashicons-dashboard"></span> &nbsp; Dashboard</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>"><span class="dashicons dashicons-tag"></span> &nbsp; Keywords</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>"><span class="dashicons dashicons-chart-bar"></span> &nbsp; Competitors</a></li>
                             </ul>
                         </div>
 
                         <div class="sa-nav-section">
                             <h3>DATA</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">Product Scraper</a></li>
-                                <li><a href="#">Reports</a></li>
-                                <li><a href="#">Settings</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>"><span class="dashicons dashicons-download"></span> &nbsp; Product Scraper</a></li>
+                                <li><a href="#"><span class="dashicons dashicons-media-text"></span> &nbsp; Reports</a></li>
+                                <li><a href="#"><span class="dashicons dashicons-admin-generic"></span> &nbsp; Settings</a></li>
                             </ul>
                         </div>
 
@@ -130,10 +130,6 @@ class ProductScraperAnalytics
                             <button class="sa-btn sa-btn-premium">
                                 Get Premium
                             </button>
-                            <div class="user-details">
-                                <strong>Steven Smith</strong>
-                                <span>smith@gmail.com</span>
-                            </div>
                         </div>
                     </div>
 
@@ -146,7 +142,7 @@ class ProductScraperAnalytics
                             <div class="sa-stats-grid">
                                 <div class="sa-stat-card">
                                     <div class="stat-header">
-                                        <h3>Organic Traffic</h3>
+                                        <h3><span class="dashicons dashicons-groups"></span> &nbsp; Organic Traffic</h3>
                                         <span class="stat-change positive">+0.9%</span>
                                     </div>
                                     <div class="stat-main">
@@ -159,7 +155,7 @@ class ProductScraperAnalytics
 
                                 <div class="sa-stat-card">
                                     <div class="stat-header">
-                                        <h3>Referring Domains</h3>
+                                        <h3><span class="dashicons dashicons-external"></span> &nbsp; Referring Domains</h3>
                                         <span class="stat-change positive">+0.9%</span>
                                     </div>
                                     <div class="stat-main">
@@ -172,7 +168,7 @@ class ProductScraperAnalytics
 
                                 <div class="sa-stat-card">
                                     <div class="stat-header">
-                                        <h3>Digital Score</h3>
+                                        <h3><span class="dashicons dashicons-cart"></span> &nbsp;  Digital Score</h3>
                                     </div>
                                     <div class="stat-main">
                                         <div class="score-circle">
@@ -237,11 +233,7 @@ class ProductScraperAnalytics
                     </div>
                 </div>
             </div>
-        </div>
-
-        <style>
-            <?php include_once PRODUCT_SCRAPER_PLUGIN_PATH . 'assets/sa-analytics.css'; ?>
-        </style>
+        </div>        
 
         <script>
             jQuery(document).ready(function($) {
@@ -347,18 +339,18 @@ class ProductScraperAnalytics
                         <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">Dashboard</a></li>
-                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">Key Words</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">Competitors</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>"><span class="dashicons dashicons-dashboard"></span> &nbsp; Dashboard</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>"><span class="dashicons dashicons-tag"></span> &nbsp; Keywords</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>"><span class="dashicons dashicons-chart-bar"></span> &nbsp; Competitors</a></li>
                             </ul>
                         </div>
 
                         <div class="sa-nav-section">
                             <h3>DATA</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">Product Scraper</a></li>
-                                <li><a href="#">Reports</a></li>
-                                <li><a href="#">Settings</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>"><span class="dashicons dashicons-download"></span> &nbsp; Product Scraper</a></li>
+                                <li><a href="#"><span class="dashicons dashicons-media-text"></span> &nbsp; Reports</a></li>
+                                <li><a href="#"><span class="dashicons dashicons-admin-generic"></span> &nbsp; Settings</a></li>
                             </ul>
                         </div>
 
@@ -372,10 +364,6 @@ class ProductScraperAnalytics
                             <button class="sa-btn sa-btn-premium">
                                 Get Premium
                             </button>
-                            <div class="user-details">
-                                <strong>Steven Smith</strong>
-                                <span>smith@gmail.com</span>
-                            </div>
                         </div>
                     </div>
 
@@ -415,18 +403,18 @@ class ProductScraperAnalytics
                         <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">Dashboard</a></li>
-                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">Key Words</a></li>
-                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">Competitors</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>"><span class="dashicons dashicons-dashboard"></span> &nbsp; Dashboard</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>"><span class="dashicons dashicons-tag"></span> &nbsp; Keywords</a></li>
+                                <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>"><span class="dashicons dashicons-chart-bar"></span> &nbsp; Competitors</a></li>
                             </ul>
                         </div>
 
                         <div class="sa-nav-section">
                             <h3>DATA</h3>
                             <ul class="sa-nav">
-                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">Product Scraper</a></li>
-                                <li><a href="#">Reports</a></li>
-                                <li><a href="#">Settings</a></li>
+                                <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>"><span class="dashicons dashicons-download"></span> &nbsp; Product Scraper</a></li>
+                                <li><a href="#"><span class="dashicons dashicons-media-text"></span> &nbsp; Reports</a></li>
+                                <li><a href="#"><span class="dashicons dashicons-admin-generic"></span> &nbsp; Settings</a></li>
                             </ul>
                         </div>
 
@@ -440,10 +428,6 @@ class ProductScraperAnalytics
                             <button class="sa-btn sa-btn-premium">
                                 Get Premium
                             </button>
-                            <div class="user-details">
-                                <strong>Steven Smith</strong>
-                                <span>smith@gmail.com</span>
-                            </div>
                         </div>
                     </div>
 
