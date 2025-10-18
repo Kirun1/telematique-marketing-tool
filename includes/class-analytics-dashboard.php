@@ -85,53 +85,49 @@ class ProductScraperAnalytics
 ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
-                <!-- LEGO-style Header -->
-                <div class="lego-header">
-                    <div class="lego-brand">
+                <!-- sa-style Header -->
+                <div class="sa-header">
+                    <div class="sa-brand">
                         <h1>🚀 <strong>Scraper Analytics</strong></h1>
-                        <span class="lego-subtitle">Dashboard</span>
+                        <span class="sa-subtitle">Dashboard</span>
                     </div>
-                    <div class="lego-actions">
-                        <button class="lego-btn lego-btn-primary" onclick="refreshAnalytics()">
+                    <div class="sa-actions">
+                        <button class="sa-btn sa-btn-primary" onclick="refreshAnalytics()">
                             <span class="dashicons dashicons-update"></span>
                             Refresh Data
                         </button>
-                        <div class="lego-user">
-                            <span class="user-name">Steven Smith</span>
-                            <span class="user-email">smith@gmail.com</span>
-                        </div>
                     </div>
                 </div>
 
-                <div class="lego-container">
+                <div class="sa-container">
                     <!-- Left Sidebar -->
-                    <div class="lego-sidebar">
-                        <div class="lego-nav-section">
+                    <div class="sa-sidebar">
+                        <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
-                            <ul class="lego-nav">
+                            <ul class="sa-nav">
                                 <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
                                 <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
                                 <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
                             </ul>
                         </div>
 
-                        <div class="lego-nav-section">
+                        <div class="sa-nav-section">
                             <h3>DATA</h3>
-                            <ul class="lego-nav">
+                            <ul class="sa-nav">
                                 <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
                                 <li><a href="#">📊 Reports</a></li>
                                 <li><a href="#">⚙️ Settings</a></li>
                             </ul>
                         </div>
 
-                        <div class="lego-feature-notice">
+                        <div class="sa-feature-notice">
                             <div class="feature-badge">NEW</div>
                             <p><strong>New features available</strong></p>
                             <p class="feature-desc">Check out the new dashboard view, pages now load faster.</p>
                         </div>
 
-                        <div class="lego-footer">
-                            <button class="lego-btn lego-btn-premium">
+                        <div class="sa-footer">
+                            <button class="sa-btn sa-btn-premium">
                                 ⭐ Get Premium
                             </button>
                             <div class="user-details">
@@ -142,13 +138,13 @@ class ProductScraperAnalytics
                     </div>
 
                     <!-- Main Content -->
-                    <div class="lego-main-content">
-                        <div class="lego-section">
+                    <div class="sa-main-content">
+                        <div class="sa-section">
                             <h2>Dashboard</h2>
 
                             <!-- Stats Grid -->
-                            <div class="lego-stats-grid">
-                                <div class="lego-stat-card">
+                            <div class="sa-stats-grid">
+                                <div class="sa-stat-card">
                                     <div class="stat-header">
                                         <h3>Organic Traffic</h3>
                                         <span class="stat-change positive">+0.9%</span>
@@ -161,7 +157,7 @@ class ProductScraperAnalytics
                                     </div>
                                 </div>
 
-                                <div class="lego-stat-card">
+                                <div class="sa-stat-card">
                                     <div class="stat-header">
                                         <h3>Referring Domains</h3>
                                         <span class="stat-change positive">+0.9%</span>
@@ -174,7 +170,7 @@ class ProductScraperAnalytics
                                     </div>
                                 </div>
 
-                                <div class="lego-stat-card">
+                                <div class="sa-stat-card">
                                     <div class="stat-header">
                                         <h3>Digital Score</h3>
                                     </div>
@@ -185,13 +181,13 @@ class ProductScraperAnalytics
                                     </div>
                                     <div class="score-status">
                                         <span class="status-text">Enough Easy</span>
-                                        <button class="lego-btn-link">See Details →</button>
+                                        <button class="sa-btn-link">See Details →</button>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Search Volume Chart -->
-                            <div class="lego-chart-section">
+                            <div class="sa-chart-section">
                                 <div class="chart-header">
                                     <h3>Search Volume</h3>
                                     <div class="chart-legend">
@@ -205,12 +201,12 @@ class ProductScraperAnalytics
                             </div>
 
                             <!-- Keywords Table -->
-                            <div class="lego-table-section">
+                            <div class="sa-table-section">
                                 <div class="table-header">
                                     <h3>Top Performing Keywords</h3>
-                                    <button class="lego-btn lego-btn-secondary">Export CSV</button>
+                                    <button class="sa-btn sa-btn-secondary">Export CSV</button>
                                 </div>
-                                <table class="lego-table">
+                                <table class="sa-table">
                                     <thead>
                                         <tr>
                                             <th>No</th>
@@ -227,7 +223,7 @@ class ProductScraperAnalytics
                             </div>
 
                             <!-- Additional Metrics -->
-                            <div class="lego-metrics-grid">
+                            <div class="sa-metrics-grid">
                                 <div class="metric-card">
                                     <h4>Visit Duration</h4>
                                     <div class="metric-value">90K <span class="positive">+12%</span></div>
@@ -244,7 +240,7 @@ class ProductScraperAnalytics
         </div>
 
         <style>
-            <?php include_once PRODUCT_SCRAPER_PLUGIN_PATH . 'assets/lego-analytics.css'; ?>
+            <?php include_once PRODUCT_SCRAPER_PLUGIN_PATH . 'assets/sa-analytics.css'; ?>
         </style>
 
         <script>
@@ -320,9 +316,9 @@ class ProductScraperAnalytics
                 window.refreshAnalytics = function() {
                     loadKeywordsData();
                     // Show loading state
-                    $('.lego-btn-primary').addClass('loading');
+                    $('.sa-btn-primary').addClass('loading');
                     setTimeout(() => {
-                        $('.lego-btn-primary').removeClass('loading');
+                        $('.sa-btn-primary').removeClass('loading');
                     }, 1000);
                 };
             });
@@ -338,42 +334,42 @@ class ProductScraperAnalytics
     ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
-                <div class="lego-header">
-                    <div class="lego-brand">
+                <div class="sa-header">
+                    <div class="sa-brand">
                         <h1>🚀 <strong>Scraper Analytics</strong></h1>
-                        <span class="lego-subtitle">Keyword Analysis</span>
+                        <span class="sa-subtitle">Keyword Analysis</span>
                     </div>
                 </div>
 
-                <div class="lego-container">
+                <div class="sa-container">
                     <!-- Sidebar -->
-                    <div class="lego-sidebar">
-                        <div class="lego-nav-section">
+                    <div class="sa-sidebar">
+                        <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
-                            <ul class="lego-nav">
+                            <ul class="sa-nav">
                                 <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
                                 <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
                                 <li><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
                             </ul>
                         </div>
 
-                        <div class="lego-nav-section">
+                        <div class="sa-nav-section">
                             <h3>DATA</h3>
-                            <ul class="lego-nav">
+                            <ul class="sa-nav">
                                 <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
                                 <li><a href="#">📊 Reports</a></li>
                                 <li><a href="#">⚙️ Settings</a></li>
                             </ul>
                         </div>
 
-                        <div class="lego-feature-notice">
+                        <div class="sa-feature-notice">
                             <div class="feature-badge">NEW</div>
                             <p><strong>New features available</strong></p>
                             <p class="feature-desc">Check out the new dashboard view, pages now load faster.</p>
                         </div>
 
-                        <div class="lego-footer">
-                            <button class="lego-btn lego-btn-premium">
+                        <div class="sa-footer">
+                            <button class="sa-btn sa-btn-premium">
                                 ⭐ Get Premium
                             </button>
                             <div class="user-details">
@@ -383,10 +379,10 @@ class ProductScraperAnalytics
                         </div>
                     </div>
 
-                    <div class="lego-main-content">
-                        <div class="lego-section">
+                    <div class="sa-main-content">
+                        <div class="sa-section">
                             <h2>Keyword Analysis</h2>
-                            <div class="lego-stat-card">
+                            <div class="sa-stat-card">
                                 <h3>Keyword Performance Overview</h3>
                                 <p>Detailed keyword analysis and performance metrics will be displayed here.</p>
                             </div>
@@ -406,42 +402,42 @@ class ProductScraperAnalytics
     ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
-                <div class="lego-header">
-                    <div class="lego-brand">
+                <div class="sa-header">
+                    <div class="sa-brand">
                         <h1>🚀 <strong>Scraper Analytics</strong></h1>
-                        <span class="lego-subtitle">Competitor Analysis</span>
+                        <span class="sa-subtitle">Competitor Analysis</span>
                     </div>
                 </div>
 
-                <div class="lego-container">
+                <div class="sa-container">
                     <!-- Sidebar -->
-                    <div class="lego-sidebar">
-                        <div class="lego-nav-section">
+                    <div class="sa-sidebar">
+                        <div class="sa-nav-section">
                             <h3>ANALYSIS</h3>
-                            <ul class="lego-nav">
+                            <ul class="sa-nav">
                                 <li><a href="<?php echo admin_url('admin.php?page=scraper-analytics'); ?>">📊 Dashboard</a></li>
                                 <li><a href="<?php echo admin_url('admin.php?page=scraper-keywords'); ?>">🔑 Key Words</a></li>
                                 <li class="active"><a href="<?php echo admin_url('admin.php?page=scraper-competitors'); ?>">👥 Competitors</a></li>
                             </ul>
                         </div>
 
-                        <div class="lego-nav-section">
+                        <div class="sa-nav-section">
                             <h3>DATA</h3>
-                            <ul class="lego-nav">
+                            <ul class="sa-nav">
                                 <li><a href="<?php echo admin_url('admin.php?page=product-scraper'); ?>">🛠️ Product Scraper</a></li>
                                 <li><a href="#">📊 Reports</a></li>
                                 <li><a href="#">⚙️ Settings</a></li>
                             </ul>
                         </div>
 
-                        <div class="lego-feature-notice">
+                        <div class="sa-feature-notice">
                             <div class="feature-badge">NEW</div>
                             <p><strong>New features available</strong></p>
                             <p class="feature-desc">Check out the new dashboard view, pages now load faster.</p>
                         </div>
 
-                        <div class="lego-footer">
-                            <button class="lego-btn lego-btn-premium">
+                        <div class="sa-footer">
+                            <button class="sa-btn sa-btn-premium">
                                 ⭐ Get Premium
                             </button>
                             <div class="user-details">
@@ -451,10 +447,10 @@ class ProductScraperAnalytics
                         </div>
                     </div>
 
-                    <div class="lego-main-content">
-                        <div class="lego-section">
+                    <div class="sa-main-content">
+                        <div class="sa-section">
                             <h2>Competitor Analysis</h2>
-                            <div class="lego-stat-card">
+                            <div class="sa-stat-card">
                                 <h3>Competitor Performance</h3>
                                 <p>Competitor analysis and comparison metrics will be displayed here.</p>
                             </div>
