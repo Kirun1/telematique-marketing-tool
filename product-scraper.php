@@ -18,6 +18,12 @@ define('PRODUCT_SCRAPER_VERSION', '2.0.0');
 define('PRODUCT_SCRAPER_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('PRODUCT_SCRAPER_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
+// Load Composer dependencies if vendor folder exists
+$vendor_autoload = __DIR__ . '/vendor/autoload.php';
+if (file_exists($vendor_autoload)) {
+    require_once $vendor_autoload;
+}
+
 // Include required files
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-scraper.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-admin.php';
@@ -80,6 +86,10 @@ class ProductScraper
         register_setting('product_scraper_settings', 'product_scraper_google_search_console');
         register_setting('product_scraper_settings', 'product_scraper_semrush_api');
         register_setting('product_scraper_settings', 'product_scraper_ahrefs_api');
+
+        // Add GA4 specific setting
+        register_setting('product_scraper_settings', 'product_scraper_ga4_property_id');
+        register_setting('product_scraper_settings', 'product_scraper_pagespeed_api');
     }
 
     public function enqueue_admin_scripts($hook)
@@ -135,6 +145,7 @@ class ProductScraper
                 'api_nonce' => wp_create_nonce('wp_rest'),
                 'api_url' => rest_url('product-scraper/v1/'),
                 'site_url' => get_site_url(),
+                'vendor_loaded' => file_exists(__DIR__ . '/vendor/autoload.php'),
                 'strings' => array(
                     'saving' => __('Saving...', 'product-scraper'),
                     'saved' => __('Saved!', 'product-scraper'),

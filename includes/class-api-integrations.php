@@ -2,7 +2,6 @@
 
 class ProductScraper_API_Integrations
 {
-
     private $cache_duration = 3600; // 1 hour cache
 
     public function __construct()
@@ -11,11 +10,19 @@ class ProductScraper_API_Integrations
     }
 
     /**
+     * Check if Google API classes are available
+     */
+    private function google_api_available()
+    {
+        return class_exists('Google_Client') && class_exists('Google_Service_AnalyticsData');
+    }
+
+    /**
      * Get comprehensive SEO data for the current site
      */
     public function get_seo_dashboard_data()
     {
-        $cache_key = 'product_scraper_seo_data_' . get_site_url();
+        $cache_key = 'product_scraper_seo_data_' . md5(get_site_url());
         $cached_data = get_transient($cache_key);
 
         if ($cached_data !== false) {
@@ -29,7 +36,8 @@ class ProductScraper_API_Integrations
             'digital_score' => $this->calculate_digital_score(),
             'engagement_metrics' => $this->get_engagement_metrics(),
             'competitor_analysis' => $this->get_competitor_analysis(),
-            'site_health' => $this->get_site_health_metrics()
+            'site_health' => $this->get_site_health_metrics(),
+            'last_updated' => current_time('mysql')
         );
 
         set_transient($cache_key, $data, $this->cache_duration);
@@ -37,64 +45,156 @@ class ProductScraper_API_Integrations
     }
 
     /**
-     * Get organic traffic data from Google Analytics
+     * Get organic traffic data from Google Analytics - REAL DATA ONLY
      */
     private function get_organic_traffic()
     {
-        $ga_id = get_option('product_scraper_google_analytics_id');
+        $propertyId = get_option('product_scraper_ga4_property_id');
 
-        if (!$ga_id) {
-            // Fallback to estimated data
-            $this->generate_realistic_traffic_data();
+        // Only try Google Analytics API if vendor is loaded AND property ID exists
+        if ($propertyId && $this->google_api_available()) {
+            try {
+                return $this->get_google_analytics_data($propertyId);
+            } catch (Exception $e) {
+                // Log error and return empty data structure
+                error_log('Google Analytics API error: ' . $e->getMessage());
+                return $this->get_empty_traffic_data();
+            }
         }
 
-        // In production, you would implement Google Analytics API integration
-        // For now, return realistic mock data based on site size
-        return $this->generate_realistic_traffic_data();
+        // Return empty data if no API configured
+        return $this->get_empty_traffic_data();
     }
 
     /**
-     * Get referring domains count
+     * Get Google Analytics data (only called if vendor is loaded)
+     */
+    private function get_google_analytics_data($propertyId)
+    {
+        $client = new Google_Client();
+        $client->setAuthConfig(WP_CONTENT_DIR . '/uploads/product-scraper-service-account.json');
+        $client->addScope('https://www.googleapis.com/auth/analytics.readonly');
+
+        $analytics = new Google_Service_AnalyticsData($client);
+        $request = new Google_Service_AnalyticsData_RunReportRequest([
+            'dimensions' => [new Google_Service_AnalyticsData_Dimension(['name' => 'sessionSource'])],
+            'metrics' => [
+                new Google_Service_AnalyticsData_Metric(['name' => 'sessions']),
+                new Google_Service_AnalyticsData_Metric(['name' => 'bounceRate']),
+                new Google_Service_AnalyticsData_Metric(['name' => 'averageSessionDuration'])
+            ],
+            'dateRanges' => [
+                new Google_Service_AnalyticsData_DateRange(['startDate' => '30daysAgo', 'endDate' => 'today'])
+            ]
+        ]);
+
+        $response = $analytics->properties->runReport("properties/$propertyId", $request);
+
+        // Parse response - handle empty data
+        $sessions = 0;
+        $bounce_rate = 0;
+        $avg_duration = 0;
+
+        if ($response->getRows()) {
+            foreach ($response->getRows() as $row) {
+                $sessions += (int)$row->getMetricValues()[0]->getValue();
+                $bounce_rate = (float)$row->getMetricValues()[1]->getValue();
+                $avg_duration = (float)$row->getMetricValues()[2]->getValue();
+            }
+        }
+
+        return [
+            'current' => $sessions,
+            'previous' => 0, // You'd need historical data for this
+            'change' => 0,
+            'trend' => 'neutral',
+            'bounce_rate' => $bounce_rate,
+            'avg_duration' => $avg_duration,
+            'source' => 'google_analytics'
+        ];
+    }
+
+    /**
+     * Get referring domains count - REAL DATA ONLY
      */
     private function get_referring_domains()
     {
         $api_key = get_option('product_scraper_ahrefs_api');
+        $target = parse_url(get_site_url(), PHP_URL_HOST);
 
-        if ($api_key) {
-            // Implement Ahrefs API integration
-            // return $this->ahrefs_get_referring_domains($api_key);
+        if (!$api_key) return $this->get_empty_referring_domains();
+
+        $url = "https://apiv2.ahrefs.com?token={$api_key}&target={$target}&from=domain_rating&mode=domain";
+
+        $response = wp_remote_get($url);
+        if (is_wp_error($response)) {
+            error_log('Ahrefs API HTTP error: ' . $response->get_error_message());
+            return $this->get_empty_referring_domains();
         }
 
-        // Fallback to realistic estimation
-        return $this->estimate_referring_domains();
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+
+        // Handle API errors or empty responses
+        if (isset($data['error'])) {
+            error_log('Ahrefs API error: ' . $data['error']);
+            return $this->get_empty_referring_domains();
+        }
+
+        $refdomains = isset($data['refdomains']) ? intval($data['refdomains']) : 0;
+        $domain_rating = isset($data['domain_rating']) ? floatval($data['domain_rating']) : 0;
+
+        return [
+            'count' => $refdomains,
+            'domain_rating' => $domain_rating,
+            'trend' => 'neutral',
+            'change' => 0,
+            'source' => 'ahrefs_api'
+        ];
     }
 
     /**
-     * Get top performing keywords
+     * Get top performing keywords - REAL DATA ONLY
      */
     private function get_top_keywords()
     {
         $gsc_connected = get_option('product_scraper_google_search_console');
 
-        if ($gsc_connected) {
-            // Implement GSC API integration
-            // return $this->gsc_get_top_keywords();
+        if ($gsc_connected && $this->google_api_available()) {
+            try {
+                return $this->get_gsc_keywords();
+            } catch (Exception $e) {
+                error_log('Google Search Console API error: ' . $e->getMessage());
+                return $this->get_empty_keywords();
+            }
         }
 
-        // Generate realistic keyword data based on site content
-        return $this->generate_realistic_keywords();
+        // Return empty if no GSC configured
+        return $this->get_empty_keywords();
     }
 
     /**
-     * Calculate comprehensive digital score
+     * Get keywords from Google Search Console
+     */
+    private function get_gsc_keywords()
+    {
+        // This is a placeholder - you'll need to implement actual GSC API integration
+        // For now, return empty array
+        return [];
+    }
+
+    /**
+     * Calculate comprehensive digital score based on real data
      */
     private function calculate_digital_score()
     {
+        $traffic_data = $this->get_organic_traffic();
+        $referring_data = $this->get_referring_domains();
+        $health_data = $this->get_site_health_metrics();
+
         $metrics = array(
-            'technical_seo' => $this->get_technical_seo_score(),
-            'content_quality' => $this->get_content_quality_score(),
-            'authority' => $this->get_authority_score(),
-            'user_experience' => $this->get_ux_score()
+            'traffic_score' => $this->calculate_traffic_score($traffic_data),
+            'authority_score' => $this->calculate_authority_score($referring_data),
+            'technical_score' => $health_data['overall'] ?? 0
         );
 
         $total_score = array_sum($metrics) / count($metrics);
@@ -102,197 +202,306 @@ class ProductScraper_API_Integrations
     }
 
     /**
-     * Get engagement metrics
+     * Calculate traffic score based on real traffic data
+     */
+    private function calculate_traffic_score($traffic_data)
+    {
+        if ($traffic_data['current'] > 10000) return 100;
+        if ($traffic_data['current'] > 5000) return 80;
+        if ($traffic_data['current'] > 1000) return 60;
+        if ($traffic_data['current'] > 100) return 40;
+        return 20;
+    }
+
+    /**
+     * Calculate authority score based on real referring domains
+     */
+    private function calculate_authority_score($referring_data)
+    {
+        $ref_domains = $referring_data['count'];
+        $domain_rating = $referring_data['domain_rating'] * 10; // Convert to 0-100 scale
+
+        if ($ref_domains > 1000) return min(100, $domain_rating + 20);
+        if ($ref_domains > 100) return min(100, $domain_rating + 10);
+        if ($ref_domains > 10) return min(100, $domain_rating + 5);
+        return $domain_rating;
+    }
+
+    /**
+     * Get engagement metrics from real data
      */
     private function get_engagement_metrics()
     {
-        return array(
-            'visit_duration' => $this->get_visit_duration(),
-            'page_views' => $this->get_page_views(),
-            'bounce_rate' => $this->get_bounce_rate(),
-            'pages_per_session' => $this->get_pages_per_session()
-        );
-    }
+        $propertyId = get_option('product_scraper_ga4_property_id');
 
-    /**
-     * Generate realistic traffic data based on site analysis
-     */
-    private function generate_realistic_traffic_data()
-    {
-        $site_url = get_site_url();
-        $domain_authority = $this->estimate_domain_authority();
-        $content_volume = $this->count_published_content();
-
-        // Base traffic estimation algorithm
-        $base_traffic = $content_volume * 15; // Base multiplier
-        $authority_multiplier = $domain_authority / 50; // Normalize to 0-2 range
-
-        $estimated_traffic = $base_traffic * $authority_multiplier;
-
-        return array(
-            'current' => round($estimated_traffic),
-            'previous' => round($estimated_traffic * 0.92), // 8% growth
-            'change' => 8.7,
-            'trend' => 'up',
-            'sources' => array(
-                'organic' => round($estimated_traffic * 0.65),
-                'direct' => round($estimated_traffic * 0.20),
-                'referral' => round($estimated_traffic * 0.10),
-                'social' => round($estimated_traffic * 0.05)
-            )
-        );
-    }
-
-    /**
-     * Estimate referring domains
-     */
-    private function estimate_referring_domains()
-    {
-        $domain_age = $this->get_domain_age();
-        $content_quality = $this->get_content_quality_score();
-
-        // Simple estimation algorithm
-        $base_domains = $domain_age * 2; // 2 domains per month
-        $quality_bonus = $content_quality / 10;
-
-        return array(
-            'count' => round($base_domains + $quality_bonus),
-            'trend' => 'up',
-            'change' => 12.3
-        );
-    }
-
-    /**
-     * Generate realistic keywords based on site content
-     */
-    private function generate_realistic_keywords()
-    {
-        $keywords = array();
-        $site_content = $this->analyze_site_content();
-
-        foreach ($site_content['top_topics'] as $topic) {
-            $keywords[] = array(
-                'phrase' => $topic . ' ' . $this->get_keyword_modifier(),
-                'volume' => $this->generate_search_volume(),
-                'traffic_share' => rand(5, 25),
-                'position' => rand(1, 20),
-                'last_updated' => date('j M'),
-                'difficulty' => rand(25, 85),
-                'potential_traffic' => rand(500, 5000)
-            );
+        if ($propertyId && $this->google_api_available()) {
+            try {
+                return $this->get_google_analytics_engagement($propertyId);
+            } catch (Exception $e) {
+                error_log('Google Analytics Engagement API error: ' . $e->getMessage());
+            }
         }
 
-        // Sort by traffic share
-        usort($keywords, function ($a, $b) {
-            return $b['traffic_share'] - $a['traffic_share'];
-        });
-
-        return array_slice($keywords, 0, 10);
+        return $this->get_empty_engagement_metrics();
     }
 
     /**
-     * Analyze site content to extract topics
+     * Get engagement metrics from Google Analytics
      */
-    private function analyze_site_content()
+    private function get_google_analytics_engagement($propertyId)
     {
-        $topics = array();
-        $posts = get_posts(array(
-            'numberposts' => 50,
-            'post_status' => 'publish'
+        $client = new Google_Client();
+        $client->setAuthConfig(WP_CONTENT_DIR . '/uploads/product-scraper-service-account.json');
+        $client->addScope('https://www.googleapis.com/auth/analytics.readonly');
+
+        $analytics = new Google_Service_AnalyticsData($client);
+        $request = new Google_Service_AnalyticsData_RunReportRequest([
+            'metrics' => [
+                new Google_Service_AnalyticsData_Metric(['name' => 'sessions']),
+                new Google_Service_AnalyticsData_Metric(['name' => 'averageSessionDuration']),
+                new Google_Service_AnalyticsData_Metric(['name' => 'bounceRate']),
+                new Google_Service_AnalyticsData_Metric(['name' => 'screenPageViewsPerSession'])
+            ],
+            'dateRanges' => [
+                new Google_Service_AnalyticsData_DateRange(['startDate' => '30daysAgo', 'endDate' => 'today'])
+            ]
+        ]);
+
+        $response = $analytics->properties->runReport("properties/$propertyId", $request);
+
+        $metrics = [
+            'visit_duration' => 0,
+            'page_views' => 0,
+            'bounce_rate' => 0,
+            'pages_per_session' => 0
+        ];
+
+        if ($response->getRows()) {
+            $row = $response->getRows()[0];
+            $metrics = [
+                'visit_duration' => (float)$row->getMetricValues()[1]->getValue(),
+                'page_views' => (int)$row->getMetricValues()[0]->getValue(),
+                'bounce_rate' => (float)$row->getMetricValues()[2]->getValue(),
+                'pages_per_session' => (float)$row->getMetricValues()[3]->getValue()
+            ];
+        }
+
+        return $metrics;
+    }
+
+    /**
+     * Get competitor analysis - REAL DATA ONLY
+     */
+    private function get_competitor_analysis()
+    {
+        $api_key = get_option('product_scraper_ahrefs_api');
+
+        if (!$api_key) {
+            return $this->get_empty_competitor_analysis();
+        }
+
+        $competitors = ['competitor1.com', 'competitor2.com', 'competitor3.com'];
+        $analysis = [];
+
+        foreach ($competitors as $domain) {
+            $url = "https://apiv2.ahrefs.com?token={$api_key}&target={$domain}&from=domain_rating&mode=domain";
+            $response = wp_remote_get($url);
+
+            if (is_wp_error($response)) {
+                $analysis[] = $this->get_empty_competitor_profile($domain);
+                continue;
+            }
+
+            $data = json_decode(wp_remote_retrieve_body($response), true);
+
+            if (isset($data['error'])) {
+                $analysis[] = $this->get_empty_competitor_profile($domain);
+                continue;
+            }
+
+            $analysis[] = [
+                'domain' => $domain,
+                'authority' => isset($data['domain_rating']) ? floatval($data['domain_rating']) : 0,
+                'ref_domains' => isset($data['refdomains']) ? intval($data['refdomains']) : 0,
+                'traffic' => isset($data['traffic']) ? intval($data['traffic']) : 0,
+                'source' => 'ahrefs_api'
+            ];
+        }
+
+        return $analysis;
+    }
+
+    /**
+     * Get site health metrics - REAL DATA ONLY
+     */
+    private function get_site_health_metrics()
+    {
+        $api_key = get_option('product_scraper_pagespeed_api');
+
+        // If no API key, return empty data
+        if (!$api_key) {
+            return $this->get_empty_site_health();
+        }
+
+        $url = urlencode(get_site_url());
+        $api_url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={$url}&key={$api_key}";
+
+        $response = wp_remote_get($api_url, array(
+            'timeout' => 30,
+            'headers' => array(
+                'User-Agent' => 'WordPress/ProductScraper'
+            )
         ));
 
-        foreach ($posts as $post) {
-            $words = str_word_count(strtolower($post->post_title . ' ' . $post->post_content), 1);
-            $topics = array_merge($topics, array_slice($words, 0, 10));
+        // Check for WP HTTP errors
+        if (is_wp_error($response)) {
+            error_log('PageSpeed API WP Error: ' . $response->get_error_message());
+            return $this->get_empty_site_health();
         }
 
-        $topic_frequency = array_count_values($topics);
-        arsort($topic_frequency);
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            error_log('PageSpeed API HTTP Error: ' . $response_code);
+            return $this->get_empty_site_health();
+        }
 
-        return array(
-            'top_topics' => array_slice(array_keys($topic_frequency), 0, 15),
-            'total_posts' => count($posts),
-            'word_count' => array_sum($topic_frequency)
-        );
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        // Check if JSON decoding failed
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('PageSpeed API JSON Error: ' . json_last_error_msg());
+            return $this->get_empty_site_health();
+        }
+
+        // Check if the expected structure exists
+        if (!isset($data['lighthouseResult']['categories'])) {
+            error_log('PageSpeed API: Invalid response structure');
+            return $this->get_empty_site_health();
+        }
+
+        $categories = $data['lighthouseResult']['categories'];
+
+        // Extract scores safely
+        $scores = [
+            'performance' => $this->get_safe_category_score($categories, 'performance'),
+            'accessibility' => $this->get_safe_category_score($categories, 'accessibility'),
+            'best_practices' => $this->get_safe_category_score($categories, 'best-practices'),
+            'seo' => $this->get_safe_category_score($categories, 'seo'),
+        ];
+
+        // Calculate overall score from real data
+        $overall = round(array_sum($scores) / count($scores));
+
+        return [
+            'scores' => $scores,
+            'overall' => $overall,
+            'source' => 'pagespeed_api'
+        ];
     }
 
     /**
-     * Helper methods for data generation
+     * Safely get category score without fallbacks
      */
-    private function get_domain_age()
+    private function get_safe_category_score($categories, $category_name)
     {
-        $registration_date = get_option('site_created', time() - (365 * 2 * 24 * 60 * 60)); // Default 2 years
-        return floor((time() - $registration_date) / (30 * 24 * 60 * 60)); // Months
+        if (isset($categories[$category_name]['score'])) {
+            return round($categories[$category_name]['score'] * 100);
+        }
+        return 0; // Return 0 instead of random data
     }
 
-    private function count_published_content()
+    // EMPTY DATA STRUCTURES - NO FALLBACKS
+
+    private function get_empty_traffic_data()
     {
-        return wp_count_posts()->publish + wp_count_posts('page')->publish;
+        return [
+            'current' => 0,
+            'previous' => 0,
+            'change' => 0,
+            'trend' => 'neutral',
+            'bounce_rate' => 0,
+            'avg_duration' => 0,
+            'source' => 'none'
+        ];
     }
 
-    private function estimate_domain_authority()
+    private function get_empty_referring_domains()
     {
-        $age = $this->get_domain_age();
-        $content = $this->count_published_content();
-        $backlinks = $this->estimate_referring_domains();
-
-        return min(100, ($age * 2) + ($content * 0.5) + ($backlinks['count'] * 1.5));
+        return [
+            'count' => 0,
+            'domain_rating' => 0,
+            'trend' => 'neutral',
+            'change' => 0,
+            'source' => 'none'
+        ];
     }
 
-    private function get_technical_seo_score()
+    private function get_empty_keywords()
     {
-        // Implement technical SEO audit
-        return rand(65, 95);
+        return [];
     }
 
-    private function get_content_quality_score()
+    private function get_empty_engagement_metrics()
     {
-        // Analyze content quality
-        return rand(70, 90);
+        return [
+            'visit_duration' => 0,
+            'page_views' => 0,
+            'bounce_rate' => 0,
+            'pages_per_session' => 0
+        ];
     }
 
-    private function get_authority_score()
+    private function get_empty_competitor_analysis()
     {
-        // Calculate authority metrics
-        return rand(60, 85);
+        return [
+            [
+                'domain' => 'competitor1.com',
+                'authority' => 0,
+                'ref_domains' => 0,
+                'traffic' => 0,
+                'source' => 'none'
+            ],
+            [
+                'domain' => 'competitor2.com',
+                'authority' => 0,
+                'ref_domains' => 0,
+                'traffic' => 0,
+                'source' => 'none'
+            ],
+            [
+                'domain' => 'competitor3.com',
+                'authority' => 0,
+                'ref_domains' => 0,
+                'traffic' => 0,
+                'source' => 'none'
+            ]
+        ];
     }
 
-    private function get_ux_score()
+    private function get_empty_competitor_profile($domain)
     {
-        // Analyze user experience factors
-        return rand(75, 95);
+        return [
+            'domain' => $domain,
+            'authority' => 0,
+            'ref_domains' => 0,
+            'traffic' => 0,
+            'source' => 'none'
+        ];
     }
 
-    private function get_visit_duration()
+    private function get_empty_site_health()
     {
-        return rand(120, 300); // seconds
-    }
-
-    private function get_page_views()
-    {
-        return rand(50000, 200000);
-    }
-
-    private function get_bounce_rate()
-    {
-        return rand(35, 65); // percentage
-    }
-
-    private function get_pages_per_session()
-    {
-        return rand(1.5, 3.5);
-    }
-
-    private function generate_search_volume()
-    {
-        $volumes = ['5.2k', '8.1k', '12.4k', '18.9k', '25.3k', '32.7k', '45.1k', '67.8k'];
-        return $volumes[array_rand($volumes)];
-    }
-
-    private function get_keyword_modifier()
-    {
-        $modifiers = ['Tips', 'Guide', '2024', 'Best', 'Review', 'Tutorial', 'How to', 'Free'];
-        return $modifiers[array_rand($modifiers)];
+        return [
+            'scores' => [
+                'performance' => 0,
+                'accessibility' => 0,
+                'best_practices' => 0,
+                'seo' => 0,
+            ],
+            'overall' => 0,
+            'source' => 'none'
+        ];
     }
 
     /**
@@ -305,75 +514,10 @@ class ProductScraper_API_Integrations
         }
 
         // Clear cache to force refresh
-        $cache_key = 'product_scraper_seo_data_' . get_site_url();
+        $cache_key = 'product_scraper_seo_data_' . md5(get_site_url());
         delete_transient($cache_key);
 
         $new_data = $this->get_seo_dashboard_data();
         wp_send_json_success($new_data);
-    }
-
-    /**
-     * Generate realistic competitor analysis data
-     */
-    private function get_competitor_analysis()
-    {
-        $competitors = array(
-            'example-competitor1.com',
-            'example-competitor2.com',
-            'example-competitor3.com',
-            'example-competitor4.com'
-        );
-
-        $analysis = array();
-
-        foreach ($competitors as $domain) {
-            $traffic = rand(5000, 50000);
-            $ref_domains = rand(50, 500);
-            $keywords = rand(200, 3000);
-            $authority = rand(40, 90);
-
-            $analysis[] = array(
-                'domain' => $domain,
-                'traffic' => $traffic,
-                'referring_domains' => $ref_domains,
-                'keywords' => $keywords,
-                'authority_score' => $authority,
-                'trend' => (rand(0, 1) ? 'up' : 'down'),
-                'traffic_change' => rand(-15, 25)
-            );
-        }
-
-        // Sort by traffic (descending)
-        usort($analysis, function ($a, $b) {
-            return $b['traffic'] - $a['traffic'];
-        });
-
-        return array_slice($analysis, 0, 5);
-    }
-
-    /**
-     * Generate simplified site health metrics
-     */
-    private function get_site_health_metrics()
-    {
-        $scores = array(
-            'performance' => rand(70, 95),
-            'security' => rand(60, 90),
-            'mobile' => rand(75, 95),
-            'accessibility' => rand(65, 90)
-        );
-
-        $overall = array_sum($scores) / count($scores);
-
-        return array(
-            'scores' => $scores,
-            'overall' => round($overall),
-            'recommendations' => array(
-                'Optimize image sizes',
-                'Enable caching for faster load times',
-                'Improve mobile viewport design',
-                'Add SSL certificate if not enabled'
-            )
-        );
     }
 }
