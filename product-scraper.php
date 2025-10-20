@@ -672,7 +672,9 @@ class ProductScraper
             'scraper-analytics_page_seo-assistant',
             'scraper-analytics_page_seo-settings',
             'scraper-analytics_page_seo-analysis',
-            'scraper-analytics_page_link-manager'
+            'scraper-analytics_page_link-manager',
+            'scraper-analytics_page_scraper-reports',
+            'scraper-analytics_page_scraper-settings'
         );
 
         $is_plugin_page = in_array($hook, $plugin_pages);
