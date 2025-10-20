@@ -873,6 +873,22 @@ class ProductScraper
             exit;
         }
     }
+
+    /**
+     * Render the admin sidebar
+     * 
+     * @param string $current_page The current page slug
+     */
+    public static function product_scraper_render_sidebar($current_page = '') {
+        if (empty($current_page)) {
+            $current_page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+        }
+        
+        $sidebar_path = PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/sidebar.php';
+        if (file_exists($sidebar_path)) {
+            include $sidebar_path;
+        }
+    }
 }
 
 new ProductScraper();
