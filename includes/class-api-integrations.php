@@ -47,7 +47,7 @@ class ProductScraper_API_Integrations
     /**
      * Get organic traffic data from Google Analytics - REAL DATA ONLY
      */
-    private function get_organic_traffic()
+    public function get_organic_traffic()
     {
         $propertyId = get_option('product_scraper_ga4_property_id');
 
@@ -117,7 +117,7 @@ class ProductScraper_API_Integrations
     /**
      * Get referring domains count - REAL DATA ONLY
      */
-    private function get_referring_domains()
+    public function get_referring_domains()
     {
         $api_key = get_option('product_scraper_ahrefs_api');
         $target = parse_url(get_site_url(), PHP_URL_HOST);
@@ -177,7 +177,7 @@ class ProductScraper_API_Integrations
      */
     private function get_gsc_keywords()
     {
-        // This is a placeholder - you'll need to implement actual GSC API integration
+        // This is a placeholder - we'll need to implement actual GSC API integration
         // For now, return empty array
         return [];
     }
@@ -334,7 +334,7 @@ class ProductScraper_API_Integrations
     /**
      * Get site health metrics - REAL DATA ONLY
      */
-    private function get_site_health_metrics()
+    public function get_site_health_metrics()
     {
         $api_key = get_option('product_scraper_pagespeed_api');
 
