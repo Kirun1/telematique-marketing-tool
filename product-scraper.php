@@ -140,6 +140,12 @@ class ProductScraper
             $this->output_taxonomy_meta_tags();
         } elseif (is_author()) {
             $this->output_author_meta_tags();
+        } elseif (is_home() || is_front_page()) {
+            $this->output_homepage_meta_tags();
+        } elseif (is_search()) {
+            $this->output_search_meta_tags();
+        } elseif (is_archive()) {
+            $this->output_archive_meta_tags();
         }
     }
 
@@ -157,11 +163,17 @@ class ProductScraper
         // Title tag
         if (!empty($seo_title)) {
             echo '<title>' . esc_html($seo_title) . '</title>' . "\n";
+        } else {
+            echo '<title>' . esc_html(get_the_title()) . ' | ' . esc_html(get_bloginfo('name')) . '</title>' . "\n";
         }
 
         // Meta description
         if (!empty($meta_description)) {
             echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        } elseif ($post->post_excerpt) {
+            echo '<meta name="description" content="' . esc_attr(wp_trim_words($post->post_excerpt, 25)) . '" />' . "\n";
+        } else {
+            echo '<meta name="description" content="' . esc_attr(wp_trim_words(wp_strip_all_tags($post->post_content), 25)) . '" />' . "\n";
         }
 
         // Canonical URL
@@ -175,6 +187,278 @@ class ProductScraper
         if (!empty($meta_robots)) {
             echo '<meta name="robots" content="' . esc_attr($meta_robots) . '" />' . "\n";
         }
+    }
+
+    /**
+     * Output meta tags for taxonomy pages (categories, tags, custom taxonomies)
+     */
+    public function output_taxonomy_meta_tags()
+    {
+        $term = get_queried_object();
+        
+        if (!$term || !isset($term->term_id)) {
+            return;
+        }
+
+        $term_id = $term->term_id;
+        $taxonomy = $term->taxonomy;
+
+        // Get SEO meta from term meta
+        $seo_title = get_term_meta($term_id, '_seo_title', true);
+        $meta_description = get_term_meta($term_id, '_meta_description', true);
+        $canonical_url = get_term_meta($term_id, '_canonical_url', true);
+        $meta_robots = get_term_meta($term_id, '_meta_robots', true);
+
+        // Generate title
+        if (!empty($seo_title)) {
+            $title = esc_html($seo_title);
+        } else {
+            $title = esc_html($term->name);
+            if (is_category()) {
+                $title .= ' | ' . __('Category', 'product-scraper');
+            } elseif (is_tag()) {
+                $title .= ' | ' . __('Tag', 'product-scraper');
+            } else {
+                $taxonomy_obj = get_taxonomy($taxonomy);
+                $title .= ' | ' . esc_html($taxonomy_obj->labels->singular_name);
+            }
+            $title .= ' | ' . esc_html(get_bloginfo('name'));
+        }
+        echo '<title>' . $title . '</title>' . "\n";
+
+        // Meta description
+        if (!empty($meta_description)) {
+            echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        } elseif (!empty($term->description)) {
+            echo '<meta name="description" content="' . esc_attr(wp_trim_words($term->description, 25)) . '" />' . "\n";
+        } else {
+            $default_description = sprintf(
+                __('Browse our collection of %s. Find the best products and content related to %s.', 'product-scraper'),
+                esc_attr($term->name),
+                esc_attr($term->name)
+            );
+            echo '<meta name="description" content="' . $default_description . '" />' . "\n";
+        }
+
+        // Canonical URL
+        if (!empty($canonical_url)) {
+            echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
+        } else {
+            echo '<link rel="canonical" href="' . esc_url(get_term_link($term)) . '" />' . "\n";
+        }
+
+        // Meta robots
+        if (!empty($meta_robots)) {
+            echo '<meta name="robots" content="' . esc_attr($meta_robots) . '" />' . "\n";
+        } else {
+            // Default for taxonomy pages - index, follow unless paginated
+            if ($this->is_paginated_archive()) {
+                echo '<meta name="robots" content="noindex, follow" />' . "\n";
+            } else {
+                echo '<meta name="robots" content="index, follow" />' . "\n";
+            }
+        }
+
+        // Prevent pagination duplication
+        if ($this->is_paginated_archive()) {
+            $this->output_pagination_meta($term);
+        }
+    }
+
+    /**
+     * Output meta tags for author pages
+     */
+    public function output_author_meta_tags()
+    {
+        $author_id = get_queried_object_id();
+        $author = get_queried_object();
+        
+        if (!$author) {
+            return;
+        }
+
+        // Get SEO meta from user meta
+        $seo_title = get_user_meta($author_id, '_seo_title', true);
+        $meta_description = get_user_meta($author_id, '_meta_description', true);
+        $canonical_url = get_user_meta($author_id, '_canonical_url', true);
+        $meta_robots = get_user_meta($author_id, '_meta_robots', true);
+
+        // Generate title
+        if (!empty($seo_title)) {
+            $title = esc_html($seo_title);
+        } else {
+            $title = esc_html($author->display_name) . ' | ' . __('Author', 'product-scraper') . ' | ' . esc_html(get_bloginfo('name'));
+        }
+        echo '<title>' . $title . '</title>' . "\n";
+
+        // Meta description
+        if (!empty($meta_description)) {
+            echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        } elseif (!empty($author->description)) {
+            echo '<meta name="description" content="' . esc_attr(wp_trim_words($author->description, 25)) . '" />' . "\n";
+        } else {
+            $post_count = count_user_posts($author_id);
+            $default_description = sprintf(
+                _n(
+                    'View all %d post by %s. %s is an author on %s.',
+                    'View all %d posts by %s. %s is an author on %s.',
+                    $post_count,
+                    'product-scraper'
+                ),
+                $post_count,
+                esc_attr($author->display_name),
+                esc_attr($author->display_name),
+                esc_attr(get_bloginfo('name'))
+            );
+            echo '<meta name="description" content="' . $default_description . '" />' . "\n";
+        }
+
+        // Canonical URL
+        if (!empty($canonical_url)) {
+            echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
+        } else {
+            echo '<link rel="canonical" href="' . esc_url(get_author_posts_url($author_id)) . '" />' . "\n";
+        }
+
+        // Meta robots
+        if (!empty($meta_robots)) {
+            echo '<meta name="robots" content="' . esc_attr($meta_robots) . '" />' . "\n";
+        } else {
+            // Default for author pages - index, follow unless paginated
+            if ($this->is_paginated_archive()) {
+                echo '<meta name="robots" content="noindex, follow" />' . "\n";
+            } else {
+                echo '<meta name="robots" content="index, follow" />' . "\n";
+            }
+        }
+
+        // Prevent pagination duplication
+        if ($this->is_paginated_archive()) {
+            $this->output_pagination_meta($author);
+        }
+    }
+
+    /**
+     * Output meta tags for homepage
+     */
+    public function output_homepage_meta_tags()
+    {
+        $seo_title = get_option('product_scraper_homepage_title');
+        $meta_description = get_option('product_scraper_homepage_description');
+        $canonical_url = home_url('/');
+
+        // Title tag
+        if (!empty($seo_title)) {
+            echo '<title>' . esc_html($seo_title) . '</title>' . "\n";
+        } else {
+            echo '<title>' . esc_html(get_bloginfo('name')) . ' | ' . esc_html(get_bloginfo('description')) . '</title>' . "\n";
+        }
+
+        // Meta description
+        if (!empty($meta_description)) {
+            echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        } elseif (!empty(get_bloginfo('description'))) {
+            echo '<meta name="description" content="' . esc_attr(get_bloginfo('description')) . '" />' . "\n";
+        }
+
+        // Canonical URL
+        echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
+
+        // Meta robots
+        echo '<meta name="robots" content="index, follow" />' . "\n";
+    }
+
+    /**
+     * Output meta tags for search results
+     */
+    public function output_search_meta_tags()
+    {
+        $search_query = get_search_query();
+        
+        echo '<title>' . sprintf(__('Search Results for: "%s" | %s', 'product-scraper'), esc_html($search_query), esc_html(get_bloginfo('name'))) . '</title>' . "\n";
+        
+        echo '<meta name="description" content="' . sprintf(__('Search results for "%s". Find relevant content and products on %s.', 'product-scraper'), esc_attr($search_query), esc_attr(get_bloginfo('name'))) . '" />' . "\n";
+        
+        echo '<link rel="canonical" href="' . esc_url(get_search_link()) . '" />' . "\n";
+        
+        // Typically noindex search results to avoid duplicate content
+        echo '<meta name="robots" content="noindex, follow" />' . "\n";
+    }
+
+    /**
+     * Output meta tags for general archive pages
+     */
+    public function output_archive_meta_tags()
+    {
+        if (is_date()) {
+            $this->output_date_archive_meta_tags();
+        } else {
+            // Fallback for other archive types
+            echo '<title>' . esc_html(get_the_archive_title()) . ' | ' . esc_html(get_bloginfo('name')) . '</title>' . "\n";
+            echo '<meta name="description" content="' . esc_attr(wp_trim_words(get_the_archive_description(), 25)) . '" />' . "\n";
+            echo '<link rel="canonical" href="' . esc_url(get_pagenum_link()) . '" />' . "\n";
+            
+            if ($this->is_paginated_archive()) {
+                echo '<meta name="robots" content="noindex, follow" />' . "\n";
+            } else {
+                echo '<meta name="robots" content="index, follow" />' . "\n";
+            }
+        }
+    }
+
+    /**
+     * Output meta tags for date-based archives
+     */
+    public function output_date_archive_meta_tags()
+    {
+        if (is_year()) {
+            $title = sprintf(__('Posts from %s | %s', 'product-scraper'), get_the_date('Y'), get_bloginfo('name'));
+            $description = sprintf(__('Browse all posts from %s on %s.', 'product-scraper'), get_the_date('Y'), get_bloginfo('name'));
+        } elseif (is_month()) {
+            $title = sprintf(__('Posts from %s | %s', 'product-scraper'), get_the_date('F Y'), get_bloginfo('name'));
+            $description = sprintf(__('Browse all posts from %s on %s.', 'product-scraper'), get_the_date('F Y'), get_bloginfo('name'));
+        } elseif (is_day()) {
+            $title = sprintf(__('Posts from %s | %s', 'product-scraper'), get_the_date(), get_bloginfo('name'));
+            $description = sprintf(__('Browse all posts from %s on %s.', 'product-scraper'), get_the_date(), get_bloginfo('name'));
+        }
+
+        echo '<title>' . esc_html($title) . '</title>' . "\n";
+        echo '<meta name="description" content="' . esc_attr($description) . '" />' . "\n";
+        echo '<link rel="canonical" href="' . esc_url(get_pagenum_link()) . '" />' . "\n";
+        
+        // Typically noindex date archives to avoid thin content
+        echo '<meta name="robots" content="noindex, follow" />' . "\n";
+    }
+
+    /**
+     * Output pagination meta tags to prevent duplicate content
+     */
+    private function output_pagination_meta($object = null)
+    {
+        global $wp_query;
+        
+        $paged = get_query_var('paged') ?: 1;
+        
+        if ($paged > 1) {
+            // Prev link
+            if ($paged > 1) {
+                echo '<link rel="prev" href="' . esc_url(get_pagenum_link($paged - 1)) . '" />' . "\n";
+            }
+            
+            // Next link
+            if ($paged < $wp_query->max_num_pages) {
+                echo '<link rel="next" href="' . esc_url(get_pagenum_link($paged + 1)) . '" />' . "\n";
+            }
+        }
+    }
+
+    /**
+     * Check if current page is a paginated archive
+     */
+    private function is_paginated_archive()
+    {
+        global $wp_query;
+        return $wp_query->is_paged && ($wp_query->is_archive() || $wp_query->is_home() || $wp_query->is_search());
     }
 
     public function add_opengraph_meta()
@@ -199,6 +483,62 @@ class ProductScraper
         } elseif (has_post_thumbnail($post->ID)) {
             $image_url = wp_get_attachment_image_url(get_post_thumbnail_id($post->ID), 'large');
             echo '<meta property="og:image" content="' . esc_url($image_url) . '" />' . "\n";
+        }
+    }
+
+    /**
+     * Add Open Graph meta tags for taxonomy pages
+     */
+    public function add_taxonomy_opengraph_meta()
+    {
+        if (!is_tax() && !is_category() && !is_tag()) return;
+
+        $term = get_queried_object();
+        if (!$term) return;
+
+        $og_title = get_term_meta($term->term_id, '_og_title', true) ?: $term->name;
+        $og_description = get_term_meta($term->term_id, '_og_description', true) ?: wp_trim_words($term->description, 25);
+        $og_image = get_term_meta($term->term_id, '_og_image', true);
+
+        echo '<!-- Product Scraper Taxonomy Open Graph -->' . "\n";
+        echo '<meta property="og:type" content="website" />' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr($og_description) . '" />' . "\n";
+        echo '<meta property="og:url" content="' . esc_url(get_term_link($term)) . '" />' . "\n";
+        echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
+        
+        if ($og_image) {
+            echo '<meta property="og:image" content="' . esc_url($og_image) . '" />' . "\n";
+        }
+    }
+
+    /**
+     * Add Open Graph meta tags for author pages
+     */
+    public function add_author_opengraph_meta()
+    {
+        if (!is_author()) return;
+
+        $author_id = get_queried_object_id();
+        $author = get_queried_object();
+
+        $og_title = get_user_meta($author_id, '_og_title', true) ?: $author->display_name;
+        $og_description = get_user_meta($author_id, '_og_description', true) ?: wp_trim_words($author->description, 25);
+        $og_image = get_user_meta($author_id, '_og_image', true);
+
+        echo '<!-- Product Scraper Author Open Graph -->' . "\n";
+        echo '<meta property="og:type" content="profile" />' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr($og_description) . '" />' . "\n";
+        echo '<meta property="og:url" content="' . esc_url(get_author_posts_url($author_id)) . '" />' . "\n";
+        echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
+        echo '<meta property="profile:username" content="' . esc_attr($author->user_login) . '" />' . "\n";
+        
+        if ($og_image) {
+            echo '<meta property="og:image" content="' . esc_url($og_image) . '" />' . "\n";
+        } elseif (function_exists('get_avatar_url')) {
+            $avatar_url = get_avatar_url($author_id, array('size' => 300));
+            echo '<meta property="og:image" content="' . esc_url($avatar_url) . '" />' . "\n";
         }
     }
 
@@ -231,11 +571,62 @@ class ProductScraper
             $this->output_product_structured_data();
         } elseif (is_singular()) {
             $this->output_article_structured_data();
+        } elseif (is_tax() || is_category() || is_tag()) {
+            $this->output_taxonomy_structured_data();
+        } elseif (is_author()) {
+            $this->output_author_structured_data();
         }
 
         if (is_front_page()) {
             $this->output_website_structured_data();
         }
+    }
+
+    /**
+     * Output structured data for taxonomy pages
+     */
+    private function output_taxonomy_structured_data()
+    {
+        $term = get_queried_object();
+        if (!$term) return;
+
+        $schema = array(
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $term->name,
+            'description' => wp_strip_all_tags($term->description),
+            'url' => get_term_link($term)
+        );
+
+        echo '<script type="application/ld+json">' . 
+             json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . 
+             '</script>' . "\n";
+    }
+
+    /**
+     * Output structured data for author pages
+     */
+    private function output_author_structured_data()
+    {
+        $author_id = get_queried_object_id();
+        $author = get_queried_object();
+
+        $schema = array(
+            '@context' => 'https://schema.org',
+            '@type' => 'ProfilePage',
+            'name' => $author->display_name,
+            'description' => wp_strip_all_tags($author->description),
+            'url' => get_author_posts_url($author_id),
+            'mainEntity' => array(
+                '@type' => 'Person',
+                'name' => $author->display_name,
+                'description' => wp_strip_all_tags($author->description)
+            )
+        );
+
+        echo '<script type="application/ld+json">' . 
+             json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . 
+             '</script>' . "\n";
     }
 
     public function setup_sitemaps()
