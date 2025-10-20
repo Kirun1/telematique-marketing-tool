@@ -463,4 +463,227 @@ class ProductScraper_SEO_Assistant
             'keyword_optimization' => 'Enhanced'
         );
     }
+
+    /**
+     * Get SEO statistics for the dashboard
+     */
+    private function get_seo_stats()
+    {
+        global $wpdb;
+
+        $total_posts = wp_count_posts()->publish;
+        
+        // Count posts with SEO titles
+        $posts_with_seo_title = $wpdb->get_var("
+            SELECT COUNT(DISTINCT post_id) 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_seo_title' 
+            AND meta_value != ''
+        ");
+
+        // Count posts with meta descriptions
+        $posts_with_meta_desc = $wpdb->get_var("
+            SELECT COUNT(DISTINCT post_id) 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_meta_description' 
+            AND meta_value != ''
+        ");
+
+        // Count posts with focus keywords
+        $posts_with_focus_keyword = $wpdb->get_var("
+            SELECT COUNT(DISTINCT post_id) 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_focus_keyword' 
+            AND meta_value != ''
+        ");
+
+        // Get average readability score
+        $avg_readability = $wpdb->get_var("
+            SELECT AVG(meta_value) 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_readability_score'
+            AND meta_value != ''
+        ");
+
+        // Count optimized posts (have at least title and description)
+        $optimized_posts = $wpdb->get_var("
+            SELECT COUNT(DISTINCT pm1.post_id)
+            FROM {$wpdb->postmeta} pm1
+            INNER JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
+            WHERE pm1.meta_key = '_seo_title' AND pm1.meta_value != ''
+            AND pm2.meta_key = '_meta_description' AND pm2.meta_value != ''
+        ");
+
+        // Count issues (posts without meta description)
+        $posts_without_meta = $wpdb->get_var("
+            SELECT COUNT(*) 
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_meta_description'
+            WHERE p.post_status = 'publish'
+            AND p.post_type IN ('post', 'page')
+            AND (pm.meta_value IS NULL OR pm.meta_value = '')
+        ");
+
+        // Count low content posts (less than 300 words)
+        $low_content_posts = 0;
+        $posts = get_posts(array(
+            'post_type' => array('post', 'page'),
+            'post_status' => 'publish',
+            'numberposts' => -1
+        ));
+
+        foreach ($posts as $post) {
+            $word_count = str_word_count(wp_strip_all_tags($post->post_content));
+            if ($word_count < 300) {
+                $low_content_posts++;
+            }
+        }
+
+        return array(
+            'total_posts' => $total_posts,
+            'posts_with_seo_title' => $posts_with_seo_title ?: 0,
+            'posts_with_meta_desc' => $posts_with_meta_desc ?: 0,
+            'posts_with_focus_keyword' => $posts_with_focus_keyword ?: 0,
+            'optimized_posts' => $optimized_posts ?: 0,
+            'avg_readability' => round($avg_readability ?: 0),
+            'posts_without_meta' => $posts_without_meta ?: 0,
+            'low_content_posts' => $low_content_posts,
+            'optimization_rate' => $total_posts > 0 ? round(($optimized_posts / $total_posts) * 100) : 0,
+            'title_optimization_rate' => $total_posts > 0 ? round(($posts_with_seo_title / $total_posts) * 100) : 0,
+            'description_optimization_rate' => $total_posts > 0 ? round(($posts_with_meta_desc / $total_posts) * 100) : 0
+        );
+    }
+
+    /**
+     * Get recent SEO analysis results
+     */
+    private function get_recent_analysis()
+    {
+        global $wpdb;
+
+        $recent_analysis = $wpdb->get_results("
+            SELECT p.ID, p.post_title, pm.meta_value as analysis
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+            WHERE pm.meta_key = '_seo_analysis'
+            AND p.post_status = 'publish'
+            ORDER BY p.post_modified DESC
+            LIMIT 5
+        ");
+
+        $analysis_data = array();
+        foreach ($recent_analysis as $analysis) {
+            $analysis_data[] = array(
+                'post_id' => $analysis->ID,
+                'title' => $analysis->post_title,
+                'analysis' => maybe_unserialize($analysis->analysis),
+                'edit_url' => get_edit_post_link($analysis->ID)
+            );
+        }
+
+        return $analysis_data;
+    }
+
+     /**
+     * Get internal links data
+     */
+    private function get_internal_links()
+    {
+        // This would be implemented with the Link Manager class
+        // For now, return basic data
+        return array(
+            'total_internal_links' => 0,
+            'orphaned_posts' => 0,
+            'linking_opportunities' => 0
+        );
+    }
+
+    /**
+     * Get external links data
+     */
+    private function get_external_links()
+    {
+        // This would be implemented with the Link Manager class
+        // For now, return basic data
+        return array(
+            'total_external_links' => 0,
+            'broken_links' => 0,
+            'nofollow_links' => 0
+        );
+    }
+
+    /**
+     * AI content optimization (placeholder - would integrate with actual AI service)
+     */
+    private function ai_optimize_content($content, $keyword)
+    {
+        // This is a placeholder for AI content optimization
+        // In a real implementation, you would integrate with OpenAI, GPT, or similar services
+        
+        // For now, return the original content with a simple optimization
+        if (!empty($keyword) && strpos(strtolower($content), strtolower($keyword)) === false) {
+            // Add keyword to the beginning of content if not found
+            $content = "<p><strong>Keyword Focus: {$keyword}</strong></p>\n\n" . $content;
+        }
+        
+        return $content;
+    }
+
+    /**
+     * Calculate basic readability score
+     */
+    private function calculate_readability_score($post_id, $content)
+    {
+        $content = wp_strip_all_tags($content);
+        $word_count = str_word_count($content);
+        $sentence_count = preg_split('/[.!?]+/', $content, -1, PREG_SPLIT_NO_EMPTY);
+        $sentence_count = count($sentence_count);
+
+        if ($word_count > 0 && $sentence_count > 0) {
+            $average_sentence_length = $word_count / $sentence_count;
+            $score = max(0, min(100, 100 - ($average_sentence_length * 2)));
+            update_post_meta($post_id, '_readability_score', intval($score));
+        }
+    }
+
+    public function optimize_content_on_save($data)
+    {
+        if (!isset($_POST['seo_auto_optimize']) || !$_POST['seo_auto_optimize']) {
+            return $data;
+        }
+
+        // AI-powered content optimization
+        $optimized_content = $this->ai_optimize_content($data['post_content'], '');
+        $data['post_content'] = $optimized_content;
+
+        return $data;
+    }
+
+        /**
+     * Analyze content SEO across the site
+     */
+    private function analyze_content_seo()
+    {
+        $stats = $this->get_seo_stats();
+        
+        return array(
+            'score' => $stats['optimization_rate'],
+            'stats' => $stats,
+            'issues' => array(),
+            'recommendations' => array()
+        );
+    }
+
+    /**
+     * Analyze performance SEO
+     */
+    private function analyze_performance_seo()
+    {
+        return array(
+            'score' => 0,
+            'metrics' => array(),
+            'issues' => array(),
+            'recommendations' => array()
+        );
+    }
 }
