@@ -328,13 +328,13 @@ class ProductScraperAdmin
 
         // Debug: Check if storage object is created properly
         if (!$plugin->storage) {
-            error_log('ProductScraper: Storage object not initialized');
+            // error_log('ProductScraper: Storage object not initialized');
             return 0;
         }
 
         try {
             $saved_count = $plugin->storage->save_products($products, $source_url);
-            error_log("ProductScraper: Attempted to save " . count($products) . " products, saved: " . $saved_count);
+            // error_log("ProductScraper: Attempted to save " . count($products) . " products, saved: " . $saved_count);
             return $saved_count;
         } catch (Exception $e) {
             error_log('ProductScraper: Error saving products: ' . $e->getMessage());

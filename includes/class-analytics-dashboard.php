@@ -1068,6 +1068,7 @@ class ProductScraperAnalytics
         // Test Google Analytics
         try {
             $ga_data = $api_integrations->get_organic_traffic();
+            error_log('$ga_data: ' . print_r($ga_data, true));
             $results['google_analytics'] = array(
                 'connected' => $ga_data['source'] === 'google_analytics',
                 'message' => $ga_data['source'] === 'google_analytics' ? 'Connected successfully' : 'No data received'

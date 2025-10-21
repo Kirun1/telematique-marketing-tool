@@ -7,8 +7,9 @@ class ProductScraperDataStorage {
     public function __construct() {
         global $wpdb;
         $this->table_name = $wpdb->prefix . 'scraped_products';
-        
-        add_action('plugins_loaded', array($this, 'create_table'));
+
+        // Only create the table once, on plugin activation
+        register_activation_hook(__FILE__, array($this, 'create_table'));
     }
     
     /**
@@ -17,6 +18,17 @@ class ProductScraperDataStorage {
     public function create_table()
     {
         global $wpdb;
+
+        // Check if table already exists
+        $table_exists = $wpdb->get_var($wpdb->prepare(
+            "SHOW TABLES LIKE %s",
+            $this->table_name
+        ));
+
+        if ($table_exists === $this->table_name) {
+            // Table already exists — don’t recreate it
+            return;
+        }
 
         $charset_collate = $wpdb->get_charset_collate();
 
@@ -48,16 +60,16 @@ class ProductScraperDataStorage {
         $result = dbDelta($sql);
 
         // Log the result for debugging
-        error_log('ProductScraper: Table creation result: ' . print_r($result, true));
+        // error_log('ProductScraper: Table creation result: ' . print_r($result, true));
 
         // Verify table was created correctly
         $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") === $this->table_name;
-        error_log('ProductScraper: Table exists after creation: ' . ($table_exists ? 'Yes' : 'No'));
+        // error_log('ProductScraper: Table exists after creation: ' . ($table_exists ? 'Yes' : 'No'));
 
         if ($table_exists) {
             // Check column structure
             $columns = $wpdb->get_results("DESCRIBE {$this->table_name}");
-            error_log('ProductScraper: Table columns: ' . print_r($columns, true));
+            // error_log('ProductScraper: Table columns: ' . print_r($columns, true));
         }
     }
     

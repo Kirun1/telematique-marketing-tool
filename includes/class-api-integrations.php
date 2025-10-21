@@ -40,6 +40,8 @@ class ProductScraper_API_Integrations
             'last_updated' => current_time('mysql')
         );
 
+        error_log('SEO Dashboard Data: ' . print_r($data, true));
+
         set_transient($cache_key, $data, $this->cache_duration);
         return $data;
     }
@@ -50,6 +52,12 @@ class ProductScraper_API_Integrations
     public function get_organic_traffic()
     {
         $propertyId = get_option('product_scraper_ga4_property_id');
+
+        if ($this->google_api_available()) {
+            error_log('Google Client set');
+        } else {
+            error_log('Google Client class not available');
+        }
 
         // Only try Google Analytics API if vendor is loaded AND property ID exists
         if ($propertyId && $this->google_api_available()) {
@@ -255,6 +263,7 @@ class ProductScraper_API_Integrations
         $client->addScope('https://www.googleapis.com/auth/analytics.readonly');
 
         $analytics = new Google_Service_AnalyticsData($client);
+        error_log('$analytics: ' . print_r($analytics, true));
         $request = new Google_Service_AnalyticsData_RunReportRequest([
             'metrics' => [
                 new Google_Service_AnalyticsData_Metric(['name' => 'sessions']),
