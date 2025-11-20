@@ -1,249 +1,234 @@
 <?php
 
-class ProductScraper_Content_Optimizer
-{
+class ProductScraper_Content_Optimizer {
 
-    public function __construct()
-    {
-        add_action('wp_ajax_analyze_content', array($this, 'ajax_analyze_content'));
-        add_action('wp_ajax_optimize_content', array($this, 'ajax_optimize_content'));
-    }
 
-    public function ajax_analyze_content()
-    {
-        if (!wp_verify_nonce($_POST['nonce'], 'content_analysis_nonce')) {
-            wp_die('Security check failed');
-        }
+	public function __construct() {
+		add_action( 'wp_ajax_analyze_content', array( $this, 'ajax_analyze_content' ) );
+		add_action( 'wp_ajax_optimize_content', array( $this, 'ajax_optimize_content' ) );
+	}
 
-        $content = wp_kses_post($_POST['content']);
-        $focus_keyword = sanitize_text_field($_POST['focus_keyword']);
+	public function ajax_analyze_content() {
+		if ( ! wp_verify_nonce( $_POST['nonce'], 'content_analysis_nonce' ) ) {
+			wp_die( 'Security check failed' );
+		}
 
-        $analysis = $this->analyze_content($content, $focus_keyword);
+		$content       = wp_kses_post( $_POST['content'] );
+		$focus_keyword = sanitize_text_field( $_POST['focus_keyword'] );
 
-        wp_send_json_success($analysis);
-    }
+		$analysis = $this->analyze_content( $content, $focus_keyword );
 
-    private function analyze_content($content, $focus_keyword = '')
-    {
-        $clean_content = wp_strip_all_tags($content);
-        $word_count = str_word_count($clean_content);
-        $content_length = strlen($clean_content);
+		wp_send_json_success( $analysis );
+	}
 
-        $analysis = array(
-            'word_count' => $word_count,
-            'content_length' => $content_length,
-            'reading_time' => ceil($word_count / 200), // 200 words per minute
-            'keyword_density' => 0,
-            'readability_score' => $this->calculate_flesch_score($clean_content),
-            'headings' => $this->analyze_headings($content),
-            'images' => $this->count_images($content),
-            'links' => $this->count_links($content),
-            'recommendations' => array()
-        );
+	private function analyze_content( $content, $focus_keyword = '' ) {
+		$clean_content  = wp_strip_all_tags( $content );
+		$word_count     = str_word_count( $clean_content );
+		$content_length = strlen( $clean_content );
 
-        if (!empty($focus_keyword)) {
-            $analysis['keyword_density'] = $this->calculate_keyword_density($clean_content, $focus_keyword);
-            $analysis['keyword_position'] = $this->check_keyword_position($content, $focus_keyword);
-        }
+		$analysis = array(
+			'word_count'        => $word_count,
+			'content_length'    => $content_length,
+			'reading_time'      => ceil( $word_count / 200 ), // 200 words per minute
+			'keyword_density'   => 0,
+			'readability_score' => $this->calculate_flesch_score( $clean_content ),
+			'headings'          => $this->analyze_headings( $content ),
+			'images'            => $this->count_images( $content ),
+			'links'             => $this->count_links( $content ),
+			'recommendations'   => array(),
+		);
 
-        $analysis['recommendations'] = $this->generate_recommendations($analysis);
+		if ( ! empty( $focus_keyword ) ) {
+			$analysis['keyword_density']  = $this->calculate_keyword_density( $clean_content, $focus_keyword );
+			$analysis['keyword_position'] = $this->check_keyword_position( $content, $focus_keyword );
+		}
 
-        return $analysis;
-    }
+		$analysis['recommendations'] = $this->generate_recommendations( $analysis );
 
-    private function calculate_flesch_score($content)
-    {
-        $words = str_word_count($content);
-        $sentences = preg_split('/[.!?]+/', $content, -1, PREG_SPLIT_NO_EMPTY);
-        $syllables = $this->count_syllables($content);
+		return $analysis;
+	}
 
-        if ($words > 0 && count($sentences) > 0) {
-            $avg_sentence_length = $words / count($sentences);
-            $avg_syllables_per_word = $syllables / $words;
+	private function calculate_flesch_score( $content ) {
+		$words     = str_word_count( $content );
+		$sentences = preg_split( '/[.!?]+/', $content, -1, PREG_SPLIT_NO_EMPTY );
+		$syllables = $this->count_syllables( $content );
 
-            $score = 206.835 - (1.015 * $avg_sentence_length) - (84.6 * $avg_syllables_per_word);
-            return max(0, min(100, round($score)));
-        }
+		if ( $words > 0 && count( $sentences ) > 0 ) {
+			$avg_sentence_length    = $words / count( $sentences );
+			$avg_syllables_per_word = $syllables / $words;
 
-        return 0;
-    }
+			$score = 206.835 - ( 1.015 * $avg_sentence_length ) - ( 84.6 * $avg_syllables_per_word );
+			return max( 0, min( 100, round( $score ) ) );
+		}
 
-    private function count_syllables($content)
-    {
-        // Simplified syllable count
-        $vowels = '/[aeiouy]+/i';
-        preg_match_all($vowels, $content, $matches);
-        return count($matches[0]);
-    }
+		return 0;
+	}
 
-    private function analyze_headings($content)
-    {
-        $headings = array(
-            'h1' => array(),
-            'h2' => array(),
-            'h3' => array(),
-            'h4' => array(),
-            'h5' => array(),
-            'h6' => array()
-        );
+	private function count_syllables( $content ) {
+		// Simplified syllable count
+		$vowels = '/[aeiouy]+/i';
+		preg_match_all( $vowels, $content, $matches );
+		return count( $matches[0] );
+	}
 
-        preg_match_all('/<h[1-6][^>]*>(.*?)<\/h[1-6]>/i', $content, $matches);
+	private function analyze_headings( $content ) {
+		$headings = array(
+			'h1' => array(),
+			'h2' => array(),
+			'h3' => array(),
+			'h4' => array(),
+			'h5' => array(),
+			'h6' => array(),
+		);
 
-        foreach ($matches[0] as $match) {
-            preg_match('/<h([1-6])/i', $match, $level);
-            if (isset($level[1])) {
-                $heading_text = wp_strip_all_tags($match);
-                $headings['h' . $level[1]][] = $heading_text;
-            }
-        }
+		preg_match_all( '/<h[1-6][^>]*>(.*?)<\/h[1-6]>/i', $content, $matches );
 
-        return $headings;
-    }
+		foreach ( $matches[0] as $match ) {
+			preg_match( '/<h([1-6])/i', $match, $level );
+			if ( isset( $level[1] ) ) {
+				$heading_text                  = wp_strip_all_tags( $match );
+				$headings[ 'h' . $level[1] ][] = $heading_text;
+			}
+		}
 
-    private function count_images($content)
-    {
-        preg_match_all('/<img[^>]+>/i', $content, $matches);
-        return count($matches[0]);
-    }
+		return $headings;
+	}
 
-    private function count_links($content)
-    {
-        preg_match_all('/<a[^>]+>/i', $content, $matches);
-        return count($matches[0]);
-    }
+	private function count_images( $content ) {
+		preg_match_all( '/<img[^>]+>/i', $content, $matches );
+		return count( $matches[0] );
+	}
 
-    private function calculate_keyword_density($content, $keyword)
-    {
-        $word_count = str_word_count($content);
-        $keyword_count = substr_count(strtolower($content), strtolower($keyword));
+	private function count_links( $content ) {
+		preg_match_all( '/<a[^>]+>/i', $content, $matches );
+		return count( $matches[0] );
+	}
 
-        if ($word_count > 0) {
-            return round(($keyword_count / $word_count) * 100, 2);
-        }
+	private function calculate_keyword_density( $content, $keyword ) {
+		$word_count    = str_word_count( $content );
+		$keyword_count = substr_count( strtolower( $content ), strtolower( $keyword ) );
 
-        return 0;
-    }
+		if ( $word_count > 0 ) {
+			return round( ( $keyword_count / $word_count ) * 100, 2 );
+		}
 
-    private function check_keyword_position($content, $keyword)
-    {
-        $positions = array(
-            'in_title' => false,
-            'in_first_paragraph' => false,
-            'in_meta_description' => false,
-            'in_url' => false
-        );
+		return 0;
+	}
 
-        $clean_content = wp_strip_all_tags($content);
-        $first_paragraph = substr($clean_content, 0, 200);
+	private function check_keyword_position( $content, $keyword ) {
+		$positions = array(
+			'in_title'            => false,
+			'in_first_paragraph'  => false,
+			'in_meta_description' => false,
+			'in_url'              => false,
+		);
 
-        $positions['in_first_paragraph'] = stripos($first_paragraph, $keyword) !== false;
+		$clean_content   = wp_strip_all_tags( $content );
+		$first_paragraph = substr( $clean_content, 0, 200 );
 
-        return $positions;
-    }
+		$positions['in_first_paragraph'] = stripos( $first_paragraph, $keyword ) !== false;
 
-    private function generate_recommendations($analysis)
-    {
-        $recommendations = array();
+		return $positions;
+	}
 
-        if ($analysis['word_count'] < 300) {
-            $recommendations[] = array(
-                'type' => 'content_length',
-                'message' => 'Content is too short. Aim for at least 300 words for better SEO.',
-                'priority' => 'high'
-            );
-        }
+	private function generate_recommendations( $analysis ) {
+		$recommendations = array();
 
-        if ($analysis['readability_score'] < 60) {
-            $recommendations[] = array(
-                'type' => 'readability',
-                'message' => 'Content may be difficult to read. Try using shorter sentences and simpler words.',
-                'priority' => 'medium'
-            );
-        }
+		if ( $analysis['word_count'] < 300 ) {
+			$recommendations[] = array(
+				'type'     => 'content_length',
+				'message'  => 'Content is too short. Aim for at least 300 words for better SEO.',
+				'priority' => 'high',
+			);
+		}
 
-        if (count($analysis['headings']['h2']) === 0) {
-            $recommendations[] = array(
-                'type' => 'headings',
-                'message' => 'Add H2 headings to structure your content better.',
-                'priority' => 'medium'
-            );
-        }
+		if ( $analysis['readability_score'] < 60 ) {
+			$recommendations[] = array(
+				'type'     => 'readability',
+				'message'  => 'Content may be difficult to read. Try using shorter sentences and simpler words.',
+				'priority' => 'medium',
+			);
+		}
 
-        if ($analysis['images'] === 0) {
-            $recommendations[] = array(
-                'type' => 'images',
-                'message' => 'Add relevant images to make your content more engaging.',
-                'priority' => 'low'
-            );
-        }
+		if ( count( $analysis['headings']['h2'] ) === 0 ) {
+			$recommendations[] = array(
+				'type'     => 'headings',
+				'message'  => 'Add H2 headings to structure your content better.',
+				'priority' => 'medium',
+			);
+		}
 
-        return $recommendations;
-    }
+		if ( $analysis['images'] === 0 ) {
+			$recommendations[] = array(
+				'type'     => 'images',
+				'message'  => 'Add relevant images to make your content more engaging.',
+				'priority' => 'low',
+			);
+		}
 
-    public function ajax_optimize_content()
-    {
-        if (!wp_verify_nonce($_POST['nonce'], 'content_optimization_nonce')) {
-            wp_die('Security check failed');
-        }
+		return $recommendations;
+	}
 
-        $content = wp_kses_post($_POST['content']);
-        $optimization_type = sanitize_text_field($_POST['optimization_type']);
+	public function ajax_optimize_content() {
+		if ( ! wp_verify_nonce( $_POST['nonce'], 'content_optimization_nonce' ) ) {
+			wp_die( 'Security check failed' );
+		}
 
-        $optimized_content = $this->optimize_content($content, $optimization_type);
+		$content           = wp_kses_post( $_POST['content'] );
+		$optimization_type = sanitize_text_field( $_POST['optimization_type'] );
 
-        wp_send_json_success(array(
-            'optimized_content' => $optimized_content,
-            'changes_made' => $this->explain_changes($content, $optimized_content)
-        ));
-    }
+		$optimized_content = $this->optimize_content( $content, $optimization_type );
 
-    private function optimize_content($content, $type)
-    {
-        // This would integrate with AI services
-        // For now, return some basic optimizations
+		wp_send_json_success(
+			array(
+				'optimized_content' => $optimized_content,
+				'changes_made'      => $this->explain_changes( $content, $optimized_content ),
+			)
+		);
+	}
 
-        switch ($type) {
-            case 'readability':
-                return $this->improve_readability($content);
-            case 'seo':
-                return $this->optimize_for_seo($content);
-            case 'engagement':
-                return $this->improve_engagement($content);
-            default:
-                return $content;
-        }
-    }
+	private function optimize_content( $content, $type ) {
+		// This would integrate with AI services
+		// For now, return some basic optimizations
 
-    private function improve_readability($content)
-    {
-        // Basic readability improvements
-        $content = preg_replace('/\.\s*/', ". ", $content); // Ensure proper spacing
-        return $content;
-    }
+		switch ( $type ) {
+			case 'readability':
+				return $this->improve_readability( $content );
+			case 'seo':
+				return $this->optimize_for_seo( $content );
+			case 'engagement':
+				return $this->improve_engagement( $content );
+			default:
+				return $content;
+		}
+	}
 
-    private function optimize_for_seo($content)
-    {
-        // Basic SEO optimizations
-        return $content;
-    }
+	private function improve_readability( $content ) {
+		// Basic readability improvements
+		$content = preg_replace( '/\.\s*/', '. ', $content ); // Ensure proper spacing
+		return $content;
+	}
 
-    private function improve_engagement($content)
-    {
-        // Basic engagement improvements
-        return $content;
-    }
+	private function optimize_for_seo( $content ) {
+		// Basic SEO optimizations
+		return $content;
+	}
 
-    private function explain_changes($original, $optimized)
-    {
-        $changes = array();
+	private function improve_engagement( $content ) {
+		// Basic engagement improvements
+		return $content;
+	}
 
-        $original_word_count = str_word_count(wp_strip_all_tags($original));
-        $optimized_word_count = str_word_count(wp_strip_all_tags($optimized));
+	private function explain_changes( $original, $optimized ) {
+		$changes = array();
 
-        if ($optimized_word_count > $original_word_count) {
-            $changes[] = "Increased word count from {$original_word_count} to {$optimized_word_count}";
-        }
+		$original_word_count  = str_word_count( wp_strip_all_tags( $original ) );
+		$optimized_word_count = str_word_count( wp_strip_all_tags( $optimized ) );
 
-        return $changes;
-    }
+		if ( $optimized_word_count > $original_word_count ) {
+			$changes[] = "Increased word count from {$original_word_count} to {$optimized_word_count}";
+		}
+
+		return $changes;
+	}
 }
