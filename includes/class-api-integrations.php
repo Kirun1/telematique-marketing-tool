@@ -79,47 +79,81 @@ class ProductScraper_API_Integrations
      */
     private function get_google_analytics_data($propertyId)
     {
-        $client = new Google_Client();
-        $client->setAuthConfig(WP_CONTENT_DIR . '/uploads/product-scraper-service-account.json');
-        $client->addScope('https://www.googleapis.com/auth/analytics.readonly');
+        // Get the service account JSON from database option
+        $service_account_json = get_option('product_scraper_google_service_account');
 
-        $analytics = new Google_Service_AnalyticsData($client);
-        $request = new Google_Service_AnalyticsData_RunReportRequest([
-            'dimensions' => [new Google_Service_AnalyticsData_Dimension(['name' => 'sessionSource'])],
-            'metrics' => [
-                new Google_Service_AnalyticsData_Metric(['name' => 'sessions']),
-                new Google_Service_AnalyticsData_Metric(['name' => 'bounceRate']),
-                new Google_Service_AnalyticsData_Metric(['name' => 'averageSessionDuration'])
-            ],
-            'dateRanges' => [
-                new Google_Service_AnalyticsData_DateRange(['startDate' => '30daysAgo', 'endDate' => 'today'])
-            ]
-        ]);
-
-        $response = $analytics->properties->runReport("properties/$propertyId", $request);
-
-        // Parse response - handle empty data
-        $sessions = 0;
-        $bounce_rate = 0;
-        $avg_duration = 0;
-
-        if ($response->getRows()) {
-            foreach ($response->getRows() as $row) {
-                $sessions += (int)$row->getMetricValues()[0]->getValue();
-                $bounce_rate = (float)$row->getMetricValues()[1]->getValue();
-                $avg_duration = (float)$row->getMetricValues()[2]->getValue();
-            }
+        if (empty($service_account_json)) {
+            throw new Exception('Service account JSON not configured');
         }
 
-        return [
-            'current' => $sessions,
-            'previous' => 0, // You'd need historical data for this
-            'change' => 0,
-            'trend' => 'neutral',
-            'bounce_rate' => $bounce_rate,
-            'avg_duration' => $avg_duration,
-            'source' => 'google_analytics'
-        ];
+        try {
+            $client = new Google_Client();
+
+            // Decode the JSON and validate
+            $service_account = json_decode($service_account_json, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid JSON in service account');
+            }
+
+            // Set authentication method
+            $client->setAuthConfig($service_account);
+            $client->addScope('https://www.googleapis.com/auth/analytics.readonly');
+
+            // Important: Set the subject if using domain-wide delegation
+            // If you're accessing GA4 data for a specific Google account, uncomment and set the email:
+            // $client->setSubject('your-service-account-email@your-project.iam.gserviceaccount.com');
+
+            // Create and configure the analytics service
+            $analytics = new Google_Service_AnalyticsData($client);
+
+            // Test the client authentication first
+            $accessToken = $client->fetchAccessTokenWithAssertion();
+            if (isset($accessToken['error'])) {
+                throw new Exception('Authentication failed: ' . $accessToken['error_description']);
+            }
+
+            error_log('Google Analytics authentication successful');
+
+            $request = new Google_Service_AnalyticsData_RunReportRequest([
+                'dimensions' => [new Google_Service_AnalyticsData_Dimension(['name' => 'sessionSource'])],
+                'metrics' => [
+                    new Google_Service_AnalyticsData_Metric(['name' => 'sessions']),
+                    new Google_Service_AnalyticsData_Metric(['name' => 'bounceRate']),
+                    new Google_Service_AnalyticsData_Metric(['name' => 'averageSessionDuration'])
+                ],
+                'dateRanges' => [
+                    new Google_Service_AnalyticsData_DateRange(['startDate' => '30daysAgo', 'endDate' => 'today'])
+                ]
+            ]);
+
+            $response = $analytics->properties->runReport("properties/$propertyId", $request);
+
+            // Parse response - handle empty data
+            $sessions = 0;
+            $bounce_rate = 0;
+            $avg_duration = 0;
+
+            if ($response->getRows()) {
+                foreach ($response->getRows() as $row) {
+                    $sessions += (int)$row->getMetricValues()[0]->getValue();
+                    $bounce_rate = (float)$row->getMetricValues()[1]->getValue();
+                    $avg_duration = (float)$row->getMetricValues()[2]->getValue();
+                }
+            }
+
+            return [
+                'current' => $sessions,
+                'previous' => 0,
+                'change' => 0,
+                'trend' => 'neutral',
+                'bounce_rate' => $bounce_rate,
+                'avg_duration' => $avg_duration,
+                'source' => 'google_analytics'
+            ];
+        } catch (Exception $e) {
+            error_log('Google Analytics API Detailed Error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -258,12 +292,21 @@ class ProductScraper_API_Integrations
      */
     private function get_google_analytics_engagement($propertyId)
     {
+        // Get the service account JSON from database option
+        $service_account_json = get_option('product_scraper_google_service_account');
+
+        if (empty($service_account_json)) {
+            throw new Exception('Service account JSON not configured');
+        }
+
         $client = new Google_Client();
-        $client->setAuthConfig(WP_CONTENT_DIR . '/uploads/product-scraper-service-account.json');
+
+        // Use setAuthConfig with JSON string instead of file path
+        $client->setAuthConfig(json_decode($service_account_json, true));
         $client->addScope('https://www.googleapis.com/auth/analytics.readonly');
 
         $analytics = new Google_Service_AnalyticsData($client);
-        error_log('$analytics: ' . print_r($analytics, true));
+
         $request = new Google_Service_AnalyticsData_RunReportRequest([
             'metrics' => [
                 new Google_Service_AnalyticsData_Metric(['name' => 'sessions']),
@@ -349,16 +392,35 @@ class ProductScraper_API_Integrations
 
         // If no API key, return empty data
         if (!$api_key) {
+            error_log('PageSpeed API: No API key configured');
             return $this->get_empty_site_health();
         }
 
-        $url = urlencode(get_site_url());
-        $api_url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={$url}&key={$api_key}";
+        $site_url = get_site_url();
+
+        // Better URL handling - ensure we're using a clean URL
+        $parsed_url = parse_url($site_url);
+        if (!$parsed_url || !isset($parsed_url['host'])) {
+            error_log('PageSpeed API: Invalid site URL');
+            return $this->get_empty_site_health();
+        }
+
+        $test_url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+
+        // Use the correct API endpoint and parameters
+        $api_url = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
+        $api_url = add_query_arg(array(
+            'url' => urlencode($test_url),
+            'key' => $api_key,
+            'strategy' => 'desktop'
+        ), $api_url);
+
+        error_log('PageSpeed API Testing URL: ' . $test_url);
 
         $response = wp_remote_get($api_url, array(
             'timeout' => 30,
             'headers' => array(
-                'User-Agent' => 'WordPress/ProductScraper'
+                'User-Agent' => 'WordPress/ProductScraper; ' . home_url()
             )
         ));
 
@@ -369,13 +431,28 @@ class ProductScraper_API_Integrations
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
+        $response_body = wp_remote_retrieve_body($response);
+
+        error_log('PageSpeed API Response Code: ' . $response_code);
+
         if ($response_code !== 200) {
             error_log('PageSpeed API HTTP Error: ' . $response_code);
+            error_log('PageSpeed API Error Body: ' . $response_body);
+
+            if ($response_code === 400) {
+                // Try to parse the error for more details
+                $error_data = json_decode($response_body, true);
+                if (isset($error_data['error']['message'])) {
+                    error_log('PageSpeed API 400 Error: ' . $error_data['error']['message']);
+                } else {
+                    error_log('PageSpeed API 400 Error - Likely invalid API key or malformed request');
+                }
+            }
+
             return $this->get_empty_site_health();
         }
 
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+        $data = json_decode($response_body, true);
 
         // Check if JSON decoding failed
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -386,6 +463,7 @@ class ProductScraper_API_Integrations
         // Check if the expected structure exists
         if (!isset($data['lighthouseResult']['categories'])) {
             error_log('PageSpeed API: Invalid response structure');
+            error_log('PageSpeed API Response: ' . print_r($data, true));
             return $this->get_empty_site_health();
         }
 
@@ -401,6 +479,8 @@ class ProductScraper_API_Integrations
 
         // Calculate overall score from real data
         $overall = round(array_sum($scores) / count($scores));
+
+        error_log('PageSpeed API Success - Scores: ' . print_r($scores, true));
 
         return [
             'scores' => $scores,

@@ -166,7 +166,7 @@ class ProductScraperAnalytics
 
                                 <div class="sa-stat-card">
                                     <div class="stat-header">
-                                        <h3><span class="dashicons dashicons-cart"></span> &nbsp;  Digital Score</h3>
+                                        <h3><span class="dashicons dashicons-cart"></span> &nbsp; Digital Score</h3>
                                     </div>
                                     <div class="stat-main">
                                         <div class="score-circle">
@@ -231,7 +231,7 @@ class ProductScraperAnalytics
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>
 
         <script>
             jQuery(document).ready(function($) {
@@ -382,7 +382,7 @@ class ProductScraperAnalytics
                 </div>
             </div>
         </div>
-<?php
+    <?php
     }
 
     /**
@@ -456,7 +456,7 @@ class ProductScraperAnalytics
 
         // Get current settings
         $settings = $this->get_current_settings();
-        ?>
+    ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
                 <div class="sa-header">
@@ -482,29 +482,29 @@ class ProductScraperAnalytics
                                 <!-- Google Services -->
                                 <div class="sa-settings-group">
                                     <h3><span class="dashicons dashicons-google"></span> Google Services</h3>
-                                    
+
                                     <div class="sa-setting-row">
                                         <label for="ga4_property_id">Google Analytics 4 Property ID</label>
-                                        <input type="text" id="ga4_property_id" name="ga4_property_id" 
-                                            value="<?php echo esc_attr($settings['ga4_property_id']); ?>" 
-                                            class="sa-form-control" 
-                                            placeholder="G-XXXXXXXXXX">
-                                        <p class="description">Enter your GA4 Measurement ID (starts with G-)</p>
+                                        <input type="text" id="ga4_property_id" name="ga4_property_id"
+                                            value="<?php echo esc_attr($settings['ga4_property_id']); ?>"
+                                            class="sa-form-control"
+                                            placeholder="123456789">
+                                        <p class="description">Enter your <strong>numeric GA4 Property ID</strong> (e.g., 123456789), NOT the Measurement ID that starts with "G-". Find it in Google Analytics under Admin → Property Settings.</p>
                                     </div>
 
                                     <div class="sa-setting-row">
                                         <label for="google_service_account">Google Service Account JSON</label>
-                                        <textarea id="google_service_account" name="google_service_account" 
-                                                class="sa-form-control" rows="6"
-                                                placeholder='Paste your service account JSON credentials'><?php echo esc_textarea($settings['google_service_account']); ?></textarea>
+                                        <textarea id="google_service_account" name="google_service_account"
+                                            class="sa-form-control" rows="6"
+                                            placeholder='Paste your service account JSON credentials'><?php echo esc_textarea($settings['google_service_account']); ?></textarea>
                                         <p class="description">Service account credentials for Google Analytics API access</p>
                                     </div>
 
                                     <div class="sa-setting-row">
                                         <label for="pagespeed_api">Google PageSpeed Insights API Key</label>
-                                        <input type="password" id="pagespeed_api" name="pagespeed_api" 
-                                            value="<?php echo esc_attr($settings['pagespeed_api']); ?>" 
-                                            class="sa-form-control" 
+                                        <input type="password" id="pagespeed_api" name="pagespeed_api"
+                                            value="<?php echo esc_attr($settings['pagespeed_api']); ?>"
+                                            class="sa-form-control"
                                             placeholder="AIza...">
                                         <p class="description">API key for PageSpeed Insights performance data</p>
                                     </div>
@@ -513,21 +513,21 @@ class ProductScraperAnalytics
                                 <!-- SEO Platforms -->
                                 <div class="sa-settings-group">
                                     <h3><span class="dashicons dashicons-chart-area"></span> SEO Platforms</h3>
-                                    
+
                                     <div class="sa-setting-row">
                                         <label for="ahrefs_api">Ahrefs API Key</label>
-                                        <input type="password" id="ahrefs_api" name="ahrefs_api" 
-                                            value="<?php echo esc_attr($settings['ahrefs_api']); ?>" 
-                                            class="sa-form-control" 
+                                        <input type="password" id="ahrefs_api" name="ahrefs_api"
+                                            value="<?php echo esc_attr($settings['ahrefs_api']); ?>"
+                                            class="sa-form-control"
                                             placeholder="Ahrefs API key">
                                         <p class="description">For backlink data and competitor analysis</p>
                                     </div>
 
                                     <div class="sa-setting-row">
                                         <label for="semrush_api">SEMrush API Key</label>
-                                        <input type="password" id="semrush_api" name="semrush_api" 
-                                            value="<?php echo esc_attr($settings['semrush_api']); ?>" 
-                                            class="sa-form-control" 
+                                        <input type="password" id="semrush_api" name="semrush_api"
+                                            value="<?php echo esc_attr($settings['semrush_api']); ?>"
+                                            class="sa-form-control"
                                             placeholder="SEMrush API key">
                                         <p class="description">For keyword research and ranking data</p>
                                     </div>
@@ -536,7 +536,7 @@ class ProductScraperAnalytics
                                 <!-- Advanced Settings -->
                                 <div class="sa-settings-group">
                                     <h3><span class="dashicons dashicons-admin-tools"></span> Advanced Settings</h3>
-                                    
+
                                     <div class="sa-setting-row">
                                         <label for="cache_duration">Data Cache Duration</label>
                                         <select id="cache_duration" name="cache_duration" class="sa-form-control">
@@ -571,7 +571,7 @@ class ProductScraperAnalytics
                                         <span class="dashicons dashicons-yes-alt"></span>
                                         Save Settings
                                     </button>
-                                    
+
                                     <button type="button" id="test_apis" class="sa-btn sa-btn-secondary">
                                         <span class="dashicons dashicons-admin-tools"></span>
                                         Test API Connections
@@ -617,80 +617,80 @@ class ProductScraperAnalytics
         </div>
 
         <script>
-        jQuery(document).ready(function($) {
-            // Test API connections
-            $('#test_apis').on('click', function() {
-                var $button = $(this);
-                var originalText = $button.html();
-                
-                $button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Testing APIs...');
-                
-                $('.sa-status-item').each(function() {
-                    var $item = $(this);
-                    $item.find('.status-icon').removeClass('success error').addClass('loading');
-                    $item.find('.status-message').text('Testing...');
+            jQuery(document).ready(function($) {
+                // Test API connections
+                $('#test_apis').on('click', function() {
+                    var $button = $(this);
+                    var originalText = $button.html();
+
+                    $button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Testing APIs...');
+
+                    $('.sa-status-item').each(function() {
+                        var $item = $(this);
+                        $item.find('.status-icon').removeClass('success error').addClass('loading');
+                        $item.find('.status-message').text('Testing...');
+                    });
+
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'test_api_connections',
+                            nonce: '<?php echo wp_create_nonce("test_apis_nonce"); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $.each(response.data, function(api, result) {
+                                    var $item = $('.sa-status-item[data-api="' + api + '"]');
+                                    var $icon = $item.find('.status-icon');
+                                    var $message = $item.find('.status-message');
+
+                                    $icon.removeClass('loading');
+                                    if (result.connected) {
+                                        $icon.addClass('success').html('✓');
+                                        $message.text('Connected').css('color', '#00a32a');
+                                    } else {
+                                        $icon.addClass('error').html('✗');
+                                        $message.text(result.message).css('color', '#d63638');
+                                    }
+                                });
+                            }
+                        },
+                        complete: function() {
+                            $button.prop('disabled', false).html(originalText);
+                        }
+                    });
                 });
 
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'test_api_connections',
-                        nonce: '<?php echo wp_create_nonce("test_apis_nonce"); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $.each(response.data, function(api, result) {
-                                var $item = $('.sa-status-item[data-api="' + api + '"]');
-                                var $icon = $item.find('.status-icon');
-                                var $message = $item.find('.status-message');
-                                
-                                $icon.removeClass('loading');
-                                if (result.connected) {
-                                    $icon.addClass('success').html('✓');
-                                    $message.text('Connected').css('color', '#00a32a');
-                                } else {
-                                    $icon.addClass('error').html('✗');
-                                    $message.text(result.message).css('color', '#d63638');
-                                }
-                            });
-                        }
-                    },
-                    complete: function() {
-                        $button.prop('disabled', false).html(originalText);
-                    }
-                });
-            });
+                // Clear cache
+                $('#clear_cache').on('click', function() {
+                    var $button = $(this);
+                    var originalText = $button.html();
 
-            // Clear cache
-            $('#clear_cache').on('click', function() {
-                var $button = $(this);
-                var originalText = $button.html();
-                
-                $button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Clearing...');
-                
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'clear_seo_cache',
-                        nonce: '<?php echo wp_create_nonce("clear_cache_nonce"); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            alert('Cache cleared successfully!');
-                        } else {
-                            alert('Error clearing cache.');
+                    $button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Clearing...');
+
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'clear_seo_cache',
+                            nonce: '<?php echo wp_create_nonce("clear_cache_nonce"); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert('Cache cleared successfully!');
+                            } else {
+                                alert('Error clearing cache.');
+                            }
+                        },
+                        complete: function() {
+                            $button.prop('disabled', false).html(originalText);
                         }
-                    },
-                    complete: function() {
-                        $button.prop('disabled', false).html(originalText);
-                    }
+                    });
                 });
             });
-        });
         </script>
-        <?php
+    <?php
     }
 
     /**
@@ -717,47 +717,23 @@ class ProductScraperAnalytics
     {
         // Google Services
         update_option('product_scraper_ga4_property_id', sanitize_text_field($_POST['ga4_property_id']));
-        update_option('product_scraper_google_service_account', sanitize_textarea_field($_POST['google_service_account']));
         update_option('product_scraper_pagespeed_api', sanitize_text_field($_POST['pagespeed_api']));
-        
+        // update_option('product_scraper_google_service_account', sanitize_textarea_field($_POST['google_service_account']));
+        if (isset($_POST['google_service_account'])) {
+            $json = wp_unslash(trim($_POST['google_service_account']));
+            update_option('product_scraper_google_service_account', $json);
+        }
+
         // SEO Platforms
         update_option('product_scraper_ahrefs_api', sanitize_text_field($_POST['ahrefs_api']));
         update_option('product_scraper_semrush_api', sanitize_text_field($_POST['semrush_api']));
-        
+
         // Advanced Settings
         update_option('product_scraper_cache_duration', intval($_POST['cache_duration']));
         update_option('product_scraper_enable_debug', isset($_POST['enable_debug']) ? 1 : 0);
         update_option('product_scraper_auto_sync', isset($_POST['auto_sync']) ? 1 : 0);
 
-        // Save service account JSON to file if provided
-        if (!empty($_POST['google_service_account'])) {
-            $this->save_service_account_file($_POST['google_service_account']);
-        }
-
         echo '<div class="notice notice-success is-dismissible"><p>Settings saved successfully!</p></div>';
-    }
-
-    /**
-     * Save Google service account JSON to file
-     */
-    private function save_service_account_file($json_data)
-    {
-        try {
-            $upload_dir = wp_upload_dir();
-            $file_path = $upload_dir['basedir'] . '/product-scraper-service-account.json';
-            
-            // Verify JSON is valid
-            $decoded = json_decode($json_data);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid JSON format for service account');
-            }
-            
-            file_put_contents($file_path, $json_data);
-            return true;
-        } catch (Exception $e) {
-            error_log('Failed to save service account file: ' . $e->getMessage());
-            return false;
-        }
     }
 
     /**
@@ -767,7 +743,7 @@ class ProductScraperAnalytics
     {
         // Get report data
         $reports = $this->get_seo_reports();
-        ?>
+    ?>
         <div class="wrap">
             <div class="scraper-analytics-dashboard">
                 <div class="sa-header">
@@ -822,7 +798,7 @@ class ProductScraperAnalytics
                         <!-- Overview Report -->
                         <div class="sa-report-section">
                             <h2>SEO Performance Overview</h2>
-                            
+
                             <!-- Key Metrics -->
                             <div class="sa-metrics-grid">
                                 <div class="sa-metric-card large">
@@ -864,15 +840,15 @@ class ProductScraperAnalytics
                                 <h3>Technical SEO Health</h3>
                                 <div class="health-metrics">
                                     <?php foreach ($reports['technical_health'] as $metric): ?>
-                                    <div class="health-metric">
-                                        <span class="metric-label"><?php echo esc_html($metric['label']); ?></span>
-                                        <div class="metric-score">
-                                            <span class="score"><?php echo esc_html($metric['score']); ?>%</span>
-                                            <div class="score-bar">
-                                                <div class="score-fill <?php echo $metric['status']; ?>" style="width: <?php echo esc_attr($metric['score']); ?>%"></div>
+                                        <div class="health-metric">
+                                            <span class="metric-label"><?php echo esc_html($metric['label']); ?></span>
+                                            <div class="metric-score">
+                                                <span class="score"><?php echo esc_html($metric['score']); ?>%</span>
+                                                <div class="score-bar">
+                                                    <div class="score-fill <?php echo $metric['status']; ?>" style="width: <?php echo esc_attr($metric['score']); ?>%"></div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -882,18 +858,18 @@ class ProductScraperAnalytics
                                 <h3>Top Performing Content</h3>
                                 <div class="content-list">
                                     <?php foreach ($reports['top_content'] as $content): ?>
-                                    <div class="content-item">
-                                        <div class="content-title">
-                                            <a href="<?php echo esc_url($content['url']); ?>" target="_blank">
-                                                <?php echo esc_html($content['title']); ?>
-                                            </a>
+                                        <div class="content-item">
+                                            <div class="content-title">
+                                                <a href="<?php echo esc_url($content['url']); ?>" target="_blank">
+                                                    <?php echo esc_html($content['title']); ?>
+                                                </a>
+                                            </div>
+                                            <div class="content-metrics">
+                                                <span class="metric">Traffic: <?php echo number_format($content['traffic']); ?></span>
+                                                <span class="metric">Keywords: <?php echo number_format($content['keywords']); ?></span>
+                                                <span class="metric">Backlinks: <?php echo number_format($content['backlinks']); ?></span>
+                                            </div>
                                         </div>
-                                        <div class="content-metrics">
-                                            <span class="metric">Traffic: <?php echo number_format($content['traffic']); ?></span>
-                                            <span class="metric">Keywords: <?php echo number_format($content['keywords']); ?></span>
-                                            <span class="metric">Backlinks: <?php echo number_format($content['backlinks']); ?></span>
-                                        </div>
-                                    </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -914,13 +890,13 @@ class ProductScraperAnalytics
                                         </thead>
                                         <tbody>
                                             <?php foreach ($reports['competitors'] as $competitor): ?>
-                                            <tr>
-                                                <td><?php echo esc_html($competitor['domain']); ?></td>
-                                                <td><?php echo esc_html($competitor['authority']); ?></td>
-                                                <td><?php echo number_format($competitor['ref_domains']); ?></td>
-                                                <td><?php echo number_format($competitor['traffic']); ?></td>
-                                                <td><?php echo number_format($competitor['keywords']); ?></td>
-                                            </tr>
+                                                <tr>
+                                                    <td><?php echo esc_html($competitor['domain']); ?></td>
+                                                    <td><?php echo esc_html($competitor['authority']); ?></td>
+                                                    <td><?php echo number_format($competitor['ref_domains']); ?></td>
+                                                    <td><?php echo number_format($competitor['traffic']); ?></td>
+                                                    <td><?php echo number_format($competitor['keywords']); ?></td>
+                                                </tr>
                                             <?php endforeach; ?>
                                         </tbody>
                                     </table>
@@ -932,14 +908,14 @@ class ProductScraperAnalytics
                                 <h3>SEO Recommendations</h3>
                                 <div class="recommendations-list">
                                     <?php foreach ($reports['recommendations'] as $rec): ?>
-                                    <div class="recommendation-item priority-<?php echo esc_attr($rec['priority']); ?>">
-                                        <span class="rec-icon">⚡</span>
-                                        <div class="rec-content">
-                                            <h4><?php echo esc_html($rec['title']); ?></h4>
-                                            <p><?php echo esc_html($rec['description']); ?></p>
-                                            <span class="rec-impact">Impact: <?php echo esc_html($rec['impact']); ?></span>
+                                        <div class="recommendation-item priority-<?php echo esc_attr($rec['priority']); ?>">
+                                            <span class="rec-icon">⚡</span>
+                                            <div class="rec-content">
+                                                <h4><?php echo esc_html($rec['title']); ?></h4>
+                                                <p><?php echo esc_html($rec['description']); ?></p>
+                                                <span class="rec-impact">Impact: <?php echo esc_html($rec['impact']); ?></span>
+                                            </div>
                                         </div>
-                                    </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -950,31 +926,31 @@ class ProductScraperAnalytics
         </div>
 
         <script>
-        function generateReport() {
-            var period = jQuery('#report_period').val();
-            var type = jQuery('#report_type').val();
-            
-            // Show loading state
-            jQuery('.sa-main-content').addClass('loading');
-            
-            // In a real implementation, you would make an AJAX call here
-            setTimeout(function() {
-                jQuery('.sa-main-content').removeClass('loading');
-                alert('Report generated for ' + period + ' days, type: ' + type);
-            }, 1000);
-        }
+            function generateReport() {
+                var period = jQuery('#report_period').val();
+                var type = jQuery('#report_type').val();
 
-        function generatePDFReport() {
-            alert('PDF export feature would be implemented here');
-            // Implement PDF.js or server-side PDF generation
-        }
+                // Show loading state
+                jQuery('.sa-main-content').addClass('loading');
 
-        function exportCSV() {
-            alert('CSV export feature would be implemented here');
-            // Implement CSV generation and download
-        }
+                // In a real implementation, you would make an AJAX call here
+                setTimeout(function() {
+                    jQuery('.sa-main-content').removeClass('loading');
+                    alert('Report generated for ' + period + ' days, type: ' + type);
+                }, 1000);
+            }
+
+            function generatePDFReport() {
+                alert('PDF export feature would be implemented here');
+                // Implement PDF.js or server-side PDF generation
+            }
+
+            function exportCSV() {
+                alert('CSV export feature would be implemented here');
+                // Implement CSV generation and download
+            }
         </script>
-        <?php
+<?php
     }
 
     /**
@@ -984,7 +960,7 @@ class ProductScraperAnalytics
     {
         // This would typically fetch real data from your API integrations
         // For now, returning sample data structure
-        
+
         return array(
             'overall_score' => 76,
             'organic_traffic' => 32450,
@@ -1121,7 +1097,7 @@ class ProductScraperAnalytics
         }
 
         global $wpdb;
-        
+
         // Clear all plugin transients
         $wpdb->query(
             "DELETE FROM {$wpdb->options} 
