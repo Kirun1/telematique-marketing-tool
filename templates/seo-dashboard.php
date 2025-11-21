@@ -113,20 +113,20 @@
 											<strong><?php echo esc_html( $analysis['title'] ); ?></strong>
 										</td>
 										<td>
-											<div class="score-circle" data-score="<?php echo $analysis['analysis']['score'] ?? 0; ?>">
-												<?php echo $analysis['analysis']['score'] ?? 0; ?>%
+											<div class="score-circle" data-score="<?php echo esc_attr( $analysis['analysis']['score'] ?? 0 ); ?>">
+												<?php echo esc_html( $analysis['analysis']['score'] ?? 0 ); ?>%
 											</div>
 										</td>
 										<td>
 											<?php
 											$readability = $analysis['analysis']['readability']['flesch_score'] ?? 0;
-											echo $readability > 0 ? $readability . '%' : 'N/A';
+											echo $readability > 0 ? esc_html( $readability ) . '%' : esc_html__( 'N/A', 'productscraper' );
 											?>
 										</td>
 										<td>
 											<?php
 											$word_count = $analysis['analysis']['word_count'] ?? 0;
-											echo $word_count > 0 ? $word_count : 'N/A';
+											echo $word_count > 0 ? esc_html( $word_count ) : esc_html__( 'N/A', 'productscraper' );
 											?>
 										</td>
 										<td>
