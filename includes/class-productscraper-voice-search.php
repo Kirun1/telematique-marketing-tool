@@ -1,6 +1,31 @@
 <?php
+/**
+ * Voice Search Optimization Class
+ *
+ * Provides comprehensive voice search optimization features including
+ * conversational content analysis, featured snippet optimization, and
+ * local voice query enhancements.
+ *
+ * @package    Product_Scraper_Nahrin
+ * @subpackage SEO
+ * @since      1.0.0
+ */
+
+/**
+ * ProductScraper Voice Search class
+ *
+ * Handles voice search optimization including question extraction,
+ * conversational content analysis, featured snippet optimization,
+ * and local voice query enhancements.
+ */
 class ProductScraper_Voice_Search {
 
+	/**
+	 * Optimize content for voice search
+	 *
+	 * @param string $content The content to optimize.
+	 * @return array Voice search optimization results.
+	 */
 	public function optimize_for_voice( $content ) {
 		// Focus on conversational keywords and question-based queries.
 		return array(
@@ -11,6 +36,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Extract question keywords from content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Extracted question keywords and analysis.
+	 */
 	private function extract_question_keywords( $content ) {
 		$questions = array(
 			'what'  => array(),
@@ -52,6 +83,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Optimize content for featured snippets
+	 *
+	 * @param string $content The content to optimize.
+	 * @return array Featured snippet optimization results.
+	 */
 	private function optimize_for_featured_snippets( $content ) {
 		$optimizations = array(
 			'structured_data'       => array(),
@@ -110,6 +147,12 @@ class ProductScraper_Voice_Search {
 		return $optimizations;
 	}
 
+	/**
+	 * Make content more conversational
+	 *
+	 * @param string $content The content to analyze and improve.
+	 * @return array Conversational content analysis and suggestions.
+	 */
 	private function make_content_conversational( $content ) {
 		$conversational_analysis = array(
 			'readability_score'   => $this->calculate_readability( $content ),
@@ -151,6 +194,12 @@ class ProductScraper_Voice_Search {
 		return $conversational_analysis;
 	}
 
+	/**
+	 * Optimize content for local voice queries
+	 *
+	 * @param string $content The content to optimize.
+	 * @return array Local voice optimization results.
+	 */
 	private function optimize_for_local_voice( $content ) {
 		$local_optimization = array(
 			'local_keywords'    => array(),
@@ -174,7 +223,12 @@ class ProductScraper_Voice_Search {
 		return $local_optimization;
 	}
 
-	// Helper methods for question extraction.
+	/**
+	 * Generate questions from content analysis
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Generated questions based on content.
+	 */
 	private function generate_questions_from_content( $content ) {
 		$sentences           = preg_split( '/(?<=[.?!])\s+/', $content );
 		$generated_questions = array();
@@ -203,6 +257,12 @@ class ProductScraper_Voice_Search {
 		return array_slice( array_unique( $generated_questions ), 0, 10 );
 	}
 
+	/**
+	 * Calculate question density in content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return float Question density percentage.
+	 */
 	private function calculate_question_density( $content ) {
 		$sentences      = preg_split( '/(?<=[.?!])\s+/', $content );
 		$question_count = 0;
@@ -216,7 +276,17 @@ class ProductScraper_Voice_Search {
 		return count( $sentences ) > 0 ? ( $question_count / count( $sentences ) ) * 100 : 0;
 	}
 
+	/**
+	 * Calculate question optimization score
+	 *
+	 * @param array $detected_questions  Detected questions in content.
+	 * @param array $suggested_questions Suggested questions for content.
+	 * @return float Optimization score percentage.
+	 */
 	private function calculate_question_optimization_score( $detected_questions, $suggested_questions ) {
+
+		unset( $suggested_questions ); // Parameter not used in this implementation.
+				
 		$total_detected = 0;
 		foreach ( $detected_questions as $type_questions ) {
 			$total_detected += count( $type_questions );
@@ -226,7 +296,12 @@ class ProductScraper_Voice_Search {
 		return round( $score, 1 );
 	}
 
-	// Helper methods for featured snippets.
+	/**
+	 * Calculate snippet potential for a paragraph
+	 *
+	 * @param string $paragraph The paragraph to analyze.
+	 * @return float Snippet potential score (0-1).
+	 */
 	private function calculate_snippet_potential( $paragraph ) {
 		$score = 0;
 
@@ -254,6 +329,12 @@ class ProductScraper_Voice_Search {
 		return min( $score, 1.0 );
 	}
 
+	/**
+	 * Determine snippet type for a paragraph
+	 *
+	 * @param string $paragraph The paragraph to analyze.
+	 * @return string Snippet type identifier.
+	 */
 	private function determine_snippet_type( $paragraph ) {
 		if ( preg_match( '/\b(step|guide|instructions?|tutorial)\b/i', $paragraph ) ) {
 			return 'how-to';
@@ -268,6 +349,12 @@ class ProductScraper_Voice_Search {
 		}
 	}
 
+	/**
+	 * Suggest FAQ schema for content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array FAQ schema suggestions.
+	 */
 	private function suggest_faq_schema( $content ) {
 		$questions = $this->extract_question_keywords( $content );
 		$faq_items = array();
@@ -284,6 +371,12 @@ class ProductScraper_Voice_Search {
 		return array_slice( $faq_items, 0, 10 );
 	}
 
+	/**
+	 * Suggest HowTo schema for content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array HowTo schema suggestions.
+	 */
 	private function suggest_howto_schema( $content ) {
 		// Implementation for how-to schema suggestions.
 		return array(
@@ -293,6 +386,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Suggest definition schema for content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Definition schema suggestions.
+	 */
 	private function suggest_definition_schema( $content ) {
 		// Implementation for definition schema suggestions.
 		return array(
@@ -302,14 +401,19 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
-	// Helper methods for conversational content.
+	/**
+	 * Calculate readability score for content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return float Readability score (0-100).
+	 */
 	private function calculate_readability( $content ) {
 		// Simplified Flesch Reading Ease calculation.
 		$words     = str_word_count( $content );
 		$sentences = preg_split( '/[.?!]+/', $content );
 		$syllables = $this->estimate_syllables( $content );
 
-		if ( $words === 0 || count( $sentences ) === 0 ) {
+		if ( 0 === $words || 0 === count( $sentences ) ) {
 			return 0;
 		}
 
@@ -321,6 +425,12 @@ class ProductScraper_Voice_Search {
 		return max( 0, min( 100, $score ) );
 	}
 
+	/**
+	 * Analyze conversational tone of content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return float Conversational tone score.
+	 */
 	private function analyze_conversational_tone( $content ) {
 		$conversational_indicators = array(
 			'personal_pronouns' => preg_match_all( '/\b(I|you|we|us|our|your)\b/i', $content ),
@@ -341,12 +451,18 @@ class ProductScraper_Voice_Search {
 		return min( $score, 100 );
 	}
 
+	/**
+	 * Calculate sentence complexity
+	 *
+	 * @param string $sentence The sentence to analyze.
+	 * @return float Complexity score (0-1).
+	 */
 	private function calculate_sentence_complexity( $sentence ) {
 		$words         = str_word_count( $sentence );
 		$complex_words = preg_match_all( '/\b\w{7,}\b/', $sentence );
 		$clauses       = preg_match_all( '/\b(and|but|or|however|although|because|since)\b/i', $sentence );
 
-		if ( $words === 0 ) {
+		if ( 0 === $words ) {
 			return 0;
 		}
 
@@ -354,6 +470,12 @@ class ProductScraper_Voice_Search {
 		return min( $complexity, 1.0 );
 	}
 
+	/**
+	 * Simplify a complex sentence
+	 *
+	 * @param string $sentence The sentence to simplify.
+	 * @return string Simplified sentence.
+	 */
 	private function simplify_sentence( $sentence ) {
 		// Basic sentence simplification rules.
 		$simplifications = array(
@@ -377,7 +499,12 @@ class ProductScraper_Voice_Search {
 		return $simplified;
 	}
 
-	// Additional helper methods would be implemented here.
+	/**
+	 * Estimate syllables in content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return int Estimated syllable count.
+	 */
 	private function estimate_syllables( $content ) {
 		// Simplified syllable estimation.
 		$words           = str_word_count( $content, 1 );
@@ -390,19 +517,37 @@ class ProductScraper_Voice_Search {
 		return $total_syllables;
 	}
 
+	/**
+	 * Extract key phrases from content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Extracted key phrases.
+	 */
 	private function extract_key_phrases( $content ) {
 		// Extract potential keywords (simplified).
 		preg_match_all( '/\b(\w+\s+\w+\s+\w+|\w+\s+\w+)\b/i', $content, $matches );
 		return array_slice( array_unique( $matches[0] ), 0, 15 );
 	}
 
+	/**
+	 * Generate answer suggestion for a question
+	 *
+	 * @param string $question The question to answer.
+	 * @param string $content  The content context.
+	 * @return string Suggested answer.
+	 */
 	private function generate_answer_suggestion( $question, $content ) {
 		// Generate a suggested answer based on content.
 		return 'Based on the content, this appears to be related to ' .
 			substr( $content, 0, 100 ) . '...';
 	}
 
-	// Methods for local voice optimization.
+	/**
+	 * Extract local keywords from content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Local keywords by type.
+	 */
 	private function extract_local_keywords( $content ) {
 		$local_patterns = array(
 			'near_me'    => '/\b(near me|close by|local|nearby)\b/i',
@@ -421,12 +566,24 @@ class ProductScraper_Voice_Search {
 		return $keywords;
 	}
 
+	/**
+	 * Extract location mentions from content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Location mentions.
+	 */
 	private function extract_location_mentions( $content ) {
 		// Simple location extraction (in real implementation, use geocoding API).
 		preg_match_all( '/\b(\w+ \w+ \w+|\w+ \w+)\b(?=,?\s*(?:area|city|state|country))/i', $content, $matches );
 		return array_unique( $matches[0] );
 	}
 
+	/**
+	 * Suggest local schema markup
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Local schema suggestions.
+	 */
 	private function suggest_local_schema( $content ) {
 		return array(
 			'local_business'  => preg_match( '/\b(store|shop|restaurant|business)\b/i', $content ) > 0,
@@ -436,6 +593,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Generate voice commands from content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Generated voice commands.
+	 */
 	private function generate_voice_commands( $content ) {
 		$commands    = array();
 		$key_phrases = $this->extract_key_phrases( $content );
@@ -449,7 +612,12 @@ class ProductScraper_Voice_Search {
 		return array_slice( $commands, 0, 10 );
 	}
 
-	// Additional analysis methods.
+	/**
+	 * Analyze heading structure
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Heading structure analysis.
+	 */
 	private function analyze_heading_structure( $content ) {
 		return array(
 			'h1_count'        => preg_match_all( '/<h1[^>]*>/i', $content ),
@@ -459,6 +627,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Analyze list usage in content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array List usage analysis.
+	 */
 	private function analyze_list_usage( $content ) {
 		return array(
 			'ul_count'        => preg_match_all( '/<ul[^>]*>/i', $content ),
@@ -467,6 +641,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Analyze table usage in content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Table usage analysis.
+	 */
 	private function analyze_table_usage( $content ) {
 		return array(
 			'table_count'     => preg_match_all( '/<table[^>]*>/i', $content ),
@@ -475,6 +655,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Analyze paragraph length distribution
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Paragraph length analysis.
+	 */
 	private function analyze_paragraph_length( $content ) {
 		$paragraphs = preg_split( '/\n\s*\n/', $content );
 		$lengths    = array_map( 'str_word_count', $paragraphs );
@@ -487,6 +673,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Suggest contractions for formal language
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Contraction suggestions.
+	 */
 	private function suggest_contractions( $content ) {
 		$suggestions = array();
 		$patterns    = array(
@@ -507,6 +699,12 @@ class ProductScraper_Voice_Search {
 		return $suggestions;
 	}
 
+	/**
+	 * Suggest rhetorical questions for engagement
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Rhetorical question suggestions.
+	 */
 	private function suggest_rhetorical_questions( $content ) {
 		$key_phrases = $this->extract_key_phrases( $content );
 		$questions   = array();
@@ -519,6 +717,12 @@ class ProductScraper_Voice_Search {
 		return $questions;
 	}
 
+	/**
+	 * Suggest transition words for better flow
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Transition word suggestions.
+	 */
 	private function suggest_transition_words( $content ) {
 		$transition_words    = array( 'also', 'however', 'therefore', 'meanwhile', 'consequently', 'furthermore' );
 		$missing_transitions = array();
@@ -532,6 +736,12 @@ class ProductScraper_Voice_Search {
 		return $missing_transitions;
 	}
 
+	/**
+	 * Analyze personal pronoun usage
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Personal pronoun analysis.
+	 */
 	private function analyze_personal_pronouns( $content ) {
 		$pronouns = array( 'I', 'you', 'we', 'us', 'our', 'your', 'my' );
 		$counts   = array();
@@ -547,6 +757,12 @@ class ProductScraper_Voice_Search {
 		);
 	}
 
+	/**
+	 * Generate conversational examples from content
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Conversational examples.
+	 */
 	private function generate_conversational_examples( $content ) {
 		$sentences = preg_split( '/(?<=[.?!])\s+/', $content );
 		$examples  = array();
@@ -561,6 +777,12 @@ class ProductScraper_Voice_Search {
 		return $examples;
 	}
 
+	/**
+	 * Make a sentence more conversational
+	 *
+	 * @param string $sentence The sentence to improve.
+	 * @return string Conversational version of the sentence.
+	 */
 	private function make_sentence_conversational( $sentence ) {
 		$conversational_replacements = array(
 			'/\bcommence\b/i'      => 'start',
@@ -582,6 +804,12 @@ class ProductScraper_Voice_Search {
 		return $conversational;
 	}
 
+	/**
+	 * Analyze sentence structure comprehensively
+	 *
+	 * @param string $content The content to analyze.
+	 * @return array Sentence structure analysis.
+	 */
 	private function analyze_sentence_structure( $content ) {
 		$sentences = preg_split( '/(?<=[.?!])\s+/', $content );
 		$analysis  = array(
@@ -658,6 +886,13 @@ class ProductScraper_Voice_Search {
 		return $analysis;
 	}
 
+	/**
+	 * Categorize sentence type
+	 *
+	 * @param string $sentence      The sentence to categorize.
+	 * @param array  $sentence_types Current sentence type counts.
+	 * @return array Updated sentence type counts.
+	 */
 	private function categorize_sentence_type( $sentence, $sentence_types ) {
 		$sentence = trim( $sentence );
 
@@ -674,11 +909,17 @@ class ProductScraper_Voice_Search {
 		return $sentence_types;
 	}
 
+	/**
+	 * Calculate sentence complexity score
+	 *
+	 * @param string $sentence The sentence to analyze.
+	 * @return float Complexity score (0-1).
+	 */
 	private function calculate_sentence_complexity_score( $sentence ) {
 		$score = 0;
 		$words = str_word_count( $sentence );
 
-		if ( $words === 0 ) {
+		if ( 0 === $words ) {
 			return 0;
 		}
 
@@ -701,6 +942,12 @@ class ProductScraper_Voice_Search {
 		return min( $score, 1.0 );
 	}
 
+	/**
+	 * Get complexity level from score
+	 *
+	 * @param float $score Complexity score.
+	 * @return string Complexity level.
+	 */
 	private function get_complexity_level( $score ) {
 		if ( $score < 0.3 ) {
 			return 'simple';
@@ -711,6 +958,12 @@ class ProductScraper_Voice_Search {
 		return 'complex';
 	}
 
+	/**
+	 * Calculate sentence variety score
+	 *
+	 * @param array $sentence_lengths Array of sentence lengths.
+	 * @return float Variety score (0-100).
+	 */
 	private function calculate_sentence_variety( $sentence_lengths ) {
 		if ( count( $sentence_lengths ) < 2 ) {
 			return 0;
@@ -732,6 +985,12 @@ class ProductScraper_Voice_Search {
 		return round( $variety_score, 2 );
 	}
 
+	/**
+	 * Generate sentence structure recommendations
+	 *
+	 * @param array $analysis Sentence structure analysis.
+	 * @return array Recommendations for improvement.
+	 */
 	private function generate_sentence_structure_recommendations( $analysis ) {
 		$recommendations = array();
 		$metrics         = $analysis['readability_metrics'];

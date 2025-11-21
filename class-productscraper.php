@@ -34,7 +34,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-analytics-dashboard.p
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-seo-assistant.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-keyword-research.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-voice-search.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-productscraper-voice-search.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-social-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-schema-generator.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-roi-tracker.php';
