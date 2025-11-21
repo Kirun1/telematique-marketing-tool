@@ -1,3 +1,15 @@
+<?php
+/**
+ * SEO Dashboard template.
+ *
+ * @package ProductScraper
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+?>
+
 <div class="wrap">
 	<div class="scraper-analytics-dashboard">
 		<div class="sa-header">
@@ -22,11 +34,11 @@
 								<h3>Optimized Posts</h3>
 							</div>
 							<div class="stat-main">
-								<span class="stat-number"><?php echo $stats['optimized_posts']; ?></span>
-								<span class="stat-percentage"><?php echo $stats['optimization_rate']; ?>%</span>
+								<span class="stat-number"><?php echo esc_html( absint( $stats['optimized_posts'] ) ); ?></span>
+								<span class="stat-percentage"><?php echo esc_html( absint( $stats['optimization_rate'] ) ) . '%'; ?></span>
 							</div>
 							<div class="stat-target">
-								Total Posts: <?php echo $stats['total_posts']; ?>
+								Total Posts: <?php echo esc_html( absint( $stats['total_posts'] ) ); ?>
 							</div>
 						</div>
 
@@ -35,7 +47,7 @@
 								<h3>Readability Score</h3>
 							</div>
 							<div class="stat-main">
-								<span class="stat-number"><?php echo $stats['avg_readability']; ?>%</span>
+								<span class="stat-number"><?php echo esc_html( absint( $stats['avg_readability'] ) ) . '%'; ?></span>
 							</div>
 							<div class="score-status">
 								<?php
@@ -79,8 +91,8 @@
 											( absint( $stats['posts_with_focus_keyword'] ) / absint( $stats['total_posts'] ) ) * 100
 										);
 									}
-									echo esc_html( $keyword_percentage );
-									?>%
+									echo esc_html( $keyword_percentage ) . '%';
+									?>
 								</span>
 							</div>
 							<div class="stat-target">
@@ -125,7 +137,7 @@
 										</td>
 										<td>
 											<div class="score-circle" data-score="<?php echo esc_attr( $analysis['analysis']['score'] ?? 0 ); ?>">
-												<?php echo esc_html( $analysis['analysis']['score'] ?? 0 ); ?>%
+												<?php echo esc_html( ( $analysis['analysis']['score'] ?? 0 ) . '%' ); ?>
 											</div>
 										</td>
 										<td>
