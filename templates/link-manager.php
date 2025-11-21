@@ -275,15 +275,15 @@ $external_links = $this->get_external_links();
 					<select id="link_source" name="link_source" class="sa-form-control">
 						<option value="">Select Source Page</option>
 						<?php
-						$pages = get_posts(
+						$link_manager_pages = get_posts(
 							array(
 								'post_type'   => array( 'post', 'page' ),
 								'post_status' => 'publish',
 								'numberposts' => 50,
 							)
 						);
-						foreach ( $pages as $page ) {
-							echo '<option value="' . esc_attr( $page->ID ) . '">' . esc_html( $page->post_title ) . '</option>';
+						foreach ( $link_manager_pages as $link_manager_page ) {
+							echo '<option value="' . esc_attr( $link_manager_page->ID ) . '">' . esc_html( $link_manager_page->post_title ) . '</option>';
 						}
 						?>
 					</select>
