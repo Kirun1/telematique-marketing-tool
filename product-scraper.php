@@ -559,6 +559,9 @@ class ProductScraper {
 		}
 	}
 
+	/**
+	 * Output appropriate structured data based on the current view.
+	 */
 	public function add_structured_data() {
 		if ( is_singular( 'product' ) && function_exists( 'wc_get_product' ) ) {
 			$this->output_product_structured_data();
@@ -622,12 +625,18 @@ class ProductScraper {
 			'</script>' . "\n";
 	}
 
+	/**
+	 * Enhance default WordPress sitemaps with SEO-related data.
+	 */
 	public function setup_sitemaps() {
 		add_filter( 'wp_sitemaps_add_provider', array( $this, 'enhance_sitemaps' ), 10, 2 );
 		add_filter( 'wp_sitemaps_posts_query_args', array( $this, 'enhance_posts_sitemap' ) );
 		add_filter( 'wp_sitemaps_taxonomies_query_args', array( $this, 'enhance_taxonomies_sitemap' ) );
 	}
 
+	/**
+	 * Register plugin settings for various SEO features.
+	 */
 	public function register_settings() {
 		// Core SEO settings.
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_title_template' );
@@ -652,6 +661,11 @@ class ProductScraper {
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_clean_permalinks' );
 	}
 
+	/**
+	 * Enqueue admin assets on plugin and editing screens.
+	 *
+	 * @param string $hook Current admin page hook suffix.
+	 */
 	public function enqueue_admin_scripts( $hook ) {
 		$plugin_pages = array(
 			'toplevel_page_scraper-analytics',
