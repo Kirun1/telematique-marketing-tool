@@ -882,6 +882,7 @@ class ProductScraper {
 	 */
 	public static function product_scraper_render_sidebar( $current_page = '' ) {
 		if ( empty( $current_page ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Value is only used to highlight the active admin menu item.
 			$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 		}
 
