@@ -1,11 +1,54 @@
 <?php
+/**
+ * Social Media Optimizer
+ *
+ * Handles generation and optimization of social media meta tags
+ * for Facebook, Twitter, LinkedIn, Pinterest, and WhatsApp.
+ *
+ * @package    Product_Scraper_Nahrin
+ * @subpackage SEO
+ * @since      1.0.0
+ */
+
+/**
+ * ProductScraper Social Optimizer class
+ *
+ * Generates and optimizes social media meta tags for various platforms
+ * including Open Graph, Twitter Cards, and platform-specific requirements.
+ */
 class ProductScraper_Social_Optimizer {
 
+	/**
+	 * Default social sharing image
+	 *
+	 * @var string
+	 */
 	private $default_image;
+
+	/**
+	 * Site name for social meta
+	 *
+	 * @var string
+	 */
 	private $site_name;
+
+	/**
+	 * Twitter handle for site
+	 *
+	 * @var string
+	 */
 	private $twitter_handle;
+
+	/**
+	 * Facebook App ID for social integration
+	 *
+	 * @var string
+	 */
 	private $facebook_app_id;
 
+	/**
+	 * Initialize social optimizer with site settings
+	 */
 	public function __construct() {
 		$this->site_name       = get_bloginfo( 'name' );
 		$this->default_image   = $this->get_default_social_image();
@@ -13,6 +56,12 @@ class ProductScraper_Social_Optimizer {
 		$this->facebook_app_id = get_option( 'social_facebook_app_id', '' );
 	}
 
+	/**
+	 * Generate comprehensive social meta data for all platforms
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return array Social meta data for all platforms.
+	 */
 	public function generate_social_meta( $post_id ) {
 		return array(
 			'facebook'  => array(
@@ -52,6 +101,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Facebook Open Graph title
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Facebook Open Graph title.
 	 */
 	private function get_facebook_title( $post_id ) {
 		// Check for custom Facebook title.
@@ -86,6 +138,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Facebook Open Graph description
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Facebook Open Graph description.
 	 */
 	private function get_facebook_description( $post_id ) {
 		// Check for custom Facebook description.
@@ -125,6 +180,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Facebook Open Graph image
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Facebook Open Graph image URL.
 	 */
 	private function get_facebook_image( $post_id ) {
 		// Check for custom Facebook image.
@@ -169,6 +227,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Facebook Open Graph type
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Facebook Open Graph type.
 	 */
 	private function get_facebook_type( $post_id ) {
 		$post_type = get_post_type( $post_id );
@@ -190,6 +251,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Twitter Card title
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Twitter Card title.
 	 */
 	private function get_twitter_title( $post_id ) {
 		// Check for custom Twitter title.
@@ -210,6 +274,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Twitter Card description
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Twitter Card description.
 	 */
 	private function get_twitter_description( $post_id ) {
 		// Check for custom Twitter description.
@@ -230,6 +297,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Twitter Card image
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Twitter Card image URL.
 	 */
 	private function get_twitter_image( $post_id ) {
 		// Check for custom Twitter image.
@@ -250,6 +320,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Twitter Card type
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Twitter Card type.
 	 */
 	private function get_twitter_card_type( $post_id ) {
 		$image = $this->get_twitter_image( $post_id );
@@ -264,6 +337,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Twitter creator handle
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Twitter creator handle.
 	 */
 	private function get_twitter_creator( $post_id ) {
 		$author_id      = get_post_field( 'post_author', $post_id );
@@ -278,6 +354,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get LinkedIn title
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string LinkedIn title.
 	 */
 	private function get_linkedin_title( $post_id ) {
 		// LinkedIn typically uses the same title as Facebook.
@@ -286,6 +365,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get LinkedIn description
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string LinkedIn description.
 	 */
 	private function get_linkedin_description( $post_id ) {
 		// LinkedIn prefers slightly longer descriptions.
@@ -295,6 +377,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get LinkedIn image
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string LinkedIn image URL.
 	 */
 	private function get_linkedin_image( $post_id ) {
 		// LinkedIn uses the same image requirements as Facebook.
@@ -303,6 +388,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Pinterest title
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Pinterest title.
 	 */
 	private function get_pinterest_title( $post_id ) {
 		// Check for custom Pinterest title.
@@ -318,6 +406,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Pinterest description
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Pinterest description.
 	 */
 	private function get_pinterest_description( $post_id ) {
 		// Check for custom Pinterest description.
@@ -334,6 +425,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get Pinterest image
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Pinterest image URL.
 	 */
 	private function get_pinterest_image( $post_id ) {
 		// Check for custom Pinterest image.
@@ -354,6 +448,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get WhatsApp title
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string WhatsApp title.
 	 */
 	private function get_whatsapp_title( $post_id ) {
 		// WhatsApp shares typically show shorter titles.
@@ -363,6 +460,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get WhatsApp description
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string WhatsApp description.
 	 */
 	private function get_whatsapp_description( $post_id ) {
 		// WhatsApp shows limited description in preview.
@@ -376,6 +476,10 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Trim text to specific length
+	 *
+	 * @param string $text   Text to trim.
+	 * @param int    $length Maximum length.
+	 * @return string Trimmed text.
 	 */
 	private function trim_text( $text, $length ) {
 		$text = wp_strip_all_tags( $text );
@@ -386,7 +490,7 @@ class ProductScraper_Social_Optimizer {
 		$text       = substr( $text, 0, $length );
 		$last_space = strrpos( $text, ' ' );
 
-		if ( $last_space !== false ) {
+		if ( false !== $last_space ) {
 			$text = substr( $text, 0, $last_space );
 		}
 
@@ -395,6 +499,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get image URL from various input types
+	 *
+	 * @param mixed $image Image ID, URL, or path.
+	 * @return string Image URL.
 	 */
 	private function get_image_url( $image ) {
 		if ( is_numeric( $image ) ) {
@@ -416,6 +523,8 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get default social image
+	 *
+	 * @return string Default social image URL.
 	 */
 	private function get_default_social_image() {
 		// Check for custom default social image.
@@ -439,6 +548,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get first image from post content
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string|bool First content image URL or false.
 	 */
 	private function get_first_content_image( $post_id ) {
 		$post    = get_post( $post_id );
@@ -466,6 +578,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Check if image meets minimum size requirements
+	 *
+	 * @param string $image_url Image URL to check.
+	 * @return bool True if image is large enough.
 	 */
 	private function is_image_large_enough( $image_url ) {
 		// For social media, we want images that are at least 200x200 pixels.
@@ -476,6 +591,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Clean Twitter handle
+	 *
+	 * @param string $handle Twitter handle to clean.
+	 * @return string Cleaned Twitter handle.
 	 */
 	private function clean_twitter_handle( $handle ) {
 		$handle = trim( $handle );
@@ -485,6 +603,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Optimize title for Pinterest
+	 *
+	 * @param string $title Title to optimize.
+	 * @return string Optimized Pinterest title.
 	 */
 	private function optimize_for_pinterest( $title ) {
 		// Add Pinterest-friendly elements.
@@ -509,6 +630,10 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Enhance description for Pinterest
+	 *
+	 * @param string $description Description to enhance.
+	 * @param int    $post_id     WordPress post ID.
+	 * @return string Enhanced Pinterest description.
 	 */
 	private function enhance_pinterest_description( $description, $post_id ) {
 		$post = get_post( $post_id );
@@ -533,6 +658,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Generate Pinterest hashtags
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Pinterest hashtags.
 	 */
 	private function generate_pinterest_hashtags( $post_id ) {
 		$hashtags = array();
@@ -563,6 +691,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Get vertical image for Pinterest
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string|bool Vertical image URL or false.
 	 */
 	private function get_vertical_image( $post_id ) {
 		// Look for images with vertical orientation in gallery.
@@ -588,6 +719,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Check if image is vertical orientation
+	 *
+	 * @param int $image_id WordPress image attachment ID.
+	 * @return bool True if image is vertical.
 	 */
 	private function is_vertical_image( $image_id ) {
 		$metadata = wp_get_attachment_metadata( $image_id );
@@ -601,6 +735,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Generate social meta HTML tags
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return string Social meta HTML tags.
 	 */
 	public function generate_social_meta_tags( $post_id ) {
 		$social_meta = $this->generate_social_meta( $post_id );
@@ -644,6 +781,9 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Validate social meta data
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return array Validation results.
 	 */
 	public function validate_social_meta( $post_id ) {
 		$social_meta = $this->generate_social_meta( $post_id );
@@ -686,10 +826,13 @@ class ProductScraper_Social_Optimizer {
 
 	/**
 	 * Generate social sharing URLs
+	 *
+	 * @param int $post_id WordPress post ID.
+	 * @return array Social sharing URLs.
 	 */
 	public function generate_sharing_urls( $post_id ) {
-		$post_url   = urlencode( get_permalink( $post_id ) );
-		$post_title = urlencode( get_the_title( $post_id ) );
+		$post_url   = rawurlencode( get_permalink( $post_id ) );
+		$post_title = rawurlencode( get_the_title( $post_id ) );
 
 		return array(
 			'facebook'  => 'https://www.facebook.com/sharer/sharer.php?u=' . $post_url,
