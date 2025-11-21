@@ -329,7 +329,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			</div>
 
 			<div class="ps-form-group" id="ps_custom_schema_group"
-				style="<?php echo ( $seo_data['schema_type'] === 'Custom' ) ? '' : 'display: none;'; ?>">
+				style="<?php echo ( 'Custom' === $seo_data['schema_type'] ) ? '' : 'display: none;'; ?>">
 				<label for="ps_custom_schema">
 					<strong>Custom Schema Markup</strong>
 					<span class="ps-help-text">Enter custom JSON-LD schema markup</span>
