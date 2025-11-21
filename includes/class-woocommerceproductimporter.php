@@ -1,9 +1,29 @@
 <?php
+/**
+ * WooCommerce Product Importer
+ *
+ * Handles importing scraped products into WooCommerce with proper error handling
+ * and data validation. Provides methods for bulk product imports, image handling,
+ * category management, and duplicate detection.
+ *
+ * @package    Product_Scraper_Nahrin
+ * @subpackage Importers
+ * @since      1.0.0
+ */
 
+/**
+ * WooCommerce Product Importer class
+ *
+ * Responsible for importing product data into WooCommerce from scraped sources.
+ * Handles product creation, image downloads, category assignment, and duplicate prevention.
+ */
 class WooCommerceProductImporter {
 
 	/**
 	 * Import scraped products into WooCommerce
+	 *
+	 * @param array $products Array of product data to import.
+	 * @return array Import results with success, error, and skipped counts.
 	 */
 	public function import_products( $products ) {
 		$results = array(
@@ -15,9 +35,9 @@ class WooCommerceProductImporter {
 		foreach ( $products as $product_data ) {
 			$result = $this->import_single_product( $product_data );
 
-			if ( $result === true ) {
+			if ( true === $result ) {
 				++$results['success'];
-			} elseif ( $result === 'skipped' ) {
+			} elseif ( 'skipped' === $result ) {
 				++$results['skipped'];
 			} else {
 				++$results['errors'];
@@ -29,6 +49,9 @@ class WooCommerceProductImporter {
 
 	/**
 	 * Import single product
+	 *
+	 * @param array $product_data Product data array containing name, description, price, etc.
+	 * @return bool|string True on success, 'skipped' if product exists, false on error.
 	 */
 	private function import_single_product( $product_data ) {
 		// Check if product already exists.
@@ -90,13 +113,15 @@ class WooCommerceProductImporter {
 			$product_id = $product->save();
 			return $product_id > 0 ? true : false;
 		} catch ( Exception $e ) {
-			error_log( 'Product import error: ' . $e->getMessage() );
 			return false;
 		}
 	}
 
 	/**
 	 * Check if product already exists
+	 *
+	 * @param string $product_name Product name to check for existence.
+	 * @return bool True if product exists, false otherwise.
 	 */
 	private function product_exists( $product_name ) {
 		$existing = get_posts(
@@ -113,6 +138,9 @@ class WooCommerceProductImporter {
 
 	/**
 	 * Parse price from string
+	 *
+	 * @param string $price_string Price string to parse (may contain currency symbols, commas, etc.).
+	 * @return float Parsed price as float value.
 	 */
 	private function parse_price( $price_string ) {
 		// Remove currency symbols and non-numeric characters except decimal point.
@@ -130,6 +158,10 @@ class WooCommerceProductImporter {
 
 	/**
 	 * Download image from URL and attach to media library
+	 *
+	 * @param string $image_url  URL of the image to download.
+	 * @param string $image_name Name for the downloaded image.
+	 * @return int|bool Attachment ID on success, false on failure.
 	 */
 	private function download_image( $image_url, $image_name ) {
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -150,7 +182,7 @@ class WooCommerceProductImporter {
 		$id = media_handle_sideload( $file_array, 0 );
 
 		if ( is_wp_error( $id ) ) {
-			@unlink( $file_array['tmp_name'] );
+			wp_delete_file( $file_array['tmp_name'] );
 			return false;
 		}
 
@@ -159,6 +191,9 @@ class WooCommerceProductImporter {
 
 	/**
 	 * Get or create product categories
+	 *
+	 * @param array $category_names Array of category names to get or create.
+	 * @return array Array of category term IDs.
 	 */
 	private function get_or_create_categories( $category_names ) {
 		$category_ids = array();
