@@ -463,15 +463,15 @@ class ProductScraper {
 	public function output_search_meta_tags() {
 		$search_query = get_search_query();
 
-		// translators: 1: search query, 2: site name.
 		$title = sprintf(
+			// translators: 1: search query, 2: site name.
 			__( 'Search Results for: "%1$s" | %2$s', 'product-scraper' ),
 			$search_query,
 			get_bloginfo( 'name' )
 		);
 
-		// translators: 1: search query, 2: site name.
 		$description = sprintf(
+			// translators: 1: search query, 2: site name.
 			__( 'Search results for "%1$s". Find relevant content and products on %2$s.', 'product-scraper' ),
 			$search_query,
 			get_bloginfo( 'name' )
@@ -512,40 +512,40 @@ class ProductScraper {
 	 */
 	public function output_date_archive_meta_tags() {
 		if ( is_year() ) {
-			// translators: 1: year, 2: site name.
 			$title = sprintf(
+				// translators: 1: year, 2: site name.
 				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
 				get_the_date( 'Y' ),
 				get_bloginfo( 'name' )
 			);
-			// translators: 1: year, 2: site name.
 			$description = sprintf(
+				// translators: 1: year, 2: site name.
 				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
 				get_the_date( 'Y' ),
 				get_bloginfo( 'name' )
 			);
 		} elseif ( is_month() ) {
-			// translators: 1: month and year, 2: site name.
 			$title = sprintf(
+				// translators: 1: month and year, 2: site name.
 				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
 				get_the_date( 'F Y' ),
 				get_bloginfo( 'name' )
 			);
-			// translators: 1: month and year, 2: site name.
 			$description = sprintf(
+				// translators: 1: month and year, 2: site name.
 				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
 				get_the_date( 'F Y' ),
 				get_bloginfo( 'name' )
 			);
 		} elseif ( is_day() ) {
-			// translators: 1: date, 2: site name.
 			$title = sprintf(
+				// translators: 1: date, 2: site name.
 				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
 				get_the_date(),
 				get_bloginfo( 'name' )
 			);
-			// translators: 1: date, 2: site name.
 			$description = sprintf(
+				// translators: 1: date, 2: site name.
 				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
 				get_the_date(),
 				get_bloginfo( 'name' )
