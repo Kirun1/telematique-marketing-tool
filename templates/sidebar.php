@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Get current page to set active state
+// Get current page to set active state.
 $current_page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
 ?>
 
