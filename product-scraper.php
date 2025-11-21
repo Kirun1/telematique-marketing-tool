@@ -593,7 +593,7 @@ class ProductScraper {
 		);
 
 		echo '<script type="application/ld+json">' .
-			json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+			wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
 			'</script>' . "\n";
 	}
 
@@ -618,7 +618,7 @@ class ProductScraper {
 		);
 
 		echo '<script type="application/ld+json">' .
-			json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+			wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
 			'</script>' . "\n";
 	}
 
