@@ -75,7 +75,9 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 				<div class="ps-preview">
 					<strong>Preview:</strong>
 					<div class="ps-preview-title" id="ps_title_preview">
-						<?php echo esc_html( $seo_data['meta_title'] ?: wp_get_document_title() ); ?>
+						<?php
+						echo esc_html( ! empty( $seo_data['meta_title'] ) ? $seo_data['meta_title'] : wp_get_document_title() );
+						?>
 					</div>
 				</div>
 			</div>
@@ -93,7 +95,9 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 				<div class="ps-preview">
 					<strong>Preview:</strong>
 					<div class="ps-preview-description" id="ps_description_preview">
-						<?php echo esc_html( $seo_data['meta_description'] ?: 'No meta description set.' ); ?>
+						<?php
+						echo esc_html( ! empty( $seo_data['meta_description'] ) ? $seo_data['meta_description'] : 'No meta description set.' );
+						?>
 					</div>
 				</div>
 			</div>
@@ -216,10 +220,22 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 						</div>
 						<div class="ps-facebook-content">
 							<div class="ps-facebook-title" id="ps_facebook_title_preview">
-								<?php echo esc_html( $seo_data['og_title'] ?: $seo_data['meta_title'] ?: get_the_title() ); ?>
+								<?php
+								echo esc_html(
+									! empty( $seo_data['og_title'] )
+										? $seo_data['og_title']
+										: ( ! empty( $seo_data['meta_title'] ) ? $seo_data['meta_title'] : get_the_title() )
+								);
+								?>
 							</div>
 							<div class="ps-facebook-description" id="ps_facebook_description_preview">
-								<?php echo esc_html( $seo_data['og_description'] ?: $seo_data['meta_description'] ?: get_the_excerpt() ); ?>
+								<?php
+								echo esc_html(
+									! empty( $seo_data['og_description'] )
+										? $seo_data['og_description']
+										: ( ! empty( $seo_data['meta_description'] ) ? $seo_data['meta_description'] : get_the_excerpt() )
+								);
+								?>
 							</div>
 							<div class="ps-facebook-url"><?php echo esc_url( home_url() ); ?></div>
 						</div>
@@ -237,10 +253,30 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 						</div>
 						<div class="ps-twitter-content">
 							<div class="ps-twitter-title" id="ps_twitter_title_preview">
-								<?php echo esc_html( $seo_data['twitter_title'] ?: $seo_data['og_title'] ?: $seo_data['meta_title'] ?: get_the_title() ); ?>
+								<?php
+								echo esc_html(
+									! empty( $seo_data['twitter_title'] )
+										? $seo_data['twitter_title']
+										: (
+											! empty( $seo_data['og_title'] )
+												? $seo_data['og_title']
+												: ( ! empty( $seo_data['meta_title'] ) ? $seo_data['meta_title'] : get_the_title() )
+										)
+								);
+								?>
 							</div>
 							<div class="ps-twitter-description" id="ps_twitter_description_preview">
-								<?php echo esc_html( $seo_data['twitter_description'] ?: $seo_data['og_description'] ?: $seo_data['meta_description'] ?: get_the_excerpt() ); ?>
+								<?php
+								echo esc_html(
+									! empty( $seo_data['twitter_description'] )
+										? $seo_data['twitter_description']
+										: (
+											! empty( $seo_data['og_description'] )
+												? $seo_data['og_description']
+												: ( ! empty( $seo_data['meta_description'] ) ? $seo_data['meta_description'] : get_the_excerpt() )
+										)
+								);
+								?>
 							</div>
 							<div class="ps-twitter-url"><?php echo esc_url( home_url() ); ?></div>
 						</div>
