@@ -274,7 +274,7 @@ class ProductScraper_SEO_Analysis {
 			'value'   => 'Manual check needed',
 		);
 
-		// Mobile page speed
+		// Mobile page speed.
 		$mobile_speed           = $this->check_mobile_speed();
 		$mobile['mobile_speed'] = $mobile_speed;
 		$mobile['score']       += $mobile_speed['score_impact'];

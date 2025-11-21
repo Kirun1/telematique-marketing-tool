@@ -148,7 +148,7 @@ class ProductScraperEngine {
 		$price_nodes = $xpath->query( './/span[@class="price"]', $node );
 		if ( $price_nodes->length > 0 ) {
 			$product['price'] = trim( $price_nodes->item( 0 )->textContent );
-			// Also get price amount from data attribute if available
+			// Also get price amount from data attribute if available.
 			$price_wrapper = $xpath->query( './/span[@data-price-amount]', $node );
 			if ( $price_wrapper->length > 0 ) {
 				$product['price_amount'] = $price_wrapper->item( 0 )->getAttribute( 'data-price-amount' );

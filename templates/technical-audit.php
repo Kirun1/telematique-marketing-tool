@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Technical Audit Template
  *
@@ -11,7 +10,7 @@
  * @since 1.0.0
  */
 
-// Security check to prevent direct access
+// Security check to prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

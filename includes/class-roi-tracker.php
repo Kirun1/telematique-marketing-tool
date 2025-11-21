@@ -118,7 +118,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function get_average_order_value() {
-		// Get average order value
+		// Get average order value.
 		return rand( 50, 500 ); // $50-$500 average order value.
 	}
 

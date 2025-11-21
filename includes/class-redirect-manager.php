@@ -1,5 +1,4 @@
 <?php
-// includes/class-redirect-manager.php
 class ProductScraper_Redirect_Manager {
 
 	private $redirect_table;
