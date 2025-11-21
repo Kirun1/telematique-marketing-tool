@@ -1,11 +1,11 @@
 <?php
-
 /**
  * Plugin Name: Product Scraper & Analytics
  * Description: Advanced SEO optimization with product scraping and analytics
  * Version: 2.1.0
  * Author: Telematique LTD
  * Text Domain: product-scraper
+ * @package ProductScraper
  */
 
 // Prevent direct access.
@@ -53,18 +53,79 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-seo-analysis.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-link-manager.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-robots-txt.php';
 
+/**
+ * Main plugin controller for Product Scraper.
+ *
+ * @phpcs:disable WordPress.Files.FileName.InvalidClassFileName -- Main plugin file must retain its slugged filename.
+ */
 class ProductScraper {
 
+	/**
+	 * Data storage handler.
+	 *
+	 * @var ProductScraperDataStorage
+	 */
 	public $storage;
+
+	/**
+	 * Analytics dashboard handler.
+	 *
+	 * @var ProductScraperAnalytics
+	 */
 	public $analytics;
+
+	/**
+	 * SEO assistant service.
+	 *
+	 * @var ProductScraper_SEO_Assistant
+	 */
 	public $seo_assistant;
+
+	/**
+	 * Content optimizer service.
+	 *
+	 * @var ProductScraper_Content_Optimizer
+	 */
 	public $content_optimizer;
+
+	/**
+	 * Keyword research service.
+	 *
+	 * @var ProductScraper_Keyword_Research
+	 */
 	public $keyword_research;
+
+	/**
+	 * Integration service wrapper.
+	 *
+	 * @var ProductScraper_API_Integrations
+	 */
 	public $api_integrations;
+
+	/**
+	 * SEO analysis service.
+	 *
+	 * @var ProductScraper_SEO_Analysis
+	 */
 	public $seo_analysis;
+
+	/**
+	 * Link manager service.
+	 *
+	 * @var ProductScraper_Link_Manager
+	 */
 	public $link_manager;
+
+	/**
+	 * Robots.txt manager service.
+	 *
+	 * @var ProductScraper_Robots_Txt
+	 */
 	public $robots_manager;
 
+	/**
+	 * Bootstrap plugin services and hooks.
+	 */
 	public function __construct() {
 		$this->storage           = new ProductScraperDataStorage();
 		$this->analytics         = new ProductScraperAnalytics();
@@ -92,6 +153,11 @@ class ProductScraper {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 	}
 
+	/**
+	 * Initialize admin modules and shared SEO hooks.
+	 *
+	 * @return void
+	 */
 	public function init() {
 		if ( is_admin() ) {
 			new ProductScraperAdmin();
@@ -101,6 +167,11 @@ class ProductScraper {
 		$this->setup_seo_features();
 	}
 
+	/**
+	 * Register hooks for SEO meta, social tags, and structured data.
+	 *
+	 * @return void
+	 */
 	public function setup_seo_features() {
 		// Remove other SEO plugins' meta boxes to avoid conflicts.
 		if ( is_admin() ) {
@@ -117,6 +188,11 @@ class ProductScraper {
 		add_action( 'wp_head', array( $this, 'add_structured_data' ), 10 );
 	}
 
+	/**
+	 * Remove legacy SEO meta boxes for a cleaner UI.
+	 *
+	 * @return void
+	 */
 	public function remove_other_seo_meta_boxes() {
 		// Remove Yoast SEO meta box.
 		remove_meta_box( 'wpseo_meta', get_post_types(), 'normal' );
@@ -128,6 +204,11 @@ class ProductScraper {
 		remove_meta_box( 'aioseo-settings', get_post_types(), 'normal' );
 	}
 
+	/**
+	 * Route SEO meta output based on the current query context.
+	 *
+	 * @return void
+	 */
 	public function output_seo_meta_tags() {
 		if ( is_singular() ) {
 			$this->output_singular_meta_tags();
@@ -144,6 +225,11 @@ class ProductScraper {
 		}
 	}
 
+	/**
+	 * Output meta tags for singular posts and pages.
+	 *
+	 * @return void
+	 */
 	public function output_singular_meta_tags() {
 		global $post;
 
@@ -1029,5 +1115,7 @@ class ProductScraper {
 		}
 	}
 }
+
+/* phpcs:enable WordPress.Files.FileName.InvalidClassFileName */
 
 new ProductScraper();
