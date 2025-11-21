@@ -426,7 +426,10 @@ class ProductScraper {
 	private function output_pagination_meta( $object = null ) {
 		global $wp_query;
 
-		$paged = get_query_var( 'paged' ) ?: 1;
+		$paged = get_query_var( 'paged' );
+		if ( ! $paged ) {
+			$paged = 1;
+		}
 
 		if ( $paged > 1 ) {
 			// Prev link.
@@ -449,6 +452,9 @@ class ProductScraper {
 		return $wp_query->is_paged && ( $wp_query->is_archive() || $wp_query->is_home() || $wp_query->is_search() );
 	}
 
+	/**
+	 * Add Open Graph tags for singular content.
+	 */
 	public function add_opengraph_meta() {
 		if ( ! is_singular() ) {
 			return;
@@ -456,8 +462,15 @@ class ProductScraper {
 
 		global $post;
 
-		$og_title       = get_post_meta( $post->ID, '_og_title', true ) ?: get_the_title();
-		$og_description = get_post_meta( $post->ID, '_og_description', true ) ?: wp_trim_words( get_the_excerpt(), 25 );
+		$og_title = get_post_meta( $post->ID, '_og_title', true );
+		if ( '' === $og_title ) {
+			$og_title = get_the_title();
+		}
+
+		$og_description = get_post_meta( $post->ID, '_og_description', true );
+		if ( '' === $og_description ) {
+			$og_description = wp_trim_words( get_the_excerpt(), 25 );
+		}
 		$og_image       = get_post_meta( $post->ID, '_og_image', true );
 
 		echo '<!-- Product Scraper Open Graph -->' . "\n";
@@ -488,8 +501,15 @@ class ProductScraper {
 			return;
 		}
 
-		$og_title       = get_term_meta( $term->term_id, '_og_title', true ) ?: $term->name;
-		$og_description = get_term_meta( $term->term_id, '_og_description', true ) ?: wp_trim_words( $term->description, 25 );
+		$og_title = get_term_meta( $term->term_id, '_og_title', true );
+		if ( '' === $og_title ) {
+			$og_title = $term->name;
+		}
+
+		$og_description = get_term_meta( $term->term_id, '_og_description', true );
+		if ( '' === $og_description ) {
+			$og_description = wp_trim_words( $term->description, 25 );
+		}
 		$og_image       = get_term_meta( $term->term_id, '_og_image', true );
 
 		echo '<!-- Product Scraper Taxonomy Open Graph -->' . "\n";
@@ -515,8 +535,15 @@ class ProductScraper {
 		$author_id = get_queried_object_id();
 		$author    = get_queried_object();
 
-		$og_title       = get_user_meta( $author_id, '_og_title', true ) ?: $author->display_name;
-		$og_description = get_user_meta( $author_id, '_og_description', true ) ?: wp_trim_words( $author->description, 25 );
+		$og_title = get_user_meta( $author_id, '_og_title', true );
+		if ( '' === $og_title ) {
+			$og_title = $author->display_name;
+		}
+
+		$og_description = get_user_meta( $author_id, '_og_description', true );
+		if ( '' === $og_description ) {
+			$og_description = wp_trim_words( $author->description, 25 );
+		}
 		$og_image       = get_user_meta( $author_id, '_og_image', true );
 
 		echo '<!-- Product Scraper Author Open Graph -->' . "\n";
@@ -535,6 +562,9 @@ class ProductScraper {
 		}
 	}
 
+	/**
+	 * Output Twitter Card meta tags for singular content.
+	 */
 	public function add_twitter_card_meta() {
 		if ( ! is_singular() ) {
 			return;
@@ -542,8 +572,15 @@ class ProductScraper {
 
 		global $post;
 
-		$twitter_title       = get_post_meta( $post->ID, '_twitter_title', true ) ?: get_the_title();
-		$twitter_description = get_post_meta( $post->ID, '_twitter_description', true ) ?: wp_trim_words( get_the_excerpt(), 25 );
+		$twitter_title = get_post_meta( $post->ID, '_twitter_title', true );
+		if ( '' === $twitter_title ) {
+			$twitter_title = get_the_title();
+		}
+
+		$twitter_description = get_post_meta( $post->ID, '_twitter_description', true );
+		if ( '' === $twitter_description ) {
+			$twitter_description = wp_trim_words( get_the_excerpt(), 25 );
+		}
 		$twitter_image       = get_post_meta( $post->ID, '_twitter_image', true );
 
 		echo '<!-- Product Scraper Twitter Card -->' . "\n";
