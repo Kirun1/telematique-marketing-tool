@@ -291,7 +291,7 @@
 
 <script>
 jQuery(document).ready(function($) {
-	// Content analysis functionality
+	// Content analysis functionality.
 	$('#analyze-content').on('click', function() {
 		var content = $('#content-to-analyze').val();
 		var keyword = $('#focus-keyword').val();

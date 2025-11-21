@@ -2,7 +2,7 @@
 class ProductScraper_Ecommerce_SEO {
 
 	public function optimize_product_page( $product_id ) {
-		// WooCommerce-specific optimizations
+		// WooCommerce-specific optimizations.
 		return array(
 			'schema'                => $this->generate_product_schema( $product_id ),
 			'reviews'               => $this->optimize_review_markup( $product_id ),
@@ -29,13 +29,13 @@ class ProductScraper_Ecommerce_SEO {
 			'url'         => get_permalink( $product_id ),
 		);
 
-		// Add image
+		// Add image.
 		$image_id = $product->get_image_id();
 		if ( $image_id ) {
 			$schema['image'] = wp_get_attachment_image_url( $image_id, 'full' );
 		}
 
-		// Add brand if available
+		// Add brand if available.
 		$brand = $this->get_product_brand( $product_id );
 		if ( $brand ) {
 			$schema['brand'] = array(
@@ -44,7 +44,7 @@ class ProductScraper_Ecommerce_SEO {
 			);
 		}
 
-		// Add offers
+		// Add offers.
 		$schema['offers'] = array(
 			'@type'           => 'Offer',
 			'price'           => $product->get_price(),
@@ -54,7 +54,7 @@ class ProductScraper_Ecommerce_SEO {
 			'priceValidUntil' => date( 'Y-m-d', strtotime( '+1 year' ) ),
 		);
 
-		// Add reviews if available
+		// Add reviews if available.
 		$reviews_schema = $this->get_reviews_schema( $product_id );
 		if ( $reviews_schema ) {
 			$schema['aggregateRating'] = $reviews_schema['aggregateRating'];
@@ -83,7 +83,7 @@ class ProductScraper_Ecommerce_SEO {
 		if ( ! empty( $reviews ) ) {
 			$optimizations['rich_snippets_added'] = true;
 
-			// Generate review markup for each review
+			// Generate review markup for each review.
 			foreach ( $reviews as $review ) {
 				$optimizations['review_markup'][] = array(
 					'author'  => $review->comment_author,
@@ -94,7 +94,7 @@ class ProductScraper_Ecommerce_SEO {
 			}
 		}
 
-		// Add review form schema
+		// Add review form schema.
 		$optimizations['review_form_optimized'] = $this->optimize_review_form( $product_id );
 
 		return $optimizations;
@@ -111,7 +111,7 @@ class ProductScraper_Ecommerce_SEO {
 			'priceValidUntil' => date( 'Y-m-d', strtotime( '+1 year' ) ),
 		);
 
-		// Handle sale pricing
+		// Handle sale pricing.
 		if ( $product->is_on_sale() ) {
 			$pricing_schema['priceSpecification'] = array(
 				'price'         => $product->get_sale_price(),
@@ -121,7 +121,7 @@ class ProductScraper_Ecommerce_SEO {
 			);
 		}
 
-		// Add shipping details
+		// Add shipping details.
 		$shipping_class = $product->get_shipping_class();
 		if ( $shipping_class ) {
 			$pricing_schema['shippingDetails'] = array(
@@ -146,7 +146,7 @@ class ProductScraper_Ecommerce_SEO {
 			),
 		);
 
-		// Add backorder information
+		// Add backorder information.
 		if ( $product->backorders_allowed() ) {
 			$availability_schema['backorder'] = array(
 				'allowed' => true,
@@ -154,7 +154,7 @@ class ProductScraper_Ecommerce_SEO {
 			);
 		}
 
-		// Add delivery time estimates
+		// Add delivery time estimates.
 		$availability_schema['delivery_lead_time'] = array(
 			'min_days'      => 2,
 			'max_days'      => 7,
@@ -174,7 +174,7 @@ class ProductScraper_Ecommerce_SEO {
 			'itemListElement' => array(),
 		);
 
-		// Home page
+		// Home page.
 		$breadcrumbs['itemListElement'][] = array(
 			'@type'    => 'ListItem',
 			'position' => 1,
@@ -184,12 +184,12 @@ class ProductScraper_Ecommerce_SEO {
 
 		$position = 2;
 
-		// Category hierarchy
+		// Category hierarchy.
 		if ( ! empty( $categories ) ) {
 			$main_category = $categories[0];
 			$ancestors     = get_ancestors( $main_category->term_id, 'product_cat' );
 
-			// Add parent categories
+			// Add parent categories.
 			foreach ( array_reverse( $ancestors ) as $ancestor_id ) {
 				$ancestor                         = get_term( $ancestor_id, 'product_cat' );
 				$breadcrumbs['itemListElement'][] = array(
@@ -200,7 +200,7 @@ class ProductScraper_Ecommerce_SEO {
 				);
 			}
 
-			// Add main category
+			// Add main category.
 			$breadcrumbs['itemListElement'][] = array(
 				'@type'    => 'ListItem',
 				'position' => $position++,
@@ -209,7 +209,7 @@ class ProductScraper_Ecommerce_SEO {
 			);
 		}
 
-		// Add product
+		// Add product.
 		$breadcrumbs['itemListElement'][] = array(
 			'@type'    => 'ListItem',
 			'position' => $position,
@@ -246,27 +246,27 @@ class ProductScraper_Ecommerce_SEO {
 		return $optimizations;
 	}
 
-	// Helper methods
+	// Helper methods.
 	private function get_product_brand( $product_id ) {
-		// Check for brand taxonomy (common in WooCommerce)
+		// Check for brand taxonomy (common in WooCommerce).
 		$brands = wp_get_post_terms( $product_id, 'product_brand' );
 		if ( ! empty( $brands ) ) {
 			return $brands[0]->name;
 		}
 
-		// Check for brand custom field
+		// Check for brand custom field.
 		$brand = get_post_meta( $product_id, '_brand', true );
 		if ( $brand ) {
 			return $brand;
 		}
 
-		// Check for manufacturer
+		// Check for manufacturer.
 		$manufacturer = get_post_meta( $product_id, '_manufacturer', true );
 		if ( $manufacturer ) {
 			return $manufacturer;
 		}
 
-		return get_bloginfo( 'name' ); // Fallback to site name
+		return get_bloginfo( 'name' ); // Fallback to site name.
 	}
 
 	private function get_schema_availability( $product ) {
@@ -348,8 +348,8 @@ class ProductScraper_Ecommerce_SEO {
 	}
 
 	private function calculate_shipping_cost( $product ) {
-		// Simplified shipping calculation
-		// In real implementation, you'd use WooCommerce shipping methods
+		// Simplified shipping calculation.
+		// In real implementation, you'd use WooCommerce shipping methods.
 		$base_cost = 5.00;
 		$weight    = $product->get_weight();
 

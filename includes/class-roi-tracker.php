@@ -2,9 +2,9 @@
 class ProductScraper_ROI_Tracker {
 
 	public function calculate_seo_roi() {
-		// Track keyword rankings vs revenue
-		// Content performance vs conversions
-		// SEO effort vs business outcomes
+		// Track keyword rankings vs revenue.
+		// Content performance vs conversions.
+		// SEO effort vs business outcomes.
 		return array(
 			'organic_revenue' => $this->calculate_organic_revenue(),
 			'conversion_rate' => $this->get_seo_conversion_rate(),
@@ -14,7 +14,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function calculate_organic_revenue() {
-		// Calculate revenue from organic traffic
+		// Calculate revenue from organic traffic.
 		$organic_sessions    = $this->get_organic_sessions();
 		$conversion_rate     = $this->get_organic_conversion_rate();
 		$average_order_value = $this->get_average_order_value();
@@ -34,7 +34,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function get_seo_conversion_rate() {
-		// Get conversion rate specifically for SEO traffic
+		// Get conversion rate specifically for SEO traffic.
 		$organic_conversions = $this->get_organic_conversions();
 		$organic_sessions    = $this->get_organic_sessions();
 
@@ -50,7 +50,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function calculate_keyword_value() {
-		// Calculate the monetary value of ranked keywords
+		// Calculate the monetary value of ranked keywords.
 		$ranked_keywords = $this->get_ranked_keywords();
 		$keyword_values  = array();
 		$total_value     = 0;
@@ -61,7 +61,7 @@ class ProductScraper_ROI_Tracker {
 			$total_value     += $value['estimated_monthly_value'];
 		}
 
-		// Sort by value descending
+		// Sort by value descending.
 		usort(
 			$keyword_values,
 			function ( $a, $b ) {
@@ -79,7 +79,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function calculate_content_roi() {
-		// Calculate ROI for content marketing efforts
+		// Calculate ROI for content marketing efforts.
 		$content_pieces     = $this->get_content_performance();
 		$content_investment = $this->calculate_content_investment();
 		$content_revenue    = $this->calculate_content_revenue();
@@ -96,10 +96,10 @@ class ProductScraper_ROI_Tracker {
 		);
 	}
 
-	// Helper methods for organic revenue calculation
+	// Helper methods for organic revenue calculation.
 	private function get_organic_sessions() {
-		// Get organic sessions from analytics
-		// In real implementation, this would connect to Google Analytics API
+		// Get organic sessions from analytics.
+		// In real implementation, this would connect to Google Analytics API.
 		return array(
 			'current_period'     => rand( 5000, 50000 ),
 			'previous_period'    => rand( 4000, 45000 ),
@@ -113,17 +113,17 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function get_organic_conversion_rate() {
-		// Get conversion rate for organic traffic
-		return rand( 1, 8 ) / 100; // 1-8% conversion rate
+		// Get conversion rate for organic traffic.
+		return rand( 1, 8 ) / 100; // 1-8% conversion rate.
 	}
 
 	private function get_average_order_value() {
 		// Get average order value
-		return rand( 50, 500 ); // $50-$500 average order value
+		return rand( 50, 500 ); // $50-$500 average order value.
 	}
 
 	private function get_organic_conversions() {
-		// Get number of conversions from organic traffic
+		// Get number of conversions from organic traffic.
 		return rand( 50, 2000 );
 	}
 
@@ -147,7 +147,7 @@ class ProductScraper_ROI_Tracker {
 		);
 	}
 
-	// Helper methods for conversion rate analysis
+	// Helper methods for conversion rate analysis.
 	private function get_conversion_trend() {
 		return array(
 			'direction'  => rand( 0, 1 ) ? 'improving' : 'declining',
@@ -166,14 +166,14 @@ class ProductScraper_ROI_Tracker {
 
 		return array(
 			'industry_average'        => $industry_benchmarks['ecommerce'],
-			'performance_status'      => 'above_average', // or 'below_average'
+			'performance_status'      => 'above_average', // or 'below_average'.
 			'improvement_opportunity' => rand( 10, 40 ) / 100,
 		);
 	}
 
-	// Helper methods for keyword value calculation
+	// Helper methods for keyword value calculation.
 	private function get_ranked_keywords() {
-		// Get ranked keywords with their metrics
+		// Get ranked keywords with their metrics.
 		$keywords      = array();
 		$keyword_count = rand( 100, 1000 );
 
@@ -191,7 +191,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function calculate_individual_keyword_value( $keyword ) {
-		// Calculate value for a single keyword
+		// Calculate value for a single keyword.
 		$click_through_rate = $this->calculate_position_ctr( $keyword['position'] );
 		$estimated_clicks   = $keyword['monthly_searches'] * $click_through_rate;
 		$estimated_value    = $estimated_clicks * $keyword['cpc'];
@@ -209,7 +209,7 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function calculate_position_ctr( $position ) {
-		// Calculate CTR based on position (simplified)
+		// Calculate CTR based on position (simplified).
 		$ctr_map = array(
 			1  => 0.28,
 			2  => 0.15,
@@ -283,9 +283,9 @@ class ProductScraper_ROI_Tracker {
 		return 'high';
 	}
 
-	// Helper methods for content ROI calculation
+	// Helper methods for content ROI calculation.
 	private function get_content_performance() {
-		// Get performance data for all content pieces
+		// Get performance data for all content pieces.
 		$content_pieces = array();
 		$content_count  = rand( 10, 100 );
 
@@ -303,15 +303,15 @@ class ProductScraper_ROI_Tracker {
 	}
 
 	private function calculate_content_investment() {
-		// Calculate total investment in content creation
+		// Calculate total investment in content creation.
 		$content_pieces         = $this->get_content_performance();
-		$average_cost_per_piece = rand( 200, 2000 ); // $200-$2000 per content piece
+		$average_cost_per_piece = rand( 200, 2000 ); // $200-$2000 per content piece.
 
 		return count( $content_pieces ) * $average_cost_per_piece;
 	}
 
 	private function calculate_content_revenue() {
-		// Calculate total revenue generated by content
+		// Calculate total revenue generated by content.
 		$content_pieces = $this->get_content_performance();
 		$total_revenue  = 0;
 
@@ -327,7 +327,7 @@ class ProductScraper_ROI_Tracker {
 			return 'N/A';
 		}
 
-		$monthly_revenue = $revenue / 12; // Assuming annual revenue
+		$monthly_revenue = $revenue / 12; // Assuming annual revenue.
 		$payback_months  = $investment / $monthly_revenue;
 
 		return round( $payback_months, 1 ) . ' months';
@@ -336,7 +336,7 @@ class ProductScraper_ROI_Tracker {
 	private function get_top_performing_content() {
 		$content_pieces = $this->get_content_performance();
 
-		// Sort by revenue descending
+		// Sort by revenue descending.
 		usort(
 			$content_pieces,
 			function ( $a, $b ) {
@@ -395,7 +395,7 @@ class ProductScraper_ROI_Tracker {
 		return $keywords[ array_rand( $keywords ) ] . ' ' . $products[ array_rand( $products ) ];
 	}
 
-	// Additional ROI analysis methods
+	// Additional ROI analysis methods.
 	public function calculate_campaign_roi( $campaign_data ) {
 		return array(
 			'investment'         => $campaign_data['investment'],

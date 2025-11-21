@@ -29,7 +29,7 @@ class ProductScraper_Content_Optimizer {
 		$analysis = array(
 			'word_count'        => $word_count,
 			'content_length'    => $content_length,
-			'reading_time'      => ceil( $word_count / 200 ), // 200 words per minute
+			'reading_time'      => ceil( $word_count / 200 ), // 200 words per minute.
 			'keyword_density'   => 0,
 			'readability_score' => $this->calculate_flesch_score( $clean_content ),
 			'headings'          => $this->analyze_headings( $content ),
@@ -65,7 +65,7 @@ class ProductScraper_Content_Optimizer {
 	}
 
 	private function count_syllables( $content ) {
-		// Simplified syllable count
+		// Simplified syllable count.
 		$vowels = '/[aeiouy]+/i';
 		preg_match_all( $vowels, $content, $matches );
 		return count( $matches[0] );
@@ -188,8 +188,8 @@ class ProductScraper_Content_Optimizer {
 	}
 
 	private function optimize_content( $content, $type ) {
-		// This would integrate with AI services
-		// For now, return some basic optimizations
+		// This would integrate with AI services.
+		// For now, return some basic optimizations.
 
 		switch ( $type ) {
 			case 'readability':
@@ -204,18 +204,18 @@ class ProductScraper_Content_Optimizer {
 	}
 
 	private function improve_readability( $content ) {
-		// Basic readability improvements
-		$content = preg_replace( '/\.\s*/', '. ', $content ); // Ensure proper spacing
+		// Basic readability improvements.
+		$content = preg_replace( '/\.\s*/', '. ', $content ); // Ensure proper spacing.
 		return $content;
 	}
 
 	private function optimize_for_seo( $content ) {
-		// Basic SEO optimizations
+		// Basic SEO optimizations.
 		return $content;
 	}
 
 	private function improve_engagement( $content ) {
-		// Basic engagement improvements
+		// Basic engagement improvements.
 		return $content;
 	}
 

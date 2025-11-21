@@ -14,7 +14,7 @@ class ProductScraper_SEO_Assistant {
 		add_action( 'edit_tag_form_fields', array( $this, 'add_taxonomy_seo_fields' ) );
 		add_action( 'edited_term', array( $this, 'save_taxonomy_seo_fields' ) );
 
-		// AJAX handlers
+		// AJAX handlers.
 		add_action( 'wp_ajax_analyze_content', array( $this, 'ajax_analyze_content' ) );
 		add_action( 'wp_ajax_optimize_content', array( $this, 'ajax_optimize_content' ) );
 	}
@@ -29,7 +29,7 @@ class ProductScraper_SEO_Assistant {
 			array( $this, 'display_seo_dashboard' )
 		);
 
-		// Add submenus for different SEO sections
+		// Add submenus for different SEO sections.
 		add_submenu_page(
 			'scraper-analytics',
 			'SEO Analysis',
@@ -117,7 +117,7 @@ class ProductScraper_SEO_Assistant {
 			}
 		}
 
-		// Calculate readability score
+		// Calculate readability score.
 		$content = get_post_field( 'post_content', $post_id );
 		$this->calculate_readability_score( $post_id, $content );
 	}
@@ -145,7 +145,7 @@ class ProductScraper_SEO_Assistant {
 		$clean_content = wp_strip_all_tags( $content );
 		$word_count    = str_word_count( $clean_content );
 
-		// Basic content analysis
+		// Basic content analysis.
 		if ( $word_count < 300 ) {
 			$analysis['issues'][] = array(
 				'type'     => 'content_length',
@@ -166,17 +166,17 @@ class ProductScraper_SEO_Assistant {
 			);
 		}
 
-		// Focus keyword analysis
+		// Focus keyword analysis.
 		if ( ! empty( $focus_keyword ) ) {
 			$keyword_analysis = $this->analyze_keyword_usage( $clean_content, $focus_keyword );
 			$analysis         = array_merge_recursive( $analysis, $keyword_analysis );
 		}
 
-		// Readability analysis
+		// Readability analysis.
 		$readability             = $this->calculate_readability_advanced( $clean_content );
 		$analysis['readability'] = $readability;
 
-		// Calculate overall score
+		// Calculate overall score.
 		$analysis['score'] = $this->calculate_overall_score( $analysis );
 
 		return $analysis;
@@ -221,7 +221,7 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	private function calculate_readability_advanced( $content ) {
-		// Implement Flesch Reading Ease score
+		// Implement Flesch Reading Ease score.
 		$words     = str_word_count( $content );
 		$sentences = preg_split( '/[.!?]+/', $content, -1, PREG_SPLIT_NO_EMPTY );
 		$syllables = $this->count_syllables( $content );
@@ -247,7 +247,7 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	private function count_syllables( $content ) {
-		// Basic syllable counting (can be improved)
+		// Basic syllable counting (can be improved).
 		$words     = str_word_count( $content, 1 );
 		$syllables = 0;
 
@@ -259,12 +259,12 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	private function count_word_syllables( $word ) {
-		// Simple syllable counting algorithm
+		// Simple syllable counting algorithm.
 		$word  = preg_replace( '/[^a-z]/i', '', strtolower( $word ) );
 		$count = 0;
 
 		if ( strlen( $word ) > 0 ) {
-			$count           = 1; // At least one syllable
+			$count           = 1; // At least one syllable.
 			$vowels          = 'aeiouy';
 			$prev_char_vowel = false;
 
@@ -278,7 +278,7 @@ class ProductScraper_SEO_Assistant {
 				$prev_char_vowel = $is_vowel;
 			}
 
-			// Adjust for common exceptions
+			// Adjust for common exceptions.
 			if ( substr( $word, -1 ) === 'e' ) {
 				--$count;
 			}
@@ -338,7 +338,7 @@ class ProductScraper_SEO_Assistant {
 	private function calculate_overall_score( $analysis ) {
 		$score = 100;
 
-		// Deduct points for issues
+		// Deduct points for issues.
 		foreach ( $analysis['issues'] as $issue ) {
 			switch ( $issue['severity'] ) {
 				case 'high':
@@ -353,7 +353,7 @@ class ProductScraper_SEO_Assistant {
 			}
 		}
 
-		// Add points for good practices
+		// Add points for good practices.
 		foreach ( $analysis['good'] as $good ) {
 			$score += 5;
 		}
@@ -429,20 +429,20 @@ class ProductScraper_SEO_Assistant {
 	private function analyze_technical_seo() {
 		$technical = array();
 
-		// Check if site is indexable
+		// Check if site is indexable.
 		$technical['indexable'] = ! get_option( 'blog_public' ) ? 'No' : 'Yes';
 
-		// Check permalink structure
+		// Check permalink structure.
 		$permalink_structure              = get_option( 'permalink_structure' );
 		$technical['permalink_structure'] = empty( $permalink_structure ) ? 'Plain' : 'SEO Friendly';
 
-		// Check SSL
+		// Check SSL.
 		$technical['ssl'] = is_ssl() ? 'Yes' : 'No';
 
 		return $technical;
 	}
 
-	// AJAX handlers
+	// AJAX handlers.
 	public function ajax_analyze_content() {
 		check_ajax_referer( 'product_scraper_nonce', 'nonce' );
 
@@ -460,7 +460,7 @@ class ProductScraper_SEO_Assistant {
 		$content = wp_kses_post( $_POST['content'] );
 		$keyword = sanitize_text_field( $_POST['keyword'] );
 
-		// This would integrate with AI service for optimization
+		// This would integrate with AI service for optimization.
 		$optimized_content = $this->ai_optimize_content( $content, $keyword );
 
 		wp_send_json_success(
@@ -472,7 +472,7 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	private function get_optimization_changes( $original, $optimized ) {
-		// Compare original and optimized content
+		// Compare original and optimized content.
 		return array(
 			'word_count_change'       => str_word_count( $optimized ) - str_word_count( $original ),
 			'readability_improvement' => 'Improved',
@@ -488,7 +488,7 @@ class ProductScraper_SEO_Assistant {
 
 		$total_posts = wp_count_posts()->publish;
 
-		// Count posts with SEO titles
+		// Count posts with SEO titles.
 		$posts_with_seo_title = $wpdb->get_var(
 			"
             SELECT COUNT(DISTINCT post_id) 
@@ -498,7 +498,7 @@ class ProductScraper_SEO_Assistant {
         "
 		);
 
-		// Count posts with meta descriptions
+		// Count posts with meta descriptions.
 		$posts_with_meta_desc = $wpdb->get_var(
 			"
             SELECT COUNT(DISTINCT post_id) 
@@ -508,7 +508,7 @@ class ProductScraper_SEO_Assistant {
         "
 		);
 
-		// Count posts with focus keywords
+		// Count posts with focus keywords.
 		$posts_with_focus_keyword = $wpdb->get_var(
 			"
             SELECT COUNT(DISTINCT post_id) 
@@ -518,7 +518,7 @@ class ProductScraper_SEO_Assistant {
         "
 		);
 
-		// Get average readability score
+		// Get average readability score.
 		$avg_readability = $wpdb->get_var(
 			"
             SELECT AVG(meta_value) 
@@ -528,7 +528,7 @@ class ProductScraper_SEO_Assistant {
         "
 		);
 
-		// Count optimized posts (have at least title and description)
+		// Count optimized posts (have at least title and description).
 		$optimized_posts = $wpdb->get_var(
 			"
             SELECT COUNT(DISTINCT pm1.post_id)
@@ -539,7 +539,7 @@ class ProductScraper_SEO_Assistant {
         "
 		);
 
-		// Count issues (posts without meta description)
+		// Count issues (posts without meta description).
 		$posts_without_meta = $wpdb->get_var(
 			"
             SELECT COUNT(*) 
@@ -551,7 +551,7 @@ class ProductScraper_SEO_Assistant {
         "
 		);
 
-		// Count low content posts (less than 300 words)
+		// Count low content posts (less than 300 words).
 		$low_content_posts = 0;
 		$posts             = get_posts(
 			array(
@@ -618,8 +618,8 @@ class ProductScraper_SEO_Assistant {
 	 * Get internal links data
 	 */
 	private function get_internal_links() {
-		// This would be implemented with the Link Manager class
-		// For now, return basic data
+		// This would be implemented with the Link Manager class.
+		// For now, return basic data.
 		return array(
 			'total_internal_links'  => 0,
 			'orphaned_posts'        => 0,
@@ -631,8 +631,8 @@ class ProductScraper_SEO_Assistant {
 	 * Get external links data
 	 */
 	private function get_external_links() {
-		// This would be implemented with the Link Manager class
-		// For now, return basic data
+		// This would be implemented with the Link Manager class.
+		// For now, return basic data.
 		return array(
 			'total_external_links' => 0,
 			'broken_links'         => 0,
@@ -644,12 +644,12 @@ class ProductScraper_SEO_Assistant {
 	 * AI content optimization (placeholder - would integrate with actual AI service)
 	 */
 	private function ai_optimize_content( $content, $keyword ) {
-		// This is a placeholder for AI content optimization
-		// In a real implementation, you would integrate with OpenAI, GPT, or similar services
+		// This is a placeholder for AI content optimization.
+		// In a real implementation, you would integrate with OpenAI, GPT, or similar services.
 
-		// For now, return the original content with a simple optimization
+		// For now, return the original content with a simple optimization.
 		if ( ! empty( $keyword ) && strpos( strtolower( $content ), strtolower( $keyword ) ) === false ) {
-			// Add keyword to the beginning of content if not found
+			// Add keyword to the beginning of content if not found.
 			$content = "<p><strong>Keyword Focus: {$keyword}</strong></p>\n\n" . $content;
 		}
 
@@ -677,7 +677,7 @@ class ProductScraper_SEO_Assistant {
 			return $data;
 		}
 
-		// AI-powered content optimization
+		// AI-powered content optimization.
 		$optimized_content    = $this->ai_optimize_content( $data['post_content'], '' );
 		$data['post_content'] = $optimized_content;
 

@@ -8,7 +8,7 @@ class ProductScraperDataStorage {
 		global $wpdb;
 		$this->table_name = $wpdb->prefix . 'scraped_products';
 
-		// Only create the table once, on plugin activation
+		// Only create the table once, on plugin activation.
 		register_activation_hook( __FILE__, array( $this, 'create_table' ) );
 	}
 
@@ -18,7 +18,7 @@ class ProductScraperDataStorage {
 	public function create_table() {
 		global $wpdb;
 
-		// Check if table already exists
+		// Check if table already exists.
 		$table_exists = $wpdb->get_var(
 			$wpdb->prepare(
 				'SHOW TABLES LIKE %s',
@@ -27,13 +27,13 @@ class ProductScraperDataStorage {
 		);
 
 		if ( $table_exists === $this->table_name ) {
-			// Table already exists — don’t recreate it
+			// Table already exists — don’t recreate it.
 			return;
 		}
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		// Drop the table if it exists to ensure clean creation
+		// Drop the table if it exists to ensure clean creation.
 		$wpdb->query( "DROP TABLE IF EXISTS {$this->table_name}" );
 
 		$sql = "CREATE TABLE {$this->table_name} (
@@ -60,17 +60,14 @@ class ProductScraperDataStorage {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$result = dbDelta( $sql );
 
-		// Log the result for debugging
-		// error_log('ProductScraper: Table creation result: ' . print_r($result, true));
+		// Log the result for debugging.
 
-		// Verify table was created correctly
+		// Verify table was created correctly.
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$this->table_name}'" ) === $this->table_name;
-		// error_log('ProductScraper: Table exists after creation: ' . ($table_exists ? 'Yes' : 'No'));
 
 		if ( $table_exists ) {
-			// Check column structure
+			// Check column structure.
 			$columns = $wpdb->get_results( "DESCRIBE {$this->table_name}" );
-			// error_log('ProductScraper: Table columns: ' . print_r($columns, true));
 		}
 	}
 
@@ -83,7 +80,7 @@ class ProductScraperDataStorage {
 		$saved_count = 0;
 
 		foreach ( $products as $product ) {
-			// Check if product already exists
+			// Check if product already exists.
 			$existing = $wpdb->get_var(
 				$wpdb->prepare(
 					"SELECT id FROM {$this->table_name} WHERE product_url = %s",
@@ -92,7 +89,7 @@ class ProductScraperDataStorage {
 			);
 
 			if ( $existing ) {
-				// Update existing product
+				// Update existing product.
 				$result = $wpdb->update(
 					$this->table_name,
 					array(
@@ -109,7 +106,7 @@ class ProductScraperDataStorage {
 					array( 'id' => $existing )
 				);
 			} else {
-				// Insert new product
+				// Insert new product.
 				$result = $wpdb->insert(
 					$this->table_name,
 					array(
@@ -171,7 +168,7 @@ class ProductScraperDataStorage {
 
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
-		// Decode JSON data
+		// Decode JSON data.
 		foreach ( $results as &$result ) {
 			$result['badges']       = json_decode( $result['badges'], true );
 			$result['product_data'] = json_decode( $result['product_data'], true );
@@ -245,12 +242,12 @@ class ProductScraperDataStorage {
 			ARRAY_A
 		);
 
-		// Return default values if no stats found (empty table)
+		// Return default values if no stats found (empty table).
 		if ( ! $stats ) {
 			$stats = array();
 		}
 
-		// Ensure all values are set and valid
+		// Ensure all values are set and valid.
 		return array(
 			'total_products'    => $stats['total_products'] ?? 0,
 			'total_sources'     => $stats['total_sources'] ?? 0,

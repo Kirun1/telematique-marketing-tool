@@ -31,22 +31,22 @@ class WooCommerceProductImporter {
 	 * Import single product
 	 */
 	private function import_single_product( $product_data ) {
-		// Check if product already exists
+		// Check if product already exists.
 		if ( $this->product_exists( $product_data['name'] ) ) {
 			return 'skipped';
 		}
 
-		// Create new product
+		// Create new product.
 		$product = new WC_Product();
 
-		// Set basic product data
+		// Set basic product data.
 		$product->set_name( $product_data['name'] );
 		$product->set_status( 'publish' );
 		$product->set_catalog_visibility( 'visible' );
 		$product->set_description( $product_data['full_description'] ?? $product_data['description'] ?? '' );
 		$product->set_short_description( $product_data['description'] ?? '' );
 
-		// Set price
+		// Set price.
 		if ( isset( $product_data['price'] ) ) {
 			$price = $this->parse_price( $product_data['price'] );
 			if ( $price ) {
@@ -55,12 +55,12 @@ class WooCommerceProductImporter {
 			}
 		}
 
-		// Set SKU
+		// Set SKU.
 		if ( isset( $product_data['sku'] ) ) {
 			$product->set_sku( $product_data['sku'] );
 		}
 
-		// Download and set featured image
+		// Download and set featured image.
 		if ( isset( $product_data['image'] ) ) {
 			$image_id = $this->download_image( $product_data['image'], $product_data['name'] );
 			if ( $image_id ) {
@@ -68,7 +68,7 @@ class WooCommerceProductImporter {
 			}
 		}
 
-		// Download gallery images
+		// Download gallery images.
 		if ( ! empty( $product_data['gallery_images'] ) ) {
 			$gallery_ids = array();
 			foreach ( $product_data['gallery_images'] as $image_url ) {
@@ -80,7 +80,7 @@ class WooCommerceProductImporter {
 			$product->set_gallery_image_ids( $gallery_ids );
 		}
 
-		// Set categories
+		// Set categories.
 		if ( ! empty( $product_data['categories'] ) ) {
 			$category_ids = $this->get_or_create_categories( $product_data['categories'] );
 			$product->set_category_ids( $category_ids );
@@ -115,11 +115,11 @@ class WooCommerceProductImporter {
 	 * Parse price from string
 	 */
 	private function parse_price( $price_string ) {
-		// Remove currency symbols and non-numeric characters except decimal point
+		// Remove currency symbols and non-numeric characters except decimal point.
 		$price = preg_replace( '/[^\d.,]/', '', $price_string );
 		$price = str_replace( ',', '.', $price );
 
-		// Handle prices like "1.000,00" vs "1,000.00"
+		// Handle prices like "1.000,00" vs "1,000.00".
 		if ( preg_match( '/^\d+\.\d{3},\d{2}$/', $price ) ) {
 			$price = str_replace( '.', '', $price );
 			$price = str_replace( ',', '.', $price );

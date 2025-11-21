@@ -42,8 +42,8 @@ class ProductScraper_Keyword_Research {
 	}
 
 	private function estimate_search_volume( $keyword ) {
-		// This would integrate with keyword research APIs
-		// For now, return mock data
+		// This would integrate with keyword research APIs.
+		// For now, return mock data.
 		$base_volume = rand( 100, 10000 );
 		return array(
 			'monthly'     => $base_volume,
@@ -53,7 +53,7 @@ class ProductScraper_Keyword_Research {
 	}
 
 	private function estimate_competition( $keyword ) {
-		// Mock competition analysis
+		// Mock competition analysis.
 		$competition_score = rand( 1, 100 );
 		$difficulty        = $competition_score > 70 ? 'high' : ( $competition_score > 40 ? 'medium' : 'low' );
 
@@ -65,7 +65,7 @@ class ProductScraper_Keyword_Research {
 	}
 
 	private function get_trend_data( $keyword ) {
-		// Mock trend data
+		// Mock trend data.
 		$months = 12;
 		$trend  = array();
 
@@ -78,7 +78,7 @@ class ProductScraper_Keyword_Research {
 	}
 
 	private function get_related_keywords( $keyword ) {
-		// Mock related keywords
+		// Mock related keywords.
 		$related   = array();
 		$modifiers = array( 'best', 'buy', 'review', 'price', 'how to', 'vs', 'alternative' );
 
@@ -90,7 +90,7 @@ class ProductScraper_Keyword_Research {
 			);
 		}
 
-		// Sort by volume
+		// Sort by volume.
 		usort(
 			$related,
 			function ( $a, $b ) {
@@ -102,7 +102,7 @@ class ProductScraper_Keyword_Research {
 	}
 
 	private function analyze_competitor_keywords( $url, $focus_keyword ) {
-		// Basic competitor analysis
+		// Basic competitor analysis.
 		return array(
 			'ranking_keywords' => $this->get_competitor_ranking_keywords( $url ),
 			'top_pages'        => $this->get_competitor_top_pages( $url ),
@@ -113,7 +113,7 @@ class ProductScraper_Keyword_Research {
 	private function identify_content_gaps( $keyword, $research_data ) {
 		$gaps = array();
 
-		// Analyze related keywords that have low competition
+		// Analyze related keywords that have low competition.
 		foreach ( $research_data['related_keywords'] as $related ) {
 			if ( $related['competition'] < 30 && $related['volume'] > 100 ) {
 				$gaps[] = array(
@@ -172,7 +172,7 @@ class ProductScraper_Keyword_Research {
 		$clean_content = wp_strip_all_tags( $content );
 		$words         = str_word_count( $clean_content, 1 );
 
-		// Remove stop words and count frequency
+		// Remove stop words and count frequency.
 		$stop_words = $this->get_stop_words();
 		$word_freq  = array_count_values( $words );
 
@@ -185,7 +185,7 @@ class ProductScraper_Keyword_Research {
 
 		$suggestions = array();
 		foreach ( $top_words as $word => $frequency ) {
-			if ( strlen( $word ) > 3 ) { // Only consider words longer than 3 characters
+			if ( strlen( $word ) > 3 ) { // Only consider words longer than 3 characters.
 				$suggestions[] = array(
 					'keyword'   => $word,
 					'frequency' => $frequency,
@@ -201,7 +201,7 @@ class ProductScraper_Keyword_Research {
 		return array( 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'a', 'an', 'is', 'are', 'was', 'were' );
 	}
 
-	// Mock methods for competitor analysis
+	// Mock methods for competitor analysis.
 	private function get_competitor_ranking_keywords( $url ) {
 		return array(
 			array(

@@ -4,7 +4,6 @@ class ProductScraperAdmin {
 
 
 	public function __construct() {
-		// add_action('admin_menu', array($this, 'add_admin_menu'));
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_action( 'wp_ajax_scrape_products', array( $this, 'ajax_scrape_products' ) );
 		add_action( 'wp_ajax_test_selectors', array( $this, 'ajax_test_selectors' ) );
@@ -13,7 +12,7 @@ class ProductScraperAdmin {
 		add_action( 'wp_ajax_export_products_excel', array( $this, 'ajax_export_products_excel' ) );
 		add_action( 'wp_ajax_delete_stored_products', array( $this, 'ajax_delete_stored_products' ) );
 
-		// Handle direct export requests
+		// Handle direct export requests.
 		if ( isset( $_GET['page'] ) && $_GET['page'] === 'product-scraper' && isset( $_GET['export'] ) ) {
 			add_action( 'admin_init', array( $this, 'handle_export' ) );
 		}
@@ -34,7 +33,7 @@ class ProductScraperAdmin {
 	}
 
 	public function admin_page() {
-		// Get stored products stats
+		// Get stored products stats.
 		$plugin = new ProductScraper();
 		$stats  = $plugin->storage->get_stats();
 		?>
@@ -232,7 +231,7 @@ class ProductScraperAdmin {
 	}
 
 	public function ajax_scrape_products() {
-		// Verify nonce
+		// Verify nonce.
 		if ( ! wp_verify_nonce( $_POST['nonce'], 'scrape_products_nonce' ) ) {
 			wp_die( 'Security check failed' );
 		}
@@ -247,15 +246,15 @@ class ProductScraperAdmin {
 		$scrape_details = isset( $_POST['scrape_details'] ) ? boolval( $_POST['scrape_details'] ) : false;
 		$save_only      = isset( $_POST['save_only'] ) ? boolval( $_POST['save_only'] ) : false;
 
-		// Add debug info
+		// Add debug info.
 		$debug_info = array();
 
-		// If we're just saving existing data
+		// If we're just saving existing data.
 		if ( $save_only && isset( $_POST['products_data'] ) ) {
 			$products    = json_decode( stripslashes( $_POST['products_data'] ), true );
 			$saved_count = $this->save_scraped_products( $products, $target_url );
 
-			// Add debug info
+			// Add debug info.
 			$debug_info['save_only']         = true;
 			$debug_info['products_received'] = count( $products );
 			$debug_info['database_debug']    = $this->debug_database();
@@ -276,7 +275,7 @@ class ProductScraperAdmin {
 
 		$products = $scraper->scrape_products( $page, 1 );
 
-		// If detailed scraping is enabled, visit each product page
+		// If detailed scraping is enabled, visit each product page.
 		$errors = 0;
 		if ( $scrape_details && ! empty( $products ) ) {
 			foreach ( $products as &$product ) {
@@ -292,17 +291,17 @@ class ProductScraperAdmin {
 			}
 		}
 
-		// SAVE TO DATABASE
+		// SAVE TO DATABASE.
 		$saved_count = 0;
 		if ( ! empty( $products ) ) {
 			$saved_count = $this->save_scraped_products( $products, $target_url );
 		}
 
-		// Add debug info
+		// Add debug info.
 		$debug_info['products_scraped'] = count( $products );
 		$debug_info['database_debug']   = $this->debug_database();
 
-		// Check if there are more pages
+		// Check if there are more pages.
 		$has_more = $page < $max_pages && ! empty( $products );
 
 		wp_send_json_success(
@@ -317,24 +316,19 @@ class ProductScraperAdmin {
 	}
 
 	/**
-	 * Save products to database
-	 */
-	/**
 	 * Save products to database with debug information
 	 */
 	private function save_scraped_products( $products, $source_url ) {
-		// Get the storage instance from the main plugin class
+		// Get the storage instance from the main plugin class.
 		$plugin = new ProductScraper();
 
-		// Debug: Check if storage object is created properly
+		// Debug: Check if storage object is created properly.
 		if ( ! $plugin->storage ) {
-			// error_log('ProductScraper: Storage object not initialized');
 			return 0;
 		}
 
 		try {
 			$saved_count = $plugin->storage->save_products( $products, $source_url );
-			// error_log("ProductScraper: Attempted to save " . count($products) . " products, saved: " . $saved_count);
 			return $saved_count;
 		} catch ( Exception $e ) {
 			error_log( 'ProductScraper: Error saving products: ' . $e->getMessage() );
@@ -395,7 +389,7 @@ class ProductScraperAdmin {
 			wp_die( 'Insufficient permissions' );
 		}
 
-		// Get products data
+		// Get products data.
 		$products = array();
 		if ( isset( $_POST['export_all'] ) && $_POST['export_all'] ) {
 			$plugin   = new ProductScraper();
@@ -408,10 +402,10 @@ class ProductScraperAdmin {
 			wp_die( 'No products to export' );
 		}
 
-		// Prepare CSV data
+		// Prepare CSV data.
 		$filename = 'nahrin-products-' . date( 'Y-m-d-H-i-s' ) . '.' . ( $format === 'csv' ? 'csv' : 'xlsx' );
 
-		// Set headers
+		// Set headers.
 		if ( $format === 'csv' ) {
 			header( 'Content-Type: text/csv; charset=utf-8' );
 			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
@@ -420,13 +414,13 @@ class ProductScraperAdmin {
 			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 		}
 
-		// Create output stream
+		// Create output stream.
 		$output = fopen( 'php://output', 'w' );
 
-		// Add BOM for UTF-8
+		// Add BOM for UTF-8.
 		fwrite( $output, "\xEF\xBB\xBF" );
 
-		// Headers
+		// Headers.
 		$headers = array(
 			'ID',
 			'Name',
@@ -445,7 +439,7 @@ class ProductScraperAdmin {
 
 		fputcsv( $output, $headers );
 
-		// Data rows
+		// Data rows.
 		foreach ( $products as $product ) {
 			$product_data = isset( $product['product_data'] ) ? $product['product_data'] : $product;
 
@@ -489,7 +483,7 @@ class ProductScraperAdmin {
 		$plugin = new ProductScraper();
 
 		if ( isset( $_POST['delete_all'] ) && $_POST['delete_all'] ) {
-			// Delete all products
+			// Delete all products.
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'scraped_products';
 			$result     = $wpdb->query( "TRUNCATE TABLE $table_name" );
@@ -500,7 +494,7 @@ class ProductScraperAdmin {
 				wp_send_json_error( 'Error deleting products' );
 			}
 		} elseif ( isset( $_POST['product_ids'] ) ) {
-			// Delete specific products
+			// Delete specific products.
 			$product_ids = array_map( 'intval', $_POST['product_ids'] );
 			$result      = $plugin->storage->delete_products( $product_ids );
 
@@ -515,7 +509,7 @@ class ProductScraperAdmin {
 	}
 
 	public function ajax_test_selectors() {
-		// Verify nonce
+		// Verify nonce.
 		if ( ! wp_verify_nonce( $_POST['nonce'], 'test_selectors_nonce' ) ) {
 			wp_die( 'Security check failed' );
 		}
@@ -549,19 +543,19 @@ class ProductScraperAdmin {
 			'product_images' => array(),
 		);
 
-		// Test name selection
+		// Test name selection.
 		$name_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//p[contains(@class, "product-item-link")]' );
 		foreach ( $name_nodes as $node ) {
 			$test_results['product_names'][] = trim( $node->textContent );
 		}
 
-		// Test price selection
+		// Test price selection.
 		$price_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//span[@class="price"]' );
 		foreach ( $price_nodes as $node ) {
 			$test_results['product_prices'][] = trim( $node->textContent );
 		}
 
-		// Test image selection
+		// Test image selection.
 		$img_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//img' );
 		foreach ( $img_nodes as $node ) {
 			$test_results['product_images'][] = $node->getAttribute( 'src' );
@@ -591,13 +585,13 @@ class ProductScraperAdmin {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'scraped_products';
 
-		// Check if table exists
+		// Check if table exists.
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 
-		// Check table structure
+		// Check table structure.
 		$table_structure = $wpdb->get_results( "DESCRIBE $table_name" );
 
-		// Count existing records
+		// Count existing records.
 		$record_count = $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
 
 		return array(

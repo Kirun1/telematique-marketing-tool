@@ -29,7 +29,7 @@ class ProductScraper_Rank_Tracker {
 			$results[ $keyword ] = $rank_data;
 			$this->store_rank_data( $rank_data );
 
-			// Respectful delay between requests
+			// Respectful delay between requests.
 			sleep( 2 );
 		}
 
@@ -65,7 +65,7 @@ class ProductScraper_Rank_Tracker {
 		@$dom->loadHTML( $serp_data['html'] );
 		$xpath = new DOMXPath( $dom );
 
-		// Multiple patterns for featured snippet detection
+		// Multiple patterns for featured snippet detection.
 		$featured_selectors = array(
 			'//div[contains(@class, "g")]//div[contains(@class, "V3FYCf")]',
 			'//div[contains(@class, "g")]//div[contains(@class, "xpdopen")]',
@@ -82,7 +82,7 @@ class ProductScraper_Rank_Tracker {
 				return array(
 					'present'         => true,
 					'type'            => $this->determine_snippet_type( $nodes->item( 0 ), $xpath ),
-					'position'        => 0, // Featured snippets typically appear at position 0
+					'position'        => 0, // Featured snippets typically appear at position 0.
 					'content_preview' => $this->extract_snippet_content( $nodes->item( 0 ) ),
 				);
 			}
@@ -97,22 +97,22 @@ class ProductScraper_Rank_Tracker {
 	private function determine_snippet_type( $node, $xpath ) {
 		$html = $node->ownerDocument->saveHTML( $node );
 
-		// Check for paragraph snippet
+		// Check for paragraph snippet.
 		if ( strpos( $html, '</p>' ) !== false || strpos( $html, '<br>' ) !== false ) {
 			return 'paragraph';
 		}
 
-		// Check for list snippet
+		// Check for list snippet.
 		if ( strpos( $html, '<ul>' ) !== false || strpos( $html, '<ol>' ) !== false ) {
 			return 'list';
 		}
 
-		// Check for table snippet
+		// Check for table snippet.
 		if ( strpos( $html, '<table>' ) !== false ) {
 			return 'table';
 		}
 
-		// Check for video snippet
+		// Check for video snippet.
 		$video_nodes = $xpath->query( './/video', $node );
 		if ( $video_nodes->length > 0 ) {
 			return 'video';
@@ -168,7 +168,7 @@ class ProductScraper_Rank_Tracker {
 					return array(
 						'present'        => true,
 						'question_count' => count( $questions ),
-						'questions'      => array_slice( $questions, 0, 5 ), // Limit to first 5 questions
+						'questions'      => array_slice( $questions, 0, 5 ), // Limit to first 5 questions.
 						'position'       => $this->find_paa_position( $dom ),
 					);
 				}
@@ -182,7 +182,7 @@ class ProductScraper_Rank_Tracker {
 	 * Extract PAA question text
 	 */
 	private function extract_paa_question( $node, $xpath ) {
-		// Try multiple selectors for question text
+		// Try multiple selectors for question text.
 		$question_selectors = array(
 			'.//div[@role="button"]',
 			'.//span',
@@ -213,12 +213,12 @@ class ProductScraper_Rank_Tracker {
 			$result = $organic_results->item( $i );
 			$html   = $result->ownerDocument->saveHTML( $result );
 
-			// Check if this result contains PAA
+			// Check if this result contains PAA.
 			if (
 				strpos( $html, 'related-question-pair' ) !== false ||
 				strpos( $html, 'Wt5Tfe' ) !== false
 			) {
-				return $i + 1; // Convert to 1-based position
+				return $i + 1; // Convert to 1-based position.
 			}
 		}
 
@@ -252,7 +252,7 @@ class ProductScraper_Rank_Tracker {
 					$text = trim( $node->textContent );
 					$href = $node->getAttribute( 'href' );
 
-					// Filter out non-search links and very short terms
+					// Filter out non-search links and very short terms.
 					if (
 						strpos( $href, '/search?' ) !== false &&
 						strlen( $text ) > 3 &&
@@ -268,7 +268,7 @@ class ProductScraper_Rank_Tracker {
 						'present'    => true,
 						'term_count' => count( $related_terms ),
 						'terms'      => array_slice( $related_terms, 0, 8 ),
-						'position'   => 'bottom', // Related searches typically appear at bottom
+						'position'   => 'bottom', // Related searches typically appear at bottom.
 					);
 				}
 			}
@@ -303,11 +303,11 @@ class ProductScraper_Rank_Tracker {
 		foreach ( $image_selectors as $selector ) {
 			$nodes = $xpath->query( $selector );
 			if ( $nodes->length > 0 ) {
-				// Count images within the image pack
+				// Count images within the image pack.
 				$images      = $xpath->query( './/img', $nodes->item( 0 ) );
 				$image_count = $images->length;
 
-				// Extract image URLs
+				// Extract image URLs.
 				foreach ( $images as $img ) {
 					$src = $img->getAttribute( 'src' );
 					if ( $src && ! in_array( $src, $image_urls ) && count( $image_urls ) < 5 ) {
@@ -340,7 +340,7 @@ class ProductScraper_Rank_Tracker {
 			$result = $organic_results->item( $i );
 			$html   = $result->ownerDocument->saveHTML( $result );
 
-			// Check if this result contains image pack
+			// Check if this result contains image pack.
 			if (
 				strpos( $html, 'islr' ) !== false ||
 				strpos( $html, 'isv-r' ) !== false ||
@@ -378,11 +378,11 @@ class ProductScraper_Rank_Tracker {
 		foreach ( $video_selectors as $selector ) {
 			$nodes = $xpath->query( $selector );
 			if ( $nodes->length > 0 ) {
-				// Count videos in carousel
+				// Count videos in carousel.
 				$videos      = $xpath->query( './/g-inner-card', $nodes->item( 0 ) );
 				$video_count = $videos->length;
 
-				// Extract video titles
+				// Extract video titles.
 				foreach ( $videos as $video ) {
 					$title_node = $xpath->query( './/div[@role="heading"]', $video );
 					if ( $title_node->length > 0 ) {
@@ -490,12 +490,12 @@ class ProductScraper_Rank_Tracker {
 	 * Get SERP data by keyword
 	 */
 	private function get_serp_data( $keyword ) {
-		// Try API first if available
+		// Try API first if available.
 		if ( $this->api_key ) {
 			return $this->get_serp_via_api( $keyword );
 		}
 
-		// Fallback to direct HTTP request
+		// Fallback to direct HTTP request.
 		return $this->get_serp_via_http( $keyword );
 	}
 
@@ -576,7 +576,7 @@ class ProductScraper_Rank_Tracker {
 			}
 		}
 
-		return 0; // Not in top 10
+		return 0; // Not in top 10.
 	}
 
 	/**
@@ -656,7 +656,7 @@ class ProductScraper_Rank_Tracker {
 		@$dom->loadHTML( $html );
 		$xpath = new DOMXPath( $dom );
 
-		// Multiple patterns for total results count
+		// Multiple patterns for total results count.
 		$result_selectors = array(
 			'//div[@id="result-stats"]',
 			'//div[contains(@class, "appbar")]',
@@ -679,15 +679,15 @@ class ProductScraper_Rank_Tracker {
 	 * Parse results count from text
 	 */
 	private function parse_results_count( $text ) {
-		// Remove commas and extract numbers
+		// Remove commas and extract numbers.
 		$clean_text = preg_replace( '/[^\d]/', '', $text );
 
 		if ( preg_match( '/(\d+)/', $clean_text, $matches ) ) {
 			$count = intval( $matches[1] );
 
-			// Handle large numbers (like 1,230,000,000)
+			// Handle large numbers (like 1,230,000,000).
 			if ( strpos( $text, 'billion' ) !== false || $count > 1000000000 ) {
-				return $count * 1000000; // Convert to actual number
+				return $count * 1000000; // Convert to actual number.
 			}
 
 			return $count;
@@ -703,7 +703,7 @@ class ProductScraper_Rank_Tracker {
 		$difficulty_score = 0;
 		$factors          = array();
 
-		// Factor 1: Total results count
+		// Factor 1: Total results count.
 		$total_results = $this->extract_total_results( $serp_data['html'] );
 		if ( $total_results > 0 ) {
 			$results_factor            = min( 100, ( $total_results / 1000000 ) * 100 );
@@ -711,17 +711,17 @@ class ProductScraper_Rank_Tracker {
 			$factors['results_volume'] = round( $results_factor );
 		}
 
-		// Factor 2: Domain authority of top results
+		// Factor 2: Domain authority of top results.
 		$domain_authority            = $this->analyze_top_domains( $serp_data );
 		$difficulty_score           += $domain_authority * 0.4;
 		$factors['domain_authority'] = round( $domain_authority );
 
-		// Factor 3: SERP features competition
+		// Factor 3: SERP features competition.
 		$serp_features            = $this->analyze_serp_features( $serp_data );
 		$difficulty_score        += $serp_features * 0.3;
 		$factors['serp_features'] = round( $serp_features );
 
-		// Normalize score to 0-100
+		// Normalize score to 0-100.
 		$final_score = min( 100, max( 0, round( $difficulty_score ) ) );
 
 		return array(
@@ -751,17 +751,17 @@ class ProductScraper_Rank_Tracker {
 			}
 		}
 
-		// Fallback: estimate based on common patterns
-		return 60; // Medium difficulty default
+		// Fallback: estimate based on common patterns.
+		return 60; // Medium difficulty default.
 	}
 
 	/**
 	 * Estimate domain authority (simplified)
 	 */
 	private function estimate_domain_authority( $domain ) {
-		$authority = 50; // Base score
+		$authority = 50; // Base score.
 
-		// Boost for well-known domains
+		// Boost for well-known domains.
 		$high_authority_domains = array(
 			'wikipedia.org',
 			'youtube.com',
@@ -786,10 +786,10 @@ class ProductScraper_Rank_Tracker {
 
 		// Adjust based on domain age indicators
 		if ( preg_match( '/(\d{4})/', $domain ) ) {
-			$authority += 10; // Older domains often have numbers
+			$authority += 10; // Older domains often have numbers.
 		}
 
-		// Penalize new/suspicious domains
+		// Penalize new/suspicious domains.
 		if (
 			strpos( $domain, '.xyz' ) !== false ||
 			strpos( $domain, '.top' ) !== false ||
@@ -858,23 +858,23 @@ class ProductScraper_Rank_Tracker {
 		$opportunity_score = 0;
 		$factors           = array();
 
-		// Factor 1: Current ranking position
+		// Factor 1: Current ranking position.
 		$current_rank                = $this->get_own_rank( $serp_data, home_url() );
 		$rank_opportunity            = $this->calculate_rank_opportunity( $current_rank );
 		$opportunity_score          += $rank_opportunity * 0.3;
 		$factors['ranking_position'] = round( $rank_opportunity );
 
-		// Factor 2: SERP feature opportunities
+		// Factor 2: SERP feature opportunities.
 		$feature_opportunity      = $this->calculate_feature_opportunity( $serp_data );
 		$opportunity_score       += $feature_opportunity * 0.4;
 		$factors['serp_features'] = round( $feature_opportunity );
 
-		// Factor 3: Content gap opportunities
+		// Factor 3: Content gap opportunities.
 		$content_opportunity     = $this->calculate_content_opportunity( $serp_data );
 		$opportunity_score      += $content_opportunity * 0.3;
 		$factors['content_gaps'] = round( $content_opportunity );
 
-		// Normalize score to 0-100
+		// Normalize score to 0-100.
 		$final_score = min( 100, max( 0, round( $opportunity_score ) ) );
 
 		return array(
@@ -890,16 +890,16 @@ class ProductScraper_Rank_Tracker {
 	 */
 	private function calculate_rank_opportunity( $current_rank ) {
 		if ( $current_rank === 0 ) {
-			return 100; // Not ranking = high opportunity
+			return 100; // Not ranking = high opportunity.
 		}
 		if ( $current_rank <= 3 ) {
-			return 20;   // Already top = low opportunity
+			return 20;   // Already top = low opportunity.
 		}
 		if ( $current_rank <= 10 ) {
-			return 50;  // On first page = medium opportunity
+			return 50;  // On first page = medium opportunity.
 		}
 
-		return 80; // Second page or lower = high opportunity
+		return 80; // Second page or lower = high opportunity.
 	}
 
 	/**
@@ -940,7 +940,7 @@ class ProductScraper_Rank_Tracker {
 			}
 		}
 
-		// Score based on features that are present but we're not targeting
+		// Score based on features that are present but we're not targeting.
 		foreach ( $feature_weights as $feature => $data ) {
 			if ( $data['present'] ) {
 				++$available_features;
@@ -957,21 +957,21 @@ class ProductScraper_Rank_Tracker {
 	private function calculate_content_opportunity( $serp_data ) {
 		$content_score = 0;
 
-		// Analyze top ranking content
+		// Analyze top ranking content.
 		if ( ! empty( $serp_data['organic_results'] ) ) {
 			$top_results = array_slice( $serp_data['organic_results'], 0, 5 );
 
-			// Check for content quality indicators
+			// Check for content quality indicators.
 			foreach ( $top_results as $result ) {
 				$title   = $result['title'] ?? '';
 				$snippet = $result['snippet'] ?? '';
 
-				// Opportunity if top results have weak content
+				// Opportunity if top results have weak content.
 				if ( strlen( $snippet ) < 100 ) {
 					$content_score += 20;
 				}
 
-				// Opportunity if titles are not optimized
+				// Opportunity if titles are not optimized.
 				if ( strlen( $title ) < 30 || strlen( $title ) > 70 ) {
 					$content_score += 15;
 				}
@@ -1006,22 +1006,22 @@ class ProductScraper_Rank_Tracker {
 	private function generate_opportunity_recommendations( $serp_data, $factors ) {
 		$recommendations = array();
 
-		// Ranking position recommendations
+		// Ranking position recommendations.
 		if ( $factors['ranking_position'] >= 70 ) {
 			$recommendations[] = 'Focus on improving your current ranking position through on-page optimization and backlink building.';
 		}
 
-		// SERP feature recommendations
+		// SERP feature recommendations.
 		if ( $factors['serp_features'] >= 60 ) {
 			$recommendations[] = 'Target available SERP features like featured snippets and "People Also Ask" sections.';
 		}
 
-		// Content gap recommendations
+		// Content gap recommendations.
 		if ( $factors['content_gaps'] >= 50 ) {
 			$recommendations[] = 'Create more comprehensive content that addresses user intent better than current top results.';
 		}
 
-		// Specific feature opportunities
+		// Specific feature opportunities.
 		$featured_snippet = $this->check_featured_snippet( $serp_data );
 		if ( $featured_snippet['present'] ) {
 			$recommendations[] = 'Optimize content to target the featured snippet by providing clear, concise answers.';
@@ -1032,7 +1032,7 @@ class ProductScraper_Rank_Tracker {
 			$recommendations[] = 'Include FAQ sections that answer common questions from "People Also Ask".';
 		}
 
-		return array_slice( $recommendations, 0, 3 ); // Limit to top 3 recommendations
+		return array_slice( $recommendations, 0, 3 ); // Limit to top 3 recommendations.
 	}
 
 	/**
@@ -1041,7 +1041,7 @@ class ProductScraper_Rank_Tracker {
 	private function identify_content_gaps( $serp_data ) {
 		$content_gaps = array();
 
-		// Analyze "People Also Ask" for content ideas
+		// Analyze "People Also Ask" for content ideas.
 		$paa = $this->check_people_also_ask( $serp_data );
 		if ( $paa['present'] && ! empty( $paa['questions'] ) ) {
 			foreach ( $paa['questions'] as $question ) {
@@ -1053,7 +1053,7 @@ class ProductScraper_Rank_Tracker {
 			}
 		}
 
-		// Analyze related searches for topic gaps
+		// Analyze related searches for topic gaps.
 		$related = $this->check_related_searches( $serp_data );
 		if ( $related['present'] && ! empty( $related['terms'] ) ) {
 			foreach ( $related['terms'] as $term ) {
@@ -1065,7 +1065,7 @@ class ProductScraper_Rank_Tracker {
 			}
 		}
 
-		// Analyze top results for missing content types
+		// Analyze top results for missing content types.
 		if ( ! empty( $serp_data['organic_results'] ) ) {
 			$content_types = $this->analyze_content_types( $serp_data['organic_results'] );
 			foreach ( $content_types as $type => $present ) {
@@ -1079,7 +1079,7 @@ class ProductScraper_Rank_Tracker {
 			}
 		}
 
-		return array_slice( $content_gaps, 0, 5 ); // Limit to top 5 gaps
+		return array_slice( $content_gaps, 0, 5 ); // Limit to top 5 gaps.
 	}
 
 	/**
@@ -1099,7 +1099,7 @@ class ProductScraper_Rank_Tracker {
 			$title   = strtolower( $result['title'] ?? '' );
 			$snippet = strtolower( $result['snippet'] ?? '' );
 
-			// Detect content types from titles and snippets
+			// Detect content types from titles and snippets.
 			if ( strpos( $title, 'guide' ) !== false || strpos( $snippet, 'guide' ) !== false ) {
 				$content_types['guide'] = true;
 			}
@@ -1128,7 +1128,7 @@ class ProductScraper_Rank_Tracker {
 			$result = $organic_results->item( $i );
 			$html   = $result->ownerDocument->saveHTML( $result );
 
-			// Check if this result contains video carousel
+			// Check if this result contains video carousel.
 			if (
 				strpos( $html, 'video-carousel' ) !== false ||
 				strpos( $html, 'F8yfEe' ) !== false ||

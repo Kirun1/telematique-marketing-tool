@@ -70,7 +70,7 @@ class ProductScraper_Robots_Txt {
 	private function get_combined_rules() {
 		$combined = $this->default_rules;
 
-		// Merge custom rules
+		// Merge custom rules.
 		if ( ! empty( $this->custom_rules ) ) {
 			foreach ( $this->custom_rules as $section => $rules ) {
 				if ( ! isset( $combined[ $section ] ) ) {
@@ -126,7 +126,7 @@ class ProductScraper_Robots_Txt {
 				}
 				$content .= "\n";
 			} else {
-				// Handle other sections
+				// Handle other sections.
 				foreach ( $section_rules as $key => $value ) {
 					$content .= ucfirst( $key ) . ": $value\n";
 				}
@@ -145,7 +145,7 @@ class ProductScraper_Robots_Txt {
 			return home_url( '/wp-sitemap.xml' );
 		}
 
-		// Fallback to common sitemap locations
+		// Fallback to common sitemap locations.
 		$possible_sitemaps = array(
 			'/sitemap.xml',
 			'/sitemap_index.xml',
@@ -201,7 +201,7 @@ class ProductScraper_Robots_Txt {
 			return $errors;
 		}
 
-		// Validate user-agent rules
+		// Validate user-agent rules.
 		if ( isset( $rules['user-agent'] ) ) {
 			foreach ( $rules['user-agent'] as $user_agent => $directives ) {
 				if ( ! is_array( $directives ) ) {
@@ -260,7 +260,7 @@ class ProductScraper_Robots_Txt {
 				$this->custom_rules['user-agent'][ $user_agent ][ $directive ]
 			);
 
-			// Remove empty sections
+			// Remove empty sections.
 			if ( empty( $this->custom_rules['user-agent'][ $user_agent ][ $directive ] ) ) {
 				unset( $this->custom_rules['user-agent'][ $user_agent ][ $directive ] );
 			}
@@ -319,7 +319,7 @@ class ProductScraper_Robots_Txt {
 
 		$current_content = $this->get_current_robots_content();
 
-		// Check if robots.txt is accessible
+		// Check if robots.txt is accessible.
 		$robots_url = home_url( '/robots.txt' );
 		$response   = wp_remote_get( $robots_url );
 
@@ -338,25 +338,25 @@ class ProductScraper_Robots_Txt {
 
 		$analysis['status'] = 'accessible';
 
-		// Check for common issues
+		// Check for common issues.
 		$content = wp_remote_retrieve_body( $response );
 
-		// Check for sitemap declaration
+		// Check for sitemap declaration.
 		if ( strpos( $content, 'Sitemap:' ) === false ) {
 			$analysis['issues'][] = 'Sitemap not declared in robots.txt';
 		}
 
-		// Check for overly restrictive rules
+		// Check for overly restrictive rules.
 		if ( strpos( $content, 'Disallow: /' ) !== false && strpos( $content, 'Disallow: /' ) === strpos( $content, 'User-agent: *' ) ) {
 			$analysis['critical_issues'][] = 'Entire site is blocked from indexing';
 		}
 
-		// Check for allow all
+		// Check for allow all.
 		if ( strpos( $content, 'Allow: /' ) !== false ) {
 			$analysis['warnings'][] = 'Entire site is allowed - consider being more specific';
 		}
 
-		// Check for important directories
+		// Check for important directories.
 		$important_dirs = array( '/wp-admin/', '/wp-includes/', '/wp-content/uploads/' );
 		foreach ( $important_dirs as $dir ) {
 			if ( strpos( $content, "Disallow: $dir" ) === false ) {

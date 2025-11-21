@@ -10,8 +10,8 @@ class ProductScraper_Redirect_Manager {
 	}
 
 	public function create_redirect( $from_url, $to_url, $type = 301 ) {
-		// Handle 301, 302, 307 redirects
-		// Monitor 404 errors and suggest redirects
-		// Bulk redirect import/export
+		// Handle 301, 302, 307 redirects.
+		// Monitor 404 errors and suggest redirects.
+		// Bulk redirect import/export.
 	}
 }

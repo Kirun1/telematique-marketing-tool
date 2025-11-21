@@ -39,7 +39,7 @@ class ProductScraper_SEO_Analysis {
 			'checks'          => array(),
 		);
 
-		// Permalink structure check
+		// Permalink structure check.
 		$permalink_structure = get_option( 'permalink_structure' );
 		if ( empty( $permalink_structure ) || $permalink_structure == '/%postname%/' ) {
 			$technical['checks']['permalink_structure'] = array(
@@ -56,7 +56,7 @@ class ProductScraper_SEO_Analysis {
 			);
 		}
 
-		// Indexing status
+		// Indexing status.
 		$blog_public = get_option( 'blog_public' );
 		if ( ! $blog_public ) {
 			$technical['checks']['indexing'] = array(
@@ -73,7 +73,7 @@ class ProductScraper_SEO_Analysis {
 			);
 		}
 
-		// SSL check
+		// SSL check.
 		if ( is_ssl() ) {
 			$technical['checks']['ssl'] = array(
 				'status'  => 'good',
@@ -89,7 +89,7 @@ class ProductScraper_SEO_Analysis {
 			$technical['score']        -= 15;
 		}
 
-		// XML Sitemap check
+		// XML Sitemap check.
 		if ( function_exists( 'wp_sitemaps_get_server' ) ) {
 			$technical['checks']['sitemap'] = array(
 				'status'  => 'good',
@@ -105,21 +105,21 @@ class ProductScraper_SEO_Analysis {
 			$technical['score']            -= 5;
 		}
 
-		// Robots.txt check
+		// Robots.txt check.
 		$robots_content                    = $this->check_robots_txt();
 		$technical['checks']['robots_txt'] = $robots_content;
 
-		// Image alt text analysis
+		// Image alt text analysis.
 		$image_analysis         = $this->analyze_image_seo();
 		$technical['image_seo'] = $image_analysis;
 		$technical['score']    += $image_analysis['score_impact'];
 
-		// Heading structure analysis
+		// Heading structure analysis.
 		$heading_analysis               = $this->analyze_heading_structure();
 		$technical['heading_structure'] = $heading_analysis;
 		$technical['score']            += $heading_analysis['score_impact'];
 
-		// Update score to be within bounds
+		// Update score to be within bounds.
 		$technical['score'] = max( 0, min( 100, $technical['score'] ) );
 
 		return $technical;
@@ -138,7 +138,7 @@ class ProductScraper_SEO_Analysis {
 			'recommendations' => array(),
 		);
 
-		// Get post statistics
+		// Get post statistics.
 		$post_types        = get_post_types( array( 'public' => true ), 'names' );
 		$post_count        = 0;
 		$optimized_posts   = 0;
@@ -156,13 +156,13 @@ class ProductScraper_SEO_Analysis {
 			foreach ( $posts as $post ) {
 				++$post_count;
 
-				// Check if post has SEO title
+				// Check if post has SEO title.
 				$seo_title = get_post_meta( $post->ID, '_seo_title', true );
 				if ( ! empty( $seo_title ) ) {
 					++$optimized_posts;
 				}
 
-				// Check content length
+				// Check content length.
 				$word_count = str_word_count( wp_strip_all_tags( $post->post_content ) );
 				if ( $word_count < 300 ) {
 					++$low_content_posts;
@@ -175,7 +175,7 @@ class ProductScraper_SEO_Analysis {
 		$content['stats']['optimization_rate'] = $post_count > 0 ? round( ( $optimized_posts / $post_count ) * 100 ) : 0;
 		$content['stats']['low_content_posts'] = $low_content_posts;
 
-		// Calculate content score
+		// Calculate content score.
 		if ( $content['stats']['optimization_rate'] < 50 ) {
 			$content['score']   -= 20;
 			$content['issues'][] = 'Less than 50% of posts have SEO titles';
@@ -189,12 +189,12 @@ class ProductScraper_SEO_Analysis {
 			$content['issues'][] = "$low_content_posts posts have low content (less than 300 words)";
 		}
 
-		// Duplicate content check
+		// Duplicate content check.
 		$duplicate_check              = $this->check_duplicate_content();
 		$content['duplicate_content'] = $duplicate_check;
 		$content['score']            += $duplicate_check['score_impact'];
 
-		// Internal linking analysis
+		// Internal linking analysis.
 		$linking_analysis            = $this->analyze_internal_linking();
 		$content['internal_linking'] = $linking_analysis;
 		$content['score']           += $linking_analysis['score_impact'];
@@ -213,7 +213,7 @@ class ProductScraper_SEO_Analysis {
 			'recommendations' => array(),
 		);
 
-		// Page load time (simulated - in real implementation, use Pagespeed API)
+		// Page load time (simulated - in real implementation, use Pagespeed API).
 		$load_time                                     = $this->estimate_page_load_time();
 		$performance['metrics']['estimated_load_time'] = $load_time;
 
@@ -225,17 +225,17 @@ class ProductScraper_SEO_Analysis {
 			$performance['issues'][] = 'Page load time could be improved';
 		}
 
-		// Image optimization check
+		// Image optimization check.
 		$image_optimization                = $this->check_image_optimization();
 		$performance['image_optimization'] = $image_optimization;
 		$performance['score']             += $image_optimization['score_impact'];
 
-		// Caching check
+		// Caching check.
 		$caching_status         = $this->check_caching();
 		$performance['caching'] = $caching_status;
 		$performance['score']  += $caching_status['score_impact'];
 
-		// Database optimization check
+		// Database optimization check.
 		$db_optimization         = $this->check_database_optimization();
 		$performance['database'] = $db_optimization;
 		$performance['score']   += $db_optimization['score_impact'];
@@ -253,21 +253,21 @@ class ProductScraper_SEO_Analysis {
 			'issues' => array(),
 		);
 
-		// Check if theme is responsive
+		// Check if theme is responsive.
 		$mobile['checks']['responsive_design'] = array(
 			'status'  => 'good',
 			'message' => 'Assume responsive design (manual verification recommended)',
 			'value'   => 'Responsive',
 		);
 
-		// Viewport meta tag check
+		// Viewport meta tag check.
 		$viewport_check               = $this->check_viewport_meta();
 		$mobile['checks']['viewport'] = $viewport_check;
 		if ( $viewport_check['status'] === 'warning' ) {
 			$mobile['score'] -= 10;
 		}
 
-		// Touch targets check
+		// Touch targets check.
 		$mobile['checks']['touch_targets'] = array(
 			'status'  => 'info',
 			'message' => 'Verify touch target sizes manually',
@@ -292,7 +292,7 @@ class ProductScraper_SEO_Analysis {
 			'issues' => array(),
 		);
 
-		// SSL check (redundant but included for completeness)
+		// SSL check (redundant but included for completeness).
 		if ( ! is_ssl() ) {
 			$security['checks']['ssl'] = array(
 				'status'  => 'critical',
@@ -308,7 +308,7 @@ class ProductScraper_SEO_Analysis {
 			);
 		}
 
-		// WordPress version check
+		// WordPress version check.
 		$wp_version = get_bloginfo( 'version' );
 		$latest_wp  = $this->get_latest_wordpress_version();
 		if ( version_compare( $wp_version, $latest_wp, '<' ) ) {
@@ -326,7 +326,7 @@ class ProductScraper_SEO_Analysis {
 			);
 		}
 
-		// Security headers check
+		// Security headers check.
 		$security_headers             = $this->check_security_headers();
 		$security['security_headers'] = $security_headers;
 		$security['score']           += $security_headers['score_impact'];
@@ -369,7 +369,7 @@ class ProductScraper_SEO_Analysis {
 	private function analyze_image_seo() {
 		global $wpdb;
 
-		// Count images without alt text
+		// Count images without alt text.
 		$images_without_alt = $wpdb->get_var(
 			"
             SELECT COUNT(*) 
@@ -415,8 +415,8 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function analyze_heading_structure() {
-		// This would require parsing actual page content
-		// For now, return a basic analysis
+		// This would require parsing actual page content.
+		// For now, return a basic analysis.
 		return array(
 			'status'       => 'info',
 			'message'      => 'Manual heading structure analysis recommended',
@@ -425,7 +425,7 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function check_duplicate_content() {
-		// Basic duplicate content check by meta description
+		// Basic duplicate content check by meta description.
 		global $wpdb;
 
 		$duplicate_meta_descriptions = $wpdb->get_var(
@@ -492,13 +492,13 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function estimate_page_load_time() {
-		// Simulate load time calculation
-		// TODO: In real implementation, use Pagespeed API
-		return rand( 15, 50 ) / 10; // Random value between 1.5 and 5 seconds
+		// Simulate load time calculation.
+		// TODO: In real implementation, use Pagespeed API.
+		return rand( 15, 50 ) / 10; // Random value between 1.5 and 5 seconds.
 	}
 
 	private function check_image_optimization() {
-		// Basic image optimization check
+		// Basic image optimization check.
 		return array(
 			'status'       => 'info',
 			'message'      => 'Use Pagespeed API for detailed image analysis',
@@ -507,7 +507,7 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function check_caching() {
-		// Check if caching is likely enabled
+		// Check if caching is likely enabled.
 		$caching_headers = $this->check_caching_headers();
 
 		return array(
@@ -520,7 +520,7 @@ class ProductScraper_SEO_Analysis {
 	private function check_database_optimization() {
 		global $wpdb;
 
-		// Check for post revisions
+		// Check for post revisions.
 		$revisions = $wpdb->get_var(
 			"
             SELECT COUNT(*) 
@@ -540,8 +540,8 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function check_viewport_meta() {
-		// Check if viewport meta tag is present in theme
-		// This is a basic check - would need to parse theme files
+		// Check if viewport meta tag is present in theme.
+		// This is a basic check - would need to parse theme files.
 		return array(
 			'status'  => 'good',
 			'message' => 'Assume viewport meta tag is present',
@@ -550,7 +550,7 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function check_mobile_speed() {
-		// Mobile speed check
+		// Mobile speed check.
 		return array(
 			'status'       => 'info',
 			'message'      => 'Use Pagespeed API for mobile speed analysis',
@@ -559,7 +559,7 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function get_latest_wordpress_version() {
-		// Get latest WordPress version
+		// Get latest WordPress version.
 		$core_updates = get_core_updates();
 		if ( ! is_wp_error( $core_updates ) && ! empty( $core_updates ) ) {
 			return $core_updates[0]->current;
@@ -568,7 +568,7 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function check_security_headers() {
-		// Basic security headers check
+		// Basic security headers check.
 		return array(
 			'status'       => 'info',
 			'message'      => 'Manual security headers check recommended',
@@ -577,7 +577,7 @@ class ProductScraper_SEO_Analysis {
 	}
 
 	private function check_caching_headers() {
-		// Simple check for caching
+		// Simple check for caching.
 		$response = wp_remote_head( home_url() );
 		$headers  = wp_remote_retrieve_headers( $response );
 
@@ -612,7 +612,7 @@ class ProductScraper_SEO_Analysis {
 
 		$analysis = $this->analyze_site_seo();
 
-		// Store analysis results
+		// Store analysis results.
 		update_option( 'product_scraper_seo_analysis', $analysis );
 		update_option( 'product_scraper_seo_analysis_timestamp', current_time( 'timestamp' ) );
 
@@ -647,7 +647,7 @@ class ProductScraper_SEO_Analysis {
 			'good_practices' => array(),
 		);
 
-		// Technical SEO insights
+		// Technical SEO insights.
 		if ( isset( $analysis['technical']['checks']['indexing'] ) &&
 			$analysis['technical']['checks']['indexing']['status'] === 'critical' ) {
 			$insights['critical'][] = 'Your site is blocking search engines from indexing. Go to Settings > Reading and uncheck "Discourage search engines from indexing this site".';
@@ -658,7 +658,7 @@ class ProductScraper_SEO_Analysis {
 			$insights['critical'][] = 'SSL certificate is not installed. HTTPS is essential for SEO and user trust.';
 		}
 
-		// Content SEO insights
+		// Content SEO insights.
 		if ( isset( $analysis['content']['stats']['optimization_rate'] ) &&
 			$analysis['content']['stats']['optimization_rate'] < 50 ) {
 			$insights['high_priority'][] = 'Only ' . $analysis['content']['stats']['optimization_rate'] . '% of your posts have SEO titles. Optimize all posts for better rankings.';
@@ -669,7 +669,7 @@ class ProductScraper_SEO_Analysis {
 			$insights['high_priority'][] = 'You have ' . $analysis['content']['stats']['low_content_posts'] . ' posts with low content. Consider expanding these posts to at least 300 words.';
 		}
 
-		// Performance insights
+		// Performance insights.
 		if ( isset( $analysis['performance']['metrics']['estimated_load_time'] ) &&
 			$analysis['performance']['metrics']['estimated_load_time'] > 3 ) {
 			$insights['high_priority'][] = 'Page load time is ' . $analysis['performance']['metrics']['estimated_load_time'] . ' seconds. Aim for under 3 seconds for better SEO.';
@@ -696,7 +696,7 @@ class ProductScraper_SEO_Analysis {
 			'analysis'  => $analysis,
 		);
 
-		// Keep only last 10 analyses
+		// Keep only last 10 analyses.
 		if ( count( $history ) > 10 ) {
 			$history = array_slice( $history, -10 );
 		}

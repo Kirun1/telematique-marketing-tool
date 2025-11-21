@@ -30,19 +30,19 @@ class ProductScraper_Schema_Generator {
 			),
 		);
 
-		// Add schema-specific data based on type
+		// Add schema-specific data based on type.
 		$type_specific_schema = $this->generate_type_specific_schema( $schema_type, $post_id );
 
-		// Merge base schema with type-specific schema
+		// Merge base schema with type-specific schema.
 		$complete_schema = array_merge( $base_schema, $type_specific_schema );
 
-		// Add organization schema
+		// Add organization schema.
 		$complete_schema['publisher'] = $this->get_organization_schema();
 
-		// Add breadcrumb schema
+		// Add breadcrumb schema.
 		$complete_schema['breadcrumb'] = $this->generate_breadcrumb_schema( $post_id );
 
-		// Add website schema
+		// Add website schema.
 		$complete_schema['@graph'] = array(
 			$this->generate_website_schema(),
 			$this->generate_organization_schema(),
@@ -61,7 +61,7 @@ class ProductScraper_Schema_Generator {
 		$tags       = get_the_tags( $post_id );
 		$content    = get_post_field( 'post_content', $post_id );
 
-		// Check for specific content patterns first
+		// Check for specific content patterns first.
 		if ( $this->is_product_page( $post_id ) ) {
 			return 'Product';
 		} elseif ( $this->is_recipe_page( $content ) ) {
@@ -78,10 +78,10 @@ class ProductScraper_Schema_Generator {
 			return 'LocalBusiness';
 		}
 
-		// Default based on post type and categories
+		// Default based on post type and categories.
 		switch ( $post_type ) {
 			case 'post':
-				// Check if it's a news article
+				// Check if it's a news article.
 				if ( $this->is_news_article( $post_id ) ) {
 					return 'NewsArticle';
 				}
@@ -109,21 +109,21 @@ class ProductScraper_Schema_Generator {
 	 * Get meta description for schema
 	 */
 	public function get_meta_description( $post_id ) {
-		// First, try to get from custom field
+		// First, try to get from custom field.
 		$meta_description = get_post_meta( $post_id, '_meta_description', true );
 
 		if ( empty( $meta_description ) ) {
-			// Try SEO plugins
+			// Try SEO plugins.
 			$meta_description = get_post_meta( $post_id, '_yoast_wpseo_metadesc', true );
 		}
 
 		if ( empty( $meta_description ) ) {
-			// Try All in One SEO
+			// Try All in One SEO.
 			$meta_description = get_post_meta( $post_id, '_aioseop_description', true );
 		}
 
 		if ( empty( $meta_description ) ) {
-			// Generate from content
+			// Generate from content.
 			$post             = get_post( $post_id );
 			$meta_description = wp_trim_words( wp_strip_all_tags( $post->post_content ), 25 );
 		}
@@ -194,7 +194,7 @@ class ProductScraper_Schema_Generator {
 			'articleBody'    => wp_strip_all_tags( $post->post_content ),
 		);
 
-		// Add featured image
+		// Add featured image.
 		$thumbnail_url = get_the_post_thumbnail_url( $post_id, 'full' );
 		if ( $thumbnail_url ) {
 			$article_schema['image'] = array(
@@ -205,7 +205,7 @@ class ProductScraper_Schema_Generator {
 			);
 		}
 
-		// Add comments count if applicable
+		// Add comments count if applicable.
 		$comment_count = get_comments_number( $post_id );
 		if ( $comment_count > 0 ) {
 			$article_schema['commentCount'] = $comment_count;
@@ -236,13 +236,13 @@ class ProductScraper_Schema_Generator {
 			),
 		);
 
-		// Add product images
+		// Add product images.
 		$images = $this->get_product_images( $post_id );
 		if ( ! empty( $images ) ) {
 			$product_schema['image'] = $images;
 		}
 
-		// Add reviews if available
+		// Add reviews if available.
 		$reviews = $this->get_product_reviews( $post_id );
 		if ( ! empty( $reviews ) ) {
 			$product_schema['review']          = $reviews;
@@ -433,7 +433,7 @@ class ProductScraper_Schema_Generator {
 			'itemListElement' => array(),
 		);
 
-		// Home page
+		// Home page.
 		$breadcrumbs['itemListElement'][] = array(
 			'@type'    => 'ListItem',
 			'position' => 1,
@@ -441,7 +441,7 @@ class ProductScraper_Schema_Generator {
 			'item'     => home_url(),
 		);
 
-		// Categories
+		// Categories.
 		$categories = get_the_category( $post_id );
 		$position   = 2;
 
@@ -456,7 +456,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Current page
+		// Current page.
 		$breadcrumbs['itemListElement'][] = array(
 			'@type'    => 'ListItem',
 			'position' => $position,
@@ -467,7 +467,7 @@ class ProductScraper_Schema_Generator {
 		return $breadcrumbs;
 	}
 
-	// Helper methods for schema detection
+	// Helper methods for schema detection.
 
 	private function is_product_page( $post_id ) {
 		return get_post_type( $post_id ) === 'product' ||
@@ -510,7 +510,7 @@ class ProductScraper_Schema_Generator {
 	private function is_news_article( $post_id ) {
 		$post_date = get_the_date( 'Y-m-d', $post_id );
 		$days_ago  = ( time() - strtotime( $post_date ) ) / ( 60 * 60 * 24 );
-		return $days_ago <= 2; // Consider as news if published within 2 days
+		return $days_ago <= 2; // Consider as news if published within 2 days.
 	}
 
 	private function is_about_page( $post_id ) {
@@ -523,14 +523,14 @@ class ProductScraper_Schema_Generator {
 			is_page_template( 'contact.php' );
 	}
 
-	// Extraction helper methods
+	// Extraction helper methods.
 
 	private function extract_faq_questions( $content ) {
 		preg_match_all( '/<h[1-6][^>]*>(.*?\?)[^<]*<\/h[1-6]>/i', $content, $questions );
 		$faq_items = array();
 
 		foreach ( $questions[1] as $index => $question ) {
-			// Find the answer (content until next heading)
+			// Find the answer (content until next heading).
 			$answer = $this->extract_faq_answer( $content, $index );
 
 			$faq_items[] = array(
@@ -547,7 +547,7 @@ class ProductScraper_Schema_Generator {
 	}
 
 	private function extract_faq_answer( $content, $question_index ) {
-		// Simplified answer extraction - in real implementation, you'd want more robust parsing
+		// Simplified answer extraction - in real implementation, you'd want more robust parsing.
 		$parts = preg_split( '/<h[1-6][^>]*>/i', $content );
 		return isset( $parts[ $question_index + 1 ] ) ? wp_strip_all_tags( $parts[ $question_index + 1 ] ) : '';
 	}
@@ -559,7 +559,7 @@ class ProductScraper_Schema_Generator {
 
 	private function extract_recipe_instructions( $content ) {
 		$instructions = array();
-		// Look for numbered steps
+		// Look for numbered steps.
 		preg_match_all( '/\d+\.\s*([^\n\.!?]+[\.!?])/i', $content, $steps );
 
 		foreach ( $steps[1] as $index => $step ) {
@@ -573,7 +573,7 @@ class ProductScraper_Schema_Generator {
 		return $instructions;
 	}
 
-	// Additional helper methods
+	// Additional helper methods.
 
 	private function get_site_logo() {
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
@@ -599,7 +599,7 @@ class ProductScraper_Schema_Generator {
 	private function get_reading_time( $post_id ) {
 		$content      = get_post_field( 'post_content', $post_id );
 		$word_count   = str_word_count( wp_strip_all_tags( $content ) );
-		$reading_time = ceil( $word_count / 200 ); // 200 words per minute
+		$reading_time = ceil( $word_count / 200 ); // 200 words per minute.
 		return 'PT' . $reading_time . 'M';
 	}
 
@@ -612,7 +612,7 @@ class ProductScraper_Schema_Generator {
 		return false;
 	}
 
-	// Product-specific methods
+	// Product-specific methods.
 	private function get_product_sku( $post_id ) {
 		return get_post_meta( $post_id, '_sku', true ) ?: 'SKU-' . $post_id;
 	}
@@ -646,7 +646,7 @@ class ProductScraper_Schema_Generator {
 			$images[] = wp_get_attachment_url( $thumbnail_id );
 		}
 
-		// Get gallery images
+		// Get gallery images.
 		$gallery_ids = get_post_meta( $post_id, '_product_image_gallery', true );
 		if ( $gallery_ids ) {
 			$gallery_ids = explode( ',', $gallery_ids );
@@ -662,7 +662,7 @@ class ProductScraper_Schema_Generator {
 		return get_option( 'woocommerce_currency' ) ?: 'USD';
 	}
 
-	// Output the schema as JSON-LD
+	// Output the schema as JSON-LD.
 	public function output_json_ld( $post_id ) {
 		$schema = $this->generate_schema( $post_id );
 		if ( ! empty( $schema ) ) {
@@ -670,9 +670,9 @@ class ProductScraper_Schema_Generator {
 		}
 	}
 
-	// Validate schema
+	// Validate schema.
 	public function validate_schema( $schema ) {
-		// Basic validation - in production, you might want to use Schema.org's validator
+		// Basic validation - in production, you might want to use Schema.org's validator.
 		$required_fields = array( '@context', '@type', 'name' );
 
 		foreach ( $required_fields as $field ) {
@@ -715,7 +715,7 @@ class ProductScraper_Schema_Generator {
 	private function get_product_reviews( $post_id ) {
 		$reviews = array();
 
-		// Check if WooCommerce is active and product has reviews
+		// Check if WooCommerce is active and product has reviews.
 		if ( function_exists( 'wc_get_product' ) && get_post_type( $post_id ) === 'product' ) {
 			$product = wc_get_product( $post_id );
 			$args    = array(
@@ -749,7 +749,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// If no WooCommerce reviews, check for custom review meta
+		// If no WooCommerce reviews, check for custom review meta.
 		if ( empty( $reviews ) ) {
 			$custom_reviews = get_post_meta( $post_id, '_custom_reviews', true );
 			if ( $custom_reviews && is_array( $custom_reviews ) ) {
@@ -783,7 +783,7 @@ class ProductScraper_Schema_Generator {
 		$rating_value = 0;
 		$review_count = 0;
 
-		// Check if WooCommerce is active and the function exists
+		// Check if WooCommerce is active and the function exists.
 		if ( class_exists( 'WooCommerce' ) && function_exists( 'wc_get_product' ) && get_post_type( $post_id ) === 'product' ) {
 			$product = wc_get_product( $post_id );
 			if ( $product ) {
@@ -792,7 +792,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Custom rating fallback
+		// Custom rating fallback.
 		if ( ! $rating_value ) {
 			$rating_value = get_post_meta( $post_id, '_average_rating', true );
 			$review_count = get_post_meta( $post_id, '_review_count', true );
@@ -830,7 +830,7 @@ class ProductScraper_Schema_Generator {
 			return 'PT' . $minutes . 'M';
 		}
 
-		// Default times based on type
+		// Default times based on type.
 		$default_times = array(
 			'prep'  => 'PT15M',
 			'cook'  => 'PT30M',
@@ -844,7 +844,7 @@ class ProductScraper_Schema_Generator {
 	 * Extract recipe yield (servings) from content
 	 */
 	private function extract_recipe_yield( $content ) {
-		// Look for serving information
+		// Look for serving information.
 		preg_match( '/(\d+)\s*(?:serving|portion|person)/i', $content, $matches );
 		if ( isset( $matches[1] ) ) {
 			return $matches[1] . ' servings';
@@ -855,7 +855,7 @@ class ProductScraper_Schema_Generator {
 			return $matches[1] . ' servings';
 		}
 
-		// Default yield
+		// Default yield.
 		return '4 servings';
 	}
 
@@ -867,13 +867,13 @@ class ProductScraper_Schema_Generator {
 			'@type' => 'NutritionInformation',
 		);
 
-		// Extract calories
+		// Extract calories.
 		preg_match( '/(\d+)\s*calories/i', $content, $matches );
 		if ( isset( $matches[1] ) ) {
 			$nutrition['calories'] = $matches[1] . ' calories';
 		}
 
-		// Extract other nutrition facts
+		// Extract other nutrition facts.
 		$nutrition_patterns = array(
 			'fatContent'          => '/(\d+)\s*g\s*fat/i',
 			'carbohydrateContent' => '/(\d+)\s*g\s*carbs/i',
@@ -900,7 +900,7 @@ class ProductScraper_Schema_Generator {
 			'@type' => 'PostalAddress',
 		);
 
-		// Try to get from event meta
+		// Try to get from event meta.
 		$street  = get_post_meta( $post_id, '_event_address', true );
 		$city    = get_post_meta( $post_id, '_event_city', true );
 		$state   = get_post_meta( $post_id, '_event_state', true );
@@ -923,7 +923,7 @@ class ProductScraper_Schema_Generator {
 			$address['addressCountry'] = $country;
 		}
 
-		// Fallback to business address
+		// Fallback to business address.
 		if ( empty( $address['streetAddress'] ) ) {
 			$business_fields = array(
 				'streetAddress'   => 'business_address_street',
@@ -997,7 +997,7 @@ class ProductScraper_Schema_Generator {
 	 * Extract HowTo cost from content
 	 */
 	private function extract_howto_cost( $content ) {
-		// Look for cost patterns
+		// Look for cost patterns.
 		preg_match( '/(?:cost|price|budget).*?\$?(\d+(?:\.\d{2})?)/i', $content, $matches );
 		if ( isset( $matches[1] ) ) {
 			return floatval( $matches[1] );
@@ -1008,7 +1008,7 @@ class ProductScraper_Schema_Generator {
 			return floatval( $matches[1] );
 		}
 
-		return 0; // Default cost
+		return 0; // Default cost.
 	}
 
 	/**
@@ -1017,9 +1017,9 @@ class ProductScraper_Schema_Generator {
 	private function extract_howto_supplies( $content ) {
 		$supplies = array();
 
-		// Look for supplies/materials section
+		// Look for supplies/materials section.
 		if ( preg_match( '/(?:supplies|materials|what you need):?(.*?)(?=steps|instructions|$)/is', $content, $section ) ) {
-			// Extract list items
+			// Extract list items.
 			preg_match_all( '/[-*]?\s*([^\n\.!?]+[\.!?])/i', $section[1], $items );
 
 			foreach ( $items[1] as $item ) {
@@ -1030,10 +1030,10 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// If no specific section found, look for bullet points
+		// If no specific section found, look for bullet points.
 		if ( empty( $supplies ) ) {
 			preg_match_all( '/[-*]\s*([^\n]+)/i', $content, $items );
-			foreach ( array_slice( $items[1], 0, 5 ) as $item ) { // Limit to 5 items
+			foreach ( array_slice( $items[1], 0, 5 ) as $item ) { // Limit to 5 items.
 				$supplies[] = array(
 					'@type' => 'HowToSupply',
 					'name'  => trim( $item ),
@@ -1051,7 +1051,7 @@ class ProductScraper_Schema_Generator {
 		$tools         = array();
 		$tool_keywords = array( 'tool', 'equipment', 'machine', 'device', 'software', 'app' );
 
-		// Look for tools section
+		// Look for tools section.
 		if ( preg_match( '/(?:tools|equipment):?(.*?)(?=steps|instructions|$)/is', $content, $section ) ) {
 			preg_match_all( '/[-*]?\s*([^\n\.!?]+[\.!?])/i', $section[1], $items );
 
@@ -1063,7 +1063,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Search for tool keywords in content
+		// Search for tool keywords in content.
 		if ( empty( $tools ) ) {
 			$sentences = preg_split( '/[.!?]+/', $content );
 			foreach ( $sentences as $sentence ) {
@@ -1077,7 +1077,7 @@ class ProductScraper_Schema_Generator {
 					}
 				}
 				if ( count( $tools ) >= 3 ) {
-					break; // Limit to 3 tools
+					break; // Limit to 3 tools.
 				}
 			}
 		}
@@ -1091,7 +1091,7 @@ class ProductScraper_Schema_Generator {
 	private function extract_howto_steps( $content ) {
 		$steps = array();
 
-		// Method 1: Look for numbered steps
+		// Method 1: Look for numbered steps.
 		preg_match_all( '/(\d+)\.\s*([^\n\.!?]+[\.!?])/i', $content, $numbered_steps );
 
 		if ( ! empty( $numbered_steps[1] ) ) {
@@ -1104,7 +1104,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Method 2: Look for bullet points with step indicators
+		// Method 2: Look for bullet points with step indicators.
 		if ( empty( $steps ) ) {
 			preg_match_all( '/[-*]\s*([Ss]tep\s*\d+[^\n]*)/i', $content, $bullet_steps );
 			if ( ! empty( $bullet_steps[1] ) ) {
@@ -1118,12 +1118,12 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Method 3: Split by paragraphs and use as steps
+		// Method 3: Split by paragraphs and use as steps.
 		if ( empty( $steps ) ) {
 			$paragraphs = preg_split( '/\n\s*\n/', $content );
-			foreach ( array_slice( $paragraphs, 0, 10 ) as $index => $paragraph ) { // Limit to 10 steps
+			foreach ( array_slice( $paragraphs, 0, 10 ) as $index => $paragraph ) { // Limit to 10 steps.
 				$clean_paragraph = wp_strip_all_tags( trim( $paragraph ) );
-				if ( strlen( $clean_paragraph ) > 10 ) { // Only use substantial paragraphs
+				if ( strlen( $clean_paragraph ) > 10 ) { // Only use substantial paragraphs.
 					$steps[] = array(
 						'@type'    => 'HowToStep',
 						'position' => $index + 1,
@@ -1140,7 +1140,7 @@ class ProductScraper_Schema_Generator {
 	 * Check if post has product metadata
 	 */
 	private function has_product_metadata( $post_id ) {
-		// Check for common product meta fields
+		// Check for common product meta fields.
 		$product_meta_fields = array( '_price', '_sku', '_stock_status', '_regular_price', '_sale_price' );
 
 		foreach ( $product_meta_fields as $field ) {
@@ -1149,7 +1149,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Check for WooCommerce product type
+		// Check for WooCommerce product type.
 		if ( get_post_meta( $post_id, '_product_type', true ) ) {
 			return true;
 		}
@@ -1163,7 +1163,7 @@ class ProductScraper_Schema_Generator {
 	private function get_social_profiles_extended() {
 		$profiles = $this->get_social_profiles();
 
-		// Add additional fallback profiles
+		// Add additional fallback profiles.
 		$additional_profiles = array(
 			get_option( 'business_github_url' ),
 			get_option( 'business_dribbble_url' ),
@@ -1176,7 +1176,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		return array_filter( $profiles ); // Remove empty values
+		return array_filter( $profiles ); // Remove empty values.
 	}
 
 	/**
@@ -1211,7 +1211,7 @@ class ProductScraper_Schema_Generator {
 			}
 		}
 
-		// Fallback to default times
+		// Fallback to default times.
 		$default_times = array(
 			'prep'  => 'PT15M',
 			'cook'  => 'PT30M',

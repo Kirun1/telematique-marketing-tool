@@ -40,10 +40,10 @@ class ProductScraper_Link_Manager {
 			}
 		}
 
-		// Update stats
+		// Update stats.
 		$links_data['stats'] = $this->calculate_link_stats( $links_data );
 
-		// Store in database
+		// Store in database.
 		update_option( 'product_scraper_links_data', $links_data );
 		update_option( 'product_scraper_links_scan_timestamp', current_time( 'timestamp' ) );
 
@@ -70,10 +70,10 @@ class ProductScraper_Link_Manager {
 			)
 		);
 
-		// Remove old links from this post
+		// Remove old links from this post.
 		$existing_data = $this->remove_post_links( $existing_data, $post_id );
 
-		// Merge new links
+		// Merge new links.
 		$updated_data          = $this->merge_links_data( $existing_data, $post_links );
 		$updated_data['stats'] = $this->calculate_link_stats( $updated_data );
 
@@ -95,7 +95,7 @@ class ProductScraper_Link_Manager {
 			return $links;
 		}
 
-		// Use DOMDocument to parse links
+		// Use DOMDocument to parse links.
 		$dom = new DOMDocument();
 		@$dom->loadHTML( $content );
 
@@ -140,7 +140,7 @@ class ProductScraper_Link_Manager {
 		$home_domain = parse_url( $home_url, PHP_URL_HOST );
 		$link_domain = parse_url( $url, PHP_URL_HOST );
 
-		// Handle relative URLs
+		// Handle relative URLs.
 		if ( empty( $link_domain ) ) {
 			return true;
 		}
@@ -156,7 +156,7 @@ class ProductScraper_Link_Manager {
 			return $url;
 		}
 
-		// Handle relative URLs
+		// Handle relative URLs.
 		if ( strpos( $url, '/' ) === 0 ) {
 			return home_url( $url );
 		}
@@ -168,12 +168,12 @@ class ProductScraper_Link_Manager {
 	 * Merge links data
 	 */
 	private function merge_links_data( $existing_data, $new_links ) {
-		// Merge internal links
+		// Merge internal links.
 		foreach ( $new_links['internal'] as $new_link ) {
 			$existing_data['internal'][] = $new_link;
 		}
 
-		// Merge external links
+		// Merge external links.
 		foreach ( $new_links['external'] as $new_link ) {
 			$existing_data['external'][] = $new_link;
 		}
@@ -185,7 +185,7 @@ class ProductScraper_Link_Manager {
 	 * Remove links from a specific post
 	 */
 	private function remove_post_links( $links_data, $post_id ) {
-		// Remove internal links from this post
+		// Remove internal links from this post.
 		$links_data['internal'] = array_filter(
 			$links_data['internal'],
 			function ( $link ) use ( $post_id ) {
@@ -193,7 +193,7 @@ class ProductScraper_Link_Manager {
 			}
 		);
 
-		// Remove external links from this post
+		// Remove external links from this post.
 		$links_data['external'] = array_filter(
 			$links_data['external'],
 			function ( $link ) use ( $post_id ) {
@@ -201,7 +201,7 @@ class ProductScraper_Link_Manager {
 			}
 		);
 
-		// Reset array keys
+		// Reset array keys.
 		$links_data['internal'] = array_values( $links_data['internal'] );
 		$links_data['external'] = array_values( $links_data['external'] );
 
@@ -221,7 +221,7 @@ class ProductScraper_Link_Manager {
 			'nofollow_count'       => 0,
 		);
 
-		// Count domains and links per post
+		// Count domains and links per post.
 		foreach ( $links_data['internal'] as $link ) {
 			$post_id = $link['source_post_id'];
 			if ( ! isset( $stats['links_per_post'][ $post_id ] ) ) {
@@ -252,7 +252,7 @@ class ProductScraper_Link_Manager {
 			}
 		}
 
-		// Sort domains by frequency
+		// Sort domains by frequency.
 		arsort( $stats['external_domains'] );
 		$stats['external_domains'] = array_slice( $stats['external_domains'], 0, 20 );
 
@@ -270,7 +270,7 @@ class ProductScraper_Link_Manager {
 		$broken_links  = array();
 		$checked_links = 0;
 
-		// Check internal links
+		// Check internal links.
 		foreach ( $links_data['internal'] as $link ) {
 			if ( $this->is_broken_internal_link( $link ) ) {
 				$broken_links[] = array_merge(
@@ -283,13 +283,13 @@ class ProductScraper_Link_Manager {
 			}
 			++$checked_links;
 
-			// Prevent timeout for large sites
+			// Prevent timeout for large sites.
 			if ( $checked_links >= 50 ) {
 				break;
 			}
 		}
 
-		// Check external links (sample)
+		// Check external links (sample).
 		$external_sample = array_slice( $links_data['external'], 0, 20 );
 		foreach ( $external_sample as $link ) {
 			$status = $this->check_external_link_status( $link['url'] );
@@ -305,7 +305,7 @@ class ProductScraper_Link_Manager {
 			++$checked_links;
 		}
 
-		// Update broken links data
+		// Update broken links data.
 		$links_data['broken'] = $broken_links;
 		update_option( 'product_scraper_links_data', $links_data );
 
@@ -321,7 +321,7 @@ class ProductScraper_Link_Manager {
 			return ! $post || $post->post_status !== 'publish';
 		}
 
-		// Fallback: check if URL exists
+		// Fallback: check if URL exists.
 		$response = wp_remote_head( $link['url'], array( 'timeout' => 10 ) );
 		if ( is_wp_error( $response ) ) {
 			return true;
@@ -344,7 +344,7 @@ class ProductScraper_Link_Manager {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			return 0; // Unknown status
+			return 0; // Unknown status.
 		}
 
 		return wp_remote_retrieve_response_code( $response );
@@ -357,7 +357,7 @@ class ProductScraper_Link_Manager {
 		$links_data  = get_option( 'product_scraper_links_data', array() );
 		$suggestions = array();
 
-		// Find posts with few or no internal links
+		// Find posts with few or no internal links.
 		$posts_with_few_links = array();
 		foreach ( $links_data['stats']['links_per_post'] as $post_id => $link_count ) {
 			if ( $link_count <= 2 ) {
@@ -382,7 +382,7 @@ class ProductScraper_Link_Manager {
 			);
 		}
 
-		// Find orphaned posts (no incoming links)
+		// Find orphaned posts (no incoming links).
 		$orphaned_posts = $this->find_orphaned_posts( $links_data );
 		if ( ! empty( $orphaned_posts ) ) {
 			$suggestions[] = array(
@@ -446,8 +446,8 @@ class ProductScraper_Link_Manager {
 	private function find_linking_opportunities( $links_data ) {
 		$opportunities = array();
 
-		// This would implement more advanced keyword-based linking suggestions
-		// For now, return empty array
+		// This would implement more advanced keyword-based linking suggestions.
+		// For now, return empty array.
 		return $opportunities;
 	}
 

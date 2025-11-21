@@ -40,7 +40,7 @@ class ProductScraper_AI_Content_Writer {
 	}
 
 	public function generate_content( $topic, $keywords = array(), $tone = 'professional' ) {
-		// Integration with OpenAI GPT, Claude, or other AI APIs
+		// Integration with OpenAI GPT, Claude, or other AI APIs.
 		return array(
 			'outline'            => $this->generate_content_outline( $topic, $keywords ),
 			'introduction'       => $this->write_introduction( $topic, $tone ),
@@ -70,7 +70,7 @@ class ProductScraper_AI_Content_Writer {
 			'sections'             => array(),
 		);
 
-		// Build section structure based on template
+		// Build section structure based on template.
 		foreach ( $template['sections'] as $section ) {
 			$outline['sections'][] = array(
 				'heading'          => $section,
@@ -80,7 +80,7 @@ class ProductScraper_AI_Content_Writer {
 			);
 		}
 
-		// Add FAQ section if relevant
+		// Add FAQ section if relevant.
 		if ( $this->should_include_faq( $topic ) ) {
 			$outline['sections'][] = array(
 				'heading'          => 'Frequently Asked Questions',
@@ -381,7 +381,7 @@ class ProductScraper_AI_Content_Writer {
 			$content  .= '<p>' . $this->adjust_tone( $paragraph, $tone ) . "</p>\n\n";
 		}
 
-		// Add a call to action or transition if appropriate
+		// Add a call to action or transition if appropriate.
 		if ( $this->needs_transition( $heading ) ) {
 			$transition = $this->generate_transition( $heading, $topic );
 			$content   .= '<p>' . $transition . "</p>\n\n";
@@ -448,7 +448,7 @@ class ProductScraper_AI_Content_Writer {
 		$template   = $conclusion_templates[ array_rand( $conclusion_templates ) ];
 		$conclusion = str_replace( '{topic}', $topic, $template );
 
-		// Add a call to action
+		// Add a call to action.
 		$call_to_action = $this->generate_call_to_action( $topic );
 		$conclusion    .= ' ' . $call_to_action;
 
@@ -490,7 +490,7 @@ class ProductScraper_AI_Content_Writer {
 			$template
 		);
 
-		// Ensure optimal length for meta descriptions
+		// Ensure optimal length for meta descriptions.
 		if ( strlen( $meta_description ) > 160 ) {
 			$meta_description = substr( $meta_description, 0, 157 ) . '...';
 		}
@@ -525,7 +525,7 @@ class ProductScraper_AI_Content_Writer {
 		$template = $tweet_templates[ array_rand( $tweet_templates ) ];
 		$tweet    = str_replace( array( '{topic}', '{hashtag}' ), array( $topic, $hashtag ), $template );
 
-		// Ensure tweet length is under 280 characters
+		// Ensure tweet length is under 280 characters.
 		if ( strlen( $tweet ) > 280 ) {
 			$tweet = substr( $tweet, 0, 277 ) . '...';
 		}
@@ -643,7 +643,7 @@ class ProductScraper_AI_Content_Writer {
 
 		$content = str_replace( array_keys( $enhancements ), array_values( $enhancements ), $content );
 
-		// Add exclamation points to sentences
+		// Add exclamation points to sentences.
 		$sentences = explode( '.', $content );
 		foreach ( $sentences as &$sentence ) {
 			$sentence = trim( $sentence );
@@ -697,12 +697,12 @@ class ProductScraper_AI_Content_Writer {
 	 * Calculate readability score
 	 */
 	private function calculate_readability_score( $topic ) {
-		// Simplified readability calculation
+		// Simplified readability calculation.
 		$complexity = $this->assess_topic_complexity( $topic );
 
 		switch ( $complexity ) {
 			case 'high':
-				return 65; // More complex topics naturally have lower readability
+				return 65; // More complex topics naturally have lower readability.
 			case 'medium':
 				return 75;
 			case 'low':
@@ -729,10 +729,10 @@ class ProductScraper_AI_Content_Writer {
 	 * Calculate keyword density
 	 */
 	private function calculate_keyword_density( $topic, $keywords ) {
-		$total_keywords  = count( $keywords ) + 1; // +1 for main topic
+		$total_keywords  = count( $keywords ) + 1; // +1 for main topic.
 		$estimated_words = $this->estimate_word_count( $topic );
 
-		// Aim for 1-2% keyword density
+		// Aim for 1-2% keyword density.
 		$optimal_density = min( 2, max( 1, ( $total_keywords * 10 ) / $estimated_words * 100 ) );
 
 		return round( $optimal_density, 1 );

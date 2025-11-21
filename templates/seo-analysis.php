@@ -6,7 +6,7 @@
  * @since 1.0.0
  */
 
-// Security check
+// Security check.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -467,17 +467,17 @@ function runFullAnalysis() {
 	button.disabled = true;
 	button.innerHTML = '<span class="dashicons dashicons-update spin"></span> Analyzing...';
 	
-	// Simulate analysis process
+	// Simulate analysis process.
 	setTimeout(() => {
 		button.disabled = false;
 		button.innerHTML = originalText;
 		alert('Full SEO analysis completed!');
-		location.reload(); // Refresh to show updated results
+		location.reload(); // Refresh to show updated results.
 	}, 3000);
 }
 
 function exportAnalysisReport() {
-	// In a real implementation, this would generate a PDF or CSV report
+	// In a real implementation, this would generate a PDF or CSV report.
 	alert('Export feature would generate a comprehensive SEO report');
 }
 </script>

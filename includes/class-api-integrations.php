@@ -2,7 +2,7 @@
 
 class ProductScraper_API_Integrations {
 
-	private $cache_duration = 3600; // 1 hour cache
+	private $cache_duration = 3600; // 1 hour cache.
 
 	public function __construct() {
 		add_action( 'wp_ajax_sync_seo_data', array( $this, 'ajax_sync_seo_data' ) );
@@ -55,18 +55,18 @@ class ProductScraper_API_Integrations {
 			error_log( 'Google Client class not available' );
 		}
 
-		// Only try Google Analytics API if vendor is loaded AND property ID exists
+		// Only try Google Analytics API if vendor is loaded AND property ID exists.
 		if ( $propertyId && $this->google_api_available() ) {
 			try {
 				return $this->get_google_analytics_data( $propertyId );
 			} catch ( Exception $e ) {
-				// Log error and return empty data structure
+				// Log error and return empty data structure.
 				error_log( 'Google Analytics API error: ' . $e->getMessage() );
 				return $this->get_empty_traffic_data();
 			}
 		}
 
-		// Return empty data if no API configured
+		// Return empty data if no API configured.
 		return $this->get_empty_traffic_data();
 	}
 
@@ -74,7 +74,7 @@ class ProductScraper_API_Integrations {
 	 * Get Google Analytics data (only called if vendor is loaded)
 	 */
 	private function get_google_analytics_data( $propertyId ) {
-		// Get the service account JSON from database option
+		// Get the service account JSON from database option.
 		$service_account_json = get_option( 'product_scraper_google_service_account' );
 
 		if ( empty( $service_account_json ) ) {
@@ -84,24 +84,24 @@ class ProductScraper_API_Integrations {
 		try {
 			$client = new Google_Client();
 
-			// Decode the JSON and validate
+			// Decode the JSON and validate.
 			$service_account = json_decode( $service_account_json, true );
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
 				throw new Exception( 'Invalid JSON in service account' );
 			}
 
-			// Set authentication method
+			// Set authentication method.
 			$client->setAuthConfig( $service_account );
 			$client->addScope( 'https://www.googleapis.com/auth/analytics.readonly' );
 
-			// Important: Set the subject if using domain-wide delegation
-			// If you're accessing GA4 data for a specific Google account, uncomment and set the email:
-			// $client->setSubject('your-service-account-email@your-project.iam.gserviceaccount.com');
+			// Important: Set the subject if using domain-wide delegation.
+			// If you're accessing GA4 data for a specific Google account, uncomment and set the email:.
+			// $client->setSubject('your-service-account-email@your-project.iam.gserviceaccount.com');.
 
-			// Create and configure the analytics service
+			// Create and configure the analytics service.
 			$analytics = new Google_Service_AnalyticsData( $client );
 
-			// Test the client authentication first
+			// Test the client authentication first.
 			$accessToken = $client->fetchAccessTokenWithAssertion();
 			if ( isset( $accessToken['error'] ) ) {
 				throw new Exception( 'Authentication failed: ' . $accessToken['error_description'] );
@@ -130,7 +130,7 @@ class ProductScraper_API_Integrations {
 
 			$response = $analytics->properties->runReport( "properties/$propertyId", $request );
 
-			// Parse response - handle empty data
+			// Parse response - handle empty data.
 			$sessions     = 0;
 			$bounce_rate  = 0;
 			$avg_duration = 0;
@@ -179,7 +179,7 @@ class ProductScraper_API_Integrations {
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
-		// Handle API errors or empty responses
+		// Handle API errors or empty responses.
 		if ( isset( $data['error'] ) ) {
 			error_log( 'Ahrefs API error: ' . $data['error'] );
 			return $this->get_empty_referring_domains();
@@ -212,7 +212,7 @@ class ProductScraper_API_Integrations {
 			}
 		}
 
-		// Return empty if no GSC configured
+		// Return empty if no GSC configured.
 		return $this->get_empty_keywords();
 	}
 
@@ -220,8 +220,8 @@ class ProductScraper_API_Integrations {
 	 * Get keywords from Google Search Console
 	 */
 	private function get_gsc_keywords() {
-		// This is a placeholder - we'll need to implement actual GSC API integration
-		// For now, return empty array
+		// This is a placeholder - we'll need to implement actual GSC API integration.
+		// For now, return empty array.
 		return array();
 	}
 
@@ -267,7 +267,7 @@ class ProductScraper_API_Integrations {
 	 */
 	private function calculate_authority_score( $referring_data ) {
 		$ref_domains   = $referring_data['count'];
-		$domain_rating = $referring_data['domain_rating'] * 10; // Convert to 0-100 scale
+		$domain_rating = $referring_data['domain_rating'] * 10; // Convert to 0-100 scale.
 
 		if ( $ref_domains > 1000 ) {
 			return min( 100, $domain_rating + 20 );
@@ -302,7 +302,7 @@ class ProductScraper_API_Integrations {
 	 * Get engagement metrics from Google Analytics
 	 */
 	private function get_google_analytics_engagement( $propertyId ) {
-		// Get the service account JSON from database option
+		// Get the service account JSON from database option.
 		$service_account_json = get_option( 'product_scraper_google_service_account' );
 
 		if ( empty( $service_account_json ) ) {
@@ -311,7 +311,7 @@ class ProductScraper_API_Integrations {
 
 		$client = new Google_Client();
 
-		// Use setAuthConfig with JSON string instead of file path
+		// Use setAuthConfig with JSON string instead of file path.
 		$client->setAuthConfig( json_decode( $service_account_json, true ) );
 		$client->addScope( 'https://www.googleapis.com/auth/analytics.readonly' );
 
@@ -405,7 +405,7 @@ class ProductScraper_API_Integrations {
 	public function get_site_health_metrics() {
 		$api_key = get_option( 'product_scraper_pagespeed_api' );
 
-		// If no API key, return empty data
+		// If no API key, return empty data.
 		if ( ! $api_key ) {
 			error_log( 'PageSpeed API: No API key configured' );
 			return $this->get_empty_site_health();
@@ -413,7 +413,7 @@ class ProductScraper_API_Integrations {
 
 		$site_url = get_site_url();
 
-		// Better URL handling - ensure we're using a clean URL
+		// Better URL handling - ensure we're using a clean URL.
 		$parsed_url = parse_url( $site_url );
 		if ( ! $parsed_url || ! isset( $parsed_url['host'] ) ) {
 			error_log( 'PageSpeed API: Invalid site URL' );
@@ -422,7 +422,7 @@ class ProductScraper_API_Integrations {
 
 		$test_url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
 
-		// Use the correct API endpoint and parameters
+		// Use the correct API endpoint and parameters.
 		$api_url = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
 		$api_url = add_query_arg(
 			array(
@@ -445,7 +445,7 @@ class ProductScraper_API_Integrations {
 			)
 		);
 
-		// Check for WP HTTP errors
+		// Check for WP HTTP errors.
 		if ( is_wp_error( $response ) ) {
 			error_log( 'PageSpeed API WP Error: ' . $response->get_error_message() );
 			return $this->get_empty_site_health();
@@ -461,7 +461,7 @@ class ProductScraper_API_Integrations {
 			error_log( 'PageSpeed API Error Body: ' . $response_body );
 
 			if ( $response_code === 400 ) {
-				// Try to parse the error for more details
+				// Try to parse the error for more details.
 				$error_data = json_decode( $response_body, true );
 				if ( isset( $error_data['error']['message'] ) ) {
 					error_log( 'PageSpeed API 400 Error: ' . $error_data['error']['message'] );
@@ -475,13 +475,13 @@ class ProductScraper_API_Integrations {
 
 		$data = json_decode( $response_body, true );
 
-		// Check if JSON decoding failed
+		// Check if JSON decoding failed.
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			error_log( 'PageSpeed API JSON Error: ' . json_last_error_msg() );
 			return $this->get_empty_site_health();
 		}
 
-		// Check if the expected structure exists
+		// Check if the expected structure exists.
 		if ( ! isset( $data['lighthouseResult']['categories'] ) ) {
 			error_log( 'PageSpeed API: Invalid response structure' );
 			error_log( 'PageSpeed API Response: ' . print_r( $data, true ) );
@@ -490,7 +490,7 @@ class ProductScraper_API_Integrations {
 
 		$categories = $data['lighthouseResult']['categories'];
 
-		// Extract scores safely
+		// Extract scores safely.
 		$scores = array(
 			'performance'    => $this->get_safe_category_score( $categories, 'performance' ),
 			'accessibility'  => $this->get_safe_category_score( $categories, 'accessibility' ),
@@ -498,7 +498,7 @@ class ProductScraper_API_Integrations {
 			'seo'            => $this->get_safe_category_score( $categories, 'seo' ),
 		);
 
-		// Calculate overall score from real data
+		// Calculate overall score from real data.
 		$overall = round( array_sum( $scores ) / count( $scores ) );
 
 		error_log( 'PageSpeed API Success - Scores: ' . print_r( $scores, true ) );
@@ -517,10 +517,10 @@ class ProductScraper_API_Integrations {
 		if ( isset( $categories[ $category_name ]['score'] ) ) {
 			return round( $categories[ $category_name ]['score'] * 100 );
 		}
-		return 0; // Return 0 instead of random data
+		return 0; // Return 0 instead of random data.
 	}
 
-	// EMPTY DATA STRUCTURES - NO FALLBACKS
+	// EMPTY DATA STRUCTURES - NO FALLBACKS.
 
 	private function get_empty_traffic_data() {
 		return array(
@@ -614,7 +614,7 @@ class ProductScraper_API_Integrations {
 			wp_send_json_error( 'Security check failed' );
 		}
 
-		// Clear cache to force refresh
+		// Clear cache to force refresh.
 		$cache_key = 'product_scraper_seo_data_' . md5( get_site_url() );
 		delete_transient( $cache_key );
 

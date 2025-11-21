@@ -7,16 +7,16 @@
  * @since 1.0.0
  */
 
-// Security check - prevent direct access
+// Security check - prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Get current post ID
+// Get current post ID.
 $post_id  = get_the_ID();
 $seo_data = get_post_meta( $post_id, '_productscraper_seo_data', true );
 
-// Set default values
+// Set default values.
 $defaults = array(
 	'focus_keyword'       => '',
 	'meta_title'          => '',
@@ -35,7 +35,7 @@ $defaults = array(
 
 $seo_data = wp_parse_args( $seo_data, $defaults );
 
-// Nonce field for security
+// Nonce field for security.
 wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 ?>
 
@@ -691,7 +691,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 
 <script>
 	jQuery(document).ready(function($) {
-		// Tab functionality
+		// Tab functionality.
 		$('.ps-tab-button').on('click', function() {
 			var tab = $(this).data('tab');
 
@@ -702,7 +702,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			$('#ps-tab-' + tab).addClass('active');
 		});
 
-		// Preview tab functionality
+		// Preview tab functionality.
 		$('.ps-preview-tab').on('click', function() {
 			var preview = $(this).data('preview');
 
@@ -713,7 +713,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			$('.ps-' + preview + '-preview').addClass('active');
 		});
 
-		// Character counters
+		// Character counters.
 		function updateCharacterCount() {
 			var title = $('#ps_meta_title').val();
 			var description = $('#ps_meta_description').val();
@@ -721,7 +721,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			$('#ps_title_count').text(title.length);
 			$('#ps_description_count').text(description.length);
 
-			// Update previews
+			// Update previews.
 			$('#ps_title_preview').text(title || '<?php echo esc_js( wp_get_document_title() ); ?>');
 			$('#ps_description_preview').text(description || 'No meta description set.');
 		}
@@ -729,7 +729,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 		$('#ps_meta_title, #ps_meta_description').on('input', updateCharacterCount);
 		updateCharacterCount();
 
-		// Image upload functionality
+		// Image upload functionality.
 		$('.ps-upload-button').on('click', function() {
 			var target = $(this).data('target');
 			var frame = wp.media({
@@ -755,7 +755,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			$('#' + target + '_preview').html('<div class="ps-no-image">No image set</div>');
 		});
 
-		// Schema type change
+		// Schema type change.
 		$('#ps_schema_type').on('change', function() {
 			if ($(this).val() === 'Custom') {
 				$('#ps_custom_schema_group').show();
@@ -764,11 +764,11 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			}
 		});
 
-		// Keyword suggestions
+		// Keyword suggestions.
 		$('#ps_focus_keyword').on('input', function() {
 			var keyword = $(this).val();
 			if (keyword.length > 2) {
-				// Simulate API call for keyword suggestions
+				// Simulate API call for keyword suggestions.
 				setTimeout(function() {
 					var suggestions = [
 						keyword + ' 2024',
@@ -797,7 +797,7 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			$('#ps_keyword_suggestions').hide();
 		});
 
-		// SEO score calculation
+		// SEO score calculation.
 		function calculateSeoScore() {
 			var score = 0;
 			var checks = {
@@ -832,10 +832,10 @@ wp_nonce_field( 'productscraper_seo_meta_box', 'productscraper_seo_nonce' );
 			}
 		}
 
-		// Calculate initial score
+		// Calculate initial score.
 		calculateSeoScore();
 
-		// Update score on changes
+		// Update score on changes.
 		$('#ps_meta_title, #ps_meta_description, #ps_focus_keyword').on('input', calculateSeoScore);
 	});
 </script>

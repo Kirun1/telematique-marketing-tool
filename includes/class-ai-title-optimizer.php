@@ -14,7 +14,7 @@ class ProductScraper_AI_Title_Optimizer {
 	 */
 	private function initialize_word_lists() {
 		$this->power_words = array(
-			// Action words
+			// Action words.
 			'discover',
 			'unlock',
 			'master',
@@ -72,7 +72,7 @@ class ProductScraper_AI_Title_Optimizer {
 		);
 
 		$this->emotional_words = array(
-			// Positive emotions
+			// Positive emotions.
 			'amazing',
 			'awesome',
 			'brilliant',
@@ -100,7 +100,7 @@ class ProductScraper_AI_Title_Optimizer {
 			'accomplishment',
 			'breakthrough',
 
-			// Negative emotions (for problem-solving)
+			// Negative emotions (for problem-solving).
 			'frustrating',
 			'annoying',
 			'difficult',
@@ -147,7 +147,7 @@ class ProductScraper_AI_Title_Optimizer {
 	}
 
 	public function generate_title_variations( $keyword, $current_title = '' ) {
-		// AI-powered title generation
+		// AI-powered title generation.
 		$variations = array(
 			$this->generate_how_to_title( $keyword ),
 			$this->generate_list_title( $keyword ),
@@ -161,7 +161,7 @@ class ProductScraper_AI_Title_Optimizer {
 			$this->generate_myth_title( $keyword ),
 		);
 
-		// Add current title analysis if provided
+		// Add current title analysis if provided.
 		if ( ! empty( $current_title ) ) {
 			$optimized_current = $this->optimize_existing_title( $current_title, $keyword );
 			if ( $optimized_current ) {
@@ -381,22 +381,22 @@ class ProductScraper_AI_Title_Optimizer {
 	private function optimize_existing_title( $title, $keyword ) {
 		$analysis = $this->analyze_title_emotional_impact( $title );
 
-		// If title is already strong, return as is
+		// If title is already strong, return as is.
 		if ( $analysis['emotional_score'] >= 70 && $analysis['click_through_rate'] >= 60 ) {
 			return $title;
 		}
 
-		// Add power words if missing
+		// Add power words if missing.
 		if ( $analysis['power_words'] < 2 ) {
 			$title = $this->enhance_with_power_words( $title );
 		}
 
-		// Add curiosity gap if missing
+		// Add curiosity gap if missing.
 		if ( ! $analysis['curiosity_gap'] ) {
 			$title = $this->add_curiosity_gap( $title );
 		}
 
-		// Ensure keyword is included
+		// Ensure keyword is included.
 		if ( stripos( $title, $keyword ) === false ) {
 			$title = $this->incorporate_keyword( $title, $keyword );
 		}
@@ -424,10 +424,10 @@ class ProductScraper_AI_Title_Optimizer {
 	 * Calculate emotional score
 	 */
 	private function calculate_emotional_score( $title ) {
-		$score = 50; // Base score
+		$score = 50; // Base score.
 		$words = str_word_count( strtolower( $title ), 1 );
 
-		// Check for emotional words
+		// Check for emotional words.
 		foreach ( $words as $word ) {
 			if ( in_array( $word, $this->emotional_words ) ) {
 				$score += 5;
@@ -437,12 +437,12 @@ class ProductScraper_AI_Title_Optimizer {
 			}
 		}
 
-		// Bonus for questions and curiosity indicators
+		// Bonus for questions and curiosity indicators.
 		if ( $this->check_curiosity_gap( $title ) ) {
 			$score += 15;
 		}
 
-		// Bonus for numbers (specificity)
+		// Bonus for numbers (specificity).
 		if ( preg_match( '/\d+/', $title ) ) {
 			$score += 10;
 		}
@@ -462,12 +462,12 @@ class ProductScraper_AI_Title_Optimizer {
 			}
 		}
 
-		// Check for question marks
+		// Check for question marks.
 		if ( strpos( $title, '?' ) !== false ) {
 			return true;
 		}
 
-		// Check for implied questions
+		// Check for implied questions.
 		$implied_questions = array( 'why', 'how', 'what if', 'the truth about', 'secret' );
 		foreach ( $implied_questions as $question ) {
 			if ( strpos( $title_lower, $question ) !== false ) {
@@ -498,9 +498,9 @@ class ProductScraper_AI_Title_Optimizer {
 	 * Predict click-through rate
 	 */
 	private function predict_ctr( $title ) {
-		$ctr_score = 50; // Base CTR
+		$ctr_score = 50; // Base CTR.
 
-		// Length optimization (50-60 characters ideal)
+		// Length optimization (50-60 characters ideal).
 		$length = strlen( $title );
 		if ( $length >= 50 && $length <= 60 ) {
 			$ctr_score += 20;
@@ -510,21 +510,21 @@ class ProductScraper_AI_Title_Optimizer {
 			$ctr_score -= 15;
 		}
 
-		// Power words boost
+		// Power words boost.
 		$power_words_count = $this->count_power_words( $title );
 		$ctr_score        += ( $power_words_count * 5 );
 
-		// Curiosity gap boost
+		// Curiosity gap boost.
 		if ( $this->check_curiosity_gap( $title ) ) {
 			$ctr_score += 15;
 		}
 
-		// Numbers boost (specificity)
+		// Numbers boost (specificity).
 		if ( preg_match( '/\d+/', $title ) ) {
 			$ctr_score += 10;
 		}
 
-		// Emotional score influence
+		// Emotional score influence.
 		$emotional_score = $this->calculate_emotional_score( $title );
 		$ctr_score      += ( $emotional_score - 50 ) * 0.3;
 
@@ -564,20 +564,20 @@ class ProductScraper_AI_Title_Optimizer {
 	 * Analyze keyword placement
 	 */
 	private function analyze_keyword_placement( $title ) {
-		// This would typically use the focus keyword from context
-		// For now, we'll analyze general keyword placement patterns
+		// This would typically use the focus keyword from context.
+		// For now, we'll analyze general keyword placement patterns.
 		$words      = explode( ' ', $title );
 		$first_word = strtolower( $words[0] );
 		$last_word  = strtolower( end( $words ) );
 
 		$score = 50;
 
-		// Bonus for keyword at beginning
+		// Bonus for keyword at beginning.
 		if ( in_array( $first_word, array( 'the', 'a', 'an', 'how', 'why', 'what' ) ) ) {
 			$score += 10;
 		}
 
-		// Penalty for weak endings
+		// Penalty for weak endings.
 		if ( in_array( $last_word, array( 'a', 'the', 'and', 'or', 'but' ) ) ) {
 			$score -= 15;
 		}
@@ -652,7 +652,7 @@ class ProductScraper_AI_Title_Optimizer {
 
 		$selected_word = $power_words[ array_rand( $power_words ) ];
 
-		// Add power word at beginning or end
+		// Add power word at beginning or end.
 		if ( rand( 0, 1 ) ) {
 			return ucfirst( $selected_word ) . ' ' . lcfirst( $title );
 		} else {
@@ -688,12 +688,12 @@ class ProductScraper_AI_Title_Optimizer {
 	private function incorporate_keyword( $title, $keyword ) {
 		$words = explode( ' ', $title );
 		if ( count( $words ) > 3 ) {
-			// Replace a middle word with the keyword
+			// Replace a middle word with the keyword.
 			$middle_index           = floor( count( $words ) / 2 );
 			$words[ $middle_index ] = $keyword;
 			return implode( ' ', $words );
 		} else {
-			// Add keyword at beginning
+			// Add keyword at beginning.
 			return $keyword . ': ' . $title;
 		}
 	}
@@ -706,12 +706,12 @@ class ProductScraper_AI_Title_Optimizer {
 			return $title;
 		}
 
-		// Try to trim from natural break points
+		// Try to trim from natural break points.
 		if ( preg_match( '/^(.{50,65}[.!?:])\s/', $title, $matches ) ) {
 			return $matches[1];
 		}
 
-		// Fallback: trim to 65 characters and add ellipsis
+		// Fallback: trim to 65 characters and add ellipsis.
 		return substr( $title, 0, 65 ) . '...';
 	}
 
@@ -753,7 +753,7 @@ class ProductScraper_AI_Title_Optimizer {
 			);
 		}
 
-		// Sort by score descending
+		// Sort by score descending.
 		usort(
 			$scored_titles,
 			function ( $a, $b ) {

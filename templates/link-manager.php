@@ -6,12 +6,12 @@
  * @since 1.0.0
  */
 
-// Security check
+// Security check.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Get link data
+// Get link data.
 $internal_links = $this->get_internal_links();
 $external_links = $this->get_external_links();
 ?>
@@ -605,7 +605,7 @@ function scanLinks() {
 	button.disabled = true;
 	button.innerHTML = '<span class="dashicons dashicons-update spin"></span> Scanning...';
 	
-	// Simulate scanning process
+	// Simulate scanning process.
 	setTimeout(() => {
 		button.disabled = false;
 		button.innerHTML = originalText;
@@ -630,13 +630,13 @@ function addNewLink() {
 	const form = document.getElementById('addLinkForm');
 	const formData = new FormData(form);
 	
-	// Validate form
+	// Validate form.
 	if (!formData.get('link_source') || !formData.get('link_target') || !formData.get('link_anchor')) {
 		alert('Please fill in all required fields');
 		return;
 	}
 	
-	// Simulate adding link
+	// Simulate adding link.
 	alert('New link added successfully!');
 	hideAddLinkModal();
 	form.reset();
@@ -670,7 +670,7 @@ function analyzeCompetitors() {
 	alert('Analyzing competitors... This feature would examine competitor backlink profiles.');
 }
 
-// Close modal when clicking outside
+// Close modal when clicking outside.
 document.getElementById('addLinkModal').addEventListener('click', function(e) {
 	if (e.target === this) {
 		hideAddLinkModal();

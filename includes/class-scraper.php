@@ -35,13 +35,13 @@ class ProductScraperEngine {
 			$products = $this->parse_products( $html );
 
 			if ( empty( $products ) ) {
-				break; // No more products found
+				break; // No more products found.
 			}
 
 			$all_products = array_merge( $all_products, $products );
 			++$current_page;
 
-			// Add delay to be respectful to the server
+			// Add delay to be respectful to the server.
 			sleep( 2 );
 		}
 
@@ -92,14 +92,14 @@ class ProductScraperEngine {
 		$products = array();
 		$dom      = new DOMDocument();
 
-		// Suppress HTML5 errors
+		// Suppress HTML5 errors.
 		libxml_use_internal_errors( true );
 		$dom->loadHTML( $html );
 		libxml_clear_errors();
 
 		$xpath = new DOMXPath( $dom );
 
-		// Target the specific product list structure
+		// Target the specific product list structure.
 		$product_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]' );
 
 		if ( $product_nodes->length === 0 ) {
@@ -107,7 +107,7 @@ class ProductScraperEngine {
 		}
 
 		foreach ( $product_nodes as $product_node ) {
-			// Skip promotional items that aren't actual products
+			// Skip promotional items that aren't actual products.
 			$is_promotion = $xpath->query( './/div[contains(@class, "type-promotions")]', $product_node )->length > 0;
 			if ( $is_promotion ) {
 				continue;
@@ -128,23 +128,23 @@ class ProductScraperEngine {
 	private function parse_single_product( $node, $xpath ) {
 		$product = array();
 
-		// Product name - targeting the specific structure
+		// Product name - targeting the specific structure.
 		$name_nodes = $xpath->query( './/p[contains(@class, "product-item-link")]', $node );
 		if ( $name_nodes->length > 0 ) {
 			$product['name'] = trim( $name_nodes->item( 0 )->textContent );
 		}
 
-		// Product URL
+		// Product URL.
 		$link_nodes = $xpath->query( './/a[@href]', $node );
 		if ( $link_nodes->length > 0 ) {
 			$href = $link_nodes->item( 0 )->getAttribute( 'href' );
-			// Only include product links, not promotional links
+			// Only include product links, not promotional links.
 			if ( strpos( $href, '/de/' ) !== false && strpos( $href, 'javascript:' ) === false ) {
 				$product['url'] = $href;
 			}
 		}
 
-		// Price - specific to shop/wocommerce structure
+		// Price - specific to shop/wocommerce structure.
 		$price_nodes = $xpath->query( './/span[@class="price"]', $node );
 		if ( $price_nodes->length > 0 ) {
 			$product['price'] = trim( $price_nodes->item( 0 )->textContent );
@@ -155,24 +155,24 @@ class ProductScraperEngine {
 			}
 		}
 
-		// Image
+		// Image.
 		$img_nodes = $xpath->query( './/img', $node );
 		if ( $img_nodes->length > 0 ) {
 			$product['image'] = $img_nodes->item( 0 )->getAttribute( 'src' );
 		}
 
-		// Rating stars count
+		// Rating stars count.
 		$filled_stars            = $xpath->query( './/svg[contains(@class, "fill-current") and contains(@style, "#FFC000")]', $node )->length;
 		$partial_stars           = $xpath->query( './/svg[.//linearGradient]', $node )->length;
 		$product['rating_stars'] = $filled_stars + ( $partial_stars * 0.5 );
 
-		// Review count
+		// Review count.
 		$review_nodes = $xpath->query( './/span[@itemprop="reviewCount"]', $node );
 		if ( $review_nodes->length > 0 ) {
 			$product['review_count'] = intval( trim( $review_nodes->item( 0 )->textContent ) );
 		}
 
-		// Product badges (Bestseller, Aktion, etc.)
+		// Product badges (Bestseller, Aktion, etc.).
 		$badge_nodes = $xpath->query( './/div[contains(@class, "product-sticker")]', $node );
 		$badges      = array();
 		foreach ( $badge_nodes as $badge_node ) {
@@ -182,7 +182,7 @@ class ProductScraperEngine {
 			$product['badges'] = $badges;
 		}
 
-		// Product ID from data attribute
+		// Product ID from data attribute.
 		$product_id = $node->getAttribute( 'data-bx-item-id' );
 		if ( $product_id && is_numeric( $product_id ) ) {
 			$product['product_id'] = $product_id;
@@ -209,19 +209,19 @@ class ProductScraperEngine {
 		$xpath   = new DOMXPath( $dom );
 		$details = array();
 
-		// Full description - look for product description sections
+		// Full description - look for product description sections.
 		$desc_nodes = $xpath->query( '//div[contains(@class, "product-description")] | //div[contains(@class, "description")] | //div[@itemprop="description"]' );
 		if ( $desc_nodes->length > 0 ) {
 			$details['full_description'] = trim( $desc_nodes->item( 0 )->textContent );
 		}
 
-		// SKU
+		// SKU.
 		$sku_nodes = $xpath->query( '//span[contains(@class, "sku")] | //div[contains(text(), "SKU")]' );
 		if ( $sku_nodes->length > 0 ) {
 			$details['sku'] = trim( $sku_nodes->item( 0 )->textContent );
 		}
 
-		// Categories
+		// Categories.
 		$cat_nodes  = $xpath->query( '//a[contains(@href, "/category/")] | //span[contains(@class, "category")]//a' );
 		$categories = array();
 		foreach ( $cat_nodes as $cat_node ) {
@@ -232,7 +232,7 @@ class ProductScraperEngine {
 		}
 		$details['categories'] = $categories;
 
-		// Additional images from gallery
+		// Additional images from gallery.
 		$gallery_nodes  = $xpath->query( '//img[contains(@class, "gallery")] | //div[contains(@class, "gallery")]//img' );
 		$gallery_images = array();
 		foreach ( $gallery_nodes as $img_node ) {
@@ -243,7 +243,7 @@ class ProductScraperEngine {
 		}
 		$details['gallery_images'] = $gallery_images;
 
-		// Product specifications/attributes
+		// Product specifications/attributes.
 		$spec_nodes     = $xpath->query( '//table[contains(@class, "specifications")]//tr | //div[contains(@class, "attribute")]' );
 		$specifications = array();
 		foreach ( $spec_nodes as $spec_node ) {
@@ -284,7 +284,7 @@ class ProductScraperEngine {
 
 		$xpath = new DOMXPath( $dom );
 
-		// Look for next page link or pagination
+		// Look for next page link or pagination.
 		$next_links = $xpath->query( '//a[contains(@class, "next")] | //a[contains(text(), "Next")]' );
 
 		return $next_links->length > 0;

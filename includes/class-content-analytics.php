@@ -2,10 +2,10 @@
 class ProductScraper_Content_Analytics {
 
 	public function get_content_performance( $post_id ) {
-		// Integrate with Google Analytics API
-		// Track organic traffic, engagement metrics
-		// Identify top-performing content
-		// Content decay analysis
+		// Integrate with Google Analytics API.
+		// Track organic traffic, engagement metrics.
+		// Identify top-performing content.
+		// Content decay analysis.
 
 		return array(
 			'organic_traffic'    => $this->get_organic_traffic( $post_id ),
@@ -18,15 +18,15 @@ class ProductScraper_Content_Analytics {
 	}
 
 	private function get_organic_traffic( $post_id ) {
-		// Get organic traffic data from Google Analytics API
-		// This would typically make an API call to Google Analytics
+		// Get organic traffic data from Google Analytics API.
+		// This would typically make an API call to Google Analytics.
 		// For now, returning mock data
 		$url = get_permalink( $post_id );
 
-		// In a real implementation, you would:
-		// 1. Authenticate with Google Analytics API
-		// 2. Query for organic sessions for this URL
-		// 3. Return the traffic data
+		// In a real implementation, you would:.
+		// 1. Authenticate with Google Analytics API.
+		// 2. Query for organic sessions for this URL.
+		// 3. Return the traffic data.
 
 		return array(
 			'sessions'    => rand( 100, 5000 ),
@@ -38,34 +38,34 @@ class ProductScraper_Content_Analytics {
 	}
 
 	private function get_average_position( $post_id ) {
-		// Get average search position from Google Search Console API
+		// Get average search position from Google Search Console API.
 		$url = get_permalink( $post_id );
 
-		// In real implementation:
-		// 1. Connect to Google Search Console API
-		// 2. Query average position for this URL
-		// 3. Return position data
+		// In real implementation:.
+		// 1. Connect to Google Search Console API.
+		// 2. Query average position for this URL.
+		// 3. Return position data.
 
 		return array(
-			'average_position' => rand( 1, 50 ) / 10, // Random position between 0.1 and 5.0
+			'average_position' => rand( 1, 50 ) / 10, // Random position between 0.1 and 5.0.
 			'position_trend'   => $this->get_position_trend( $post_id ),
 			'best_position'    => rand( 1, 20 ) / 10,
 		);
 	}
 
 	private function get_ctr( $post_id ) {
-		// Get click-through rate from Google Search Console
+		// Get click-through rate from Google Search Console.
 		$url = get_permalink( $post_id );
 
 		return array(
-			'ctr'       => rand( 1, 15 ) / 100, // Random CTR between 1% and 15%
+			'ctr'       => rand( 1, 15 ) / 100, // Random CTR between 1% and 15%.
 			'clicks'    => rand( 50, 2000 ),
 			'ctr_trend' => $this->get_ctr_trend( $post_id ),
 		);
 	}
 
 	private function get_impressions( $post_id ) {
-		// Get impression data from Google Search Console
+		// Get impression data from Google Search Console.
 		$url = get_permalink( $post_id );
 
 		return array(
@@ -80,9 +80,9 @@ class ProductScraper_Content_Analytics {
 	}
 
 	private function get_engagement_metrics( $post_id ) {
-		// Get engagement metrics from Google Analytics
+		// Get engagement metrics from Google Analytics.
 		return array(
-			'avg_time_on_page'   => rand( 30, 300 ), // seconds
+			'avg_time_on_page'   => rand( 30, 300 ), // seconds.
 			'pages_per_session'  => rand( 1, 10 ) / 10,
 			'social_engagements' => array(
 				'facebook' => rand( 0, 100 ),
@@ -95,8 +95,8 @@ class ProductScraper_Content_Analytics {
 	}
 
 	private function get_top_keywords( $post_id ) {
-		// Get top performing keywords from Google Search Console
-		// This would typically be an API call to get top queries
+		// Get top performing keywords from Google Search Console.
+		// This would typically be an API call to get top queries.
 		$keywords      = array();
 		$keyword_count = rand( 5, 15 );
 
@@ -110,7 +110,7 @@ class ProductScraper_Content_Analytics {
 			);
 		}
 
-		// Sort by clicks descending
+		// Sort by clicks descending.
 		usort(
 			$keywords,
 			function ( $a, $b ) {
@@ -121,7 +121,7 @@ class ProductScraper_Content_Analytics {
 		return array_slice( $keywords, 0, 10 ); // Return top 10
 	}
 
-	// Helper methods for trend analysis
+	// Helper methods for trend analysis.
 	private function get_traffic_trend( $post_id ) {
 		return array(
 			'direction'  => rand( 0, 1 ) ? 'up' : 'down',
@@ -193,32 +193,32 @@ class ProductScraper_Content_Analytics {
 		return $modifiers[ array_rand( $modifiers ) ] . ' ' . $keywords[ array_rand( $keywords ) ];
 	}
 
-	// Additional method for content decay analysis
+	// Additional method for content decay analysis.
 	public function analyze_content_decay( $post_id ) {
 		$performance = $this->get_content_performance( $post_id );
 
 		$decay_score = 0;
 		$reasons     = array();
 
-		// Analyze traffic trend
+		// Analyze traffic trend.
 		if ( $performance['organic_traffic']['trend']['direction'] === 'down' ) {
 			$decay_score += 25;
 			$reasons[]    = 'Declining organic traffic';
 		}
 
-		// Analyze position trend
+		// Analyze position trend.
 		if ( $performance['average_position']['position_trend']['direction'] === 'declining' ) {
 			$decay_score += 25;
 			$reasons[]    = 'Deteriorating search position';
 		}
 
-		// Analyze engagement
+		// Analyze engagement.
 		if ( $performance['engagement_metrics']['avg_time_on_page'] < 60 ) {
 			$decay_score += 25;
 			$reasons[]    = 'Low engagement time';
 		}
 
-		// Analyze CTR
+		// Analyze CTR.
 		if ( $performance['click_through_rate']['ctr'] < 0.03 ) {
 			$decay_score += 25;
 			$reasons[]    = 'Low click-through rate';

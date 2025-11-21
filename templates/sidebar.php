@@ -6,7 +6,7 @@
  * @since 1.0.0
  */
 
-// Security check
+// Security check.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

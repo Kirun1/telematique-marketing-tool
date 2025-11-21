@@ -16,7 +16,7 @@ class ProductScraperAnalytics {
 		add_action( 'wp_ajax_test_api_connections', array( $this, 'ajax_test_api_connections' ) );
 		add_action( 'wp_ajax_clear_seo_cache', array( $this, 'ajax_clear_seo_cache' ) );
 
-		// Initialize the admin class for the scraper functionality
+		// Initialize the admin class for the scraper functionality.
 		$this->admin = new ProductScraperAdmin();
 	}
 
@@ -34,7 +34,7 @@ class ProductScraperAnalytics {
 			30
 		);
 
-		// Add submenus for different sections
+		// Add submenus for different sections.
 		add_submenu_page(
 			'scraper-analytics',
 			'Dashboard',
@@ -62,7 +62,7 @@ class ProductScraperAnalytics {
 			array( $this, 'display_competitor_analysis' )
 		);
 
-		// Add Product Scraper as a subpage
+		// Add Product Scraper as a subpage.
 		add_submenu_page(
 			'scraper-analytics',
 			'Product Scraper',
@@ -72,7 +72,7 @@ class ProductScraperAnalytics {
 			array( $this, 'display_product_scraper' )
 		);
 
-		// Add Reports page
+		// Add Reports page.
 		add_submenu_page(
 			'scraper-analytics',
 			'SEO Reports',
@@ -82,7 +82,7 @@ class ProductScraperAnalytics {
 			array( $this, 'display_reports_page' )
 		);
 
-		// Add Settings page
+		// Add Settings page.
 		add_submenu_page(
 			'scraper-analytics',
 			'SEO Settings',
@@ -97,7 +97,7 @@ class ProductScraperAnalytics {
 	 * Display the product scraper page
 	 */
 	public function display_product_scraper() {
-		// Call the existing admin page from ProductScraperAdmin class
+		// Call the existing admin page from ProductScraperAdmin class.
 		$this->admin->admin_page();
 	}
 
@@ -267,7 +267,7 @@ class ProductScraperAnalytics {
 				}
 
 				function loadSearchVolumeChart() {
-					// Chart.js implementation for search volume
+					// Chart.js implementation for search volume.
 					const ctx = document.getElementById('searchVolumeChart').getContext('2d');
 					const chart = new Chart(ctx, {
 						type: 'line',
@@ -301,7 +301,7 @@ class ProductScraperAnalytics {
 
 				window.refreshAnalytics = function() {
 					loadKeywordsData();
-					// Show loading state
+					// Show loading state.
 					$('.sa-btn-primary').addClass('loading');
 					setTimeout(() => {
 						$('.sa-btn-primary').removeClass('loading');
@@ -389,7 +389,7 @@ class ProductScraperAnalytics {
 
 		return array(
 			'organic_traffic'   => $seo_data['organic_traffic']['current'],
-			'traffic_target'    => $seo_data['organic_traffic']['current'] * 1.4, // 40% growth target
+			'traffic_target'    => $seo_data['organic_traffic']['current'] * 1.4, // 40% growth target.
 			'referring_domains' => $seo_data['referring_domains']['count'],
 			'digital_score'     => $seo_data['digital_score'],
 			'total_products'    => $scraper_stats['total_products'] ?? 0,
@@ -438,12 +438,12 @@ class ProductScraperAnalytics {
 	 * Display settings page for API configurations
 	 */
 	public function display_settings_page() {
-		// Handle form submissions
+		// Handle form submissions.
 		if ( isset( $_POST['submit_settings'] ) && check_admin_referer( 'product_scraper_settings_nonce' ) ) {
 			$this->save_settings();
 		}
 
-		// Get current settings
+		// Get current settings.
 		$settings = $this->get_current_settings();
 		?>
 		<div class="wrap">
@@ -607,7 +607,7 @@ class ProductScraperAnalytics {
 
 		<script>
 			jQuery(document).ready(function($) {
-				// Test API connections
+				// Test API connections.
 				$('#test_apis').on('click', function() {
 					var $button = $(this);
 					var originalText = $button.html();
@@ -651,7 +651,7 @@ class ProductScraperAnalytics {
 					});
 				});
 
-				// Clear cache
+				// Clear cache.
 				$('#clear_cache').on('click', function() {
 					var $button = $(this);
 					var originalText = $button.html();
@@ -702,20 +702,19 @@ class ProductScraperAnalytics {
 	 * Save settings
 	 */
 	private function save_settings() {
-		// Google Services
+		// Google Services.
 		update_option( 'product_scraper_ga4_property_id', sanitize_text_field( $_POST['ga4_property_id'] ) );
 		update_option( 'product_scraper_pagespeed_api', sanitize_text_field( $_POST['pagespeed_api'] ) );
-		// update_option('product_scraper_google_service_account', sanitize_textarea_field($_POST['google_service_account']));
 		if ( isset( $_POST['google_service_account'] ) ) {
 			$json = wp_unslash( trim( $_POST['google_service_account'] ) );
 			update_option( 'product_scraper_google_service_account', $json );
 		}
 
-		// SEO Platforms
+		// SEO Platforms.
 		update_option( 'product_scraper_ahrefs_api', sanitize_text_field( $_POST['ahrefs_api'] ) );
 		update_option( 'product_scraper_semrush_api', sanitize_text_field( $_POST['semrush_api'] ) );
 
-		// Advanced Settings
+		// Advanced Settings.
 		update_option( 'product_scraper_cache_duration', intval( $_POST['cache_duration'] ) );
 		update_option( 'product_scraper_enable_debug', isset( $_POST['enable_debug'] ) ? 1 : 0 );
 		update_option( 'product_scraper_auto_sync', isset( $_POST['auto_sync'] ) ? 1 : 0 );
@@ -727,7 +726,7 @@ class ProductScraperAnalytics {
 	 * Display reports page
 	 */
 	public function display_reports_page() {
-		// Get report data
+		// Get report data.
 		$reports = $this->get_seo_reports();
 		?>
 		<div class="wrap">
@@ -916,10 +915,10 @@ class ProductScraperAnalytics {
 				var period = jQuery('#report_period').val();
 				var type = jQuery('#report_type').val();
 
-				// Show loading state
+				// Show loading state.
 				jQuery('.sa-main-content').addClass('loading');
 
-				// In a real implementation, you would make an AJAX call here
+				// In a real implementation, you would make an AJAX call here.
 				setTimeout(function() {
 					jQuery('.sa-main-content').removeClass('loading');
 					alert('Report generated for ' + period + ' days, type: ' + type);
@@ -933,7 +932,7 @@ class ProductScraperAnalytics {
 
 			function exportCSV() {
 				alert('CSV export feature would be implemented here');
-				// Implement CSV generation and download
+				// Implement CSV generation and download.
 			}
 		</script>
 		<?php
@@ -943,8 +942,8 @@ class ProductScraperAnalytics {
 	 * Get SEO reports data
 	 */
 	private function get_seo_reports() {
-		// This would typically fetch real data from your API integrations
-		// For now, returning sample data structure
+		// This would typically fetch real data from your API integrations.
+		// For now, returning sample data structure.
 
 		return array(
 			'overall_score'    => 76,
@@ -1045,7 +1044,7 @@ class ProductScraperAnalytics {
 		$results          = array();
 		$api_integrations = new ProductScraper_API_Integrations();
 
-		// Test Google Analytics
+		// Test Google Analytics.
 		try {
 			$ga_data = $api_integrations->get_organic_traffic();
 			error_log( '$ga_data: ' . print_r( $ga_data, true ) );
@@ -1060,7 +1059,7 @@ class ProductScraperAnalytics {
 			);
 		}
 
-		// Test PageSpeed Insights
+		// Test PageSpeed Insights.
 		try {
 			$health_data          = $api_integrations->get_site_health_metrics();
 			$results['pagespeed'] = array(
@@ -1074,7 +1073,7 @@ class ProductScraperAnalytics {
 			);
 		}
 
-		// Test Ahrefs
+		// Test Ahrefs.
 		try {
 			$ahrefs_data       = $api_integrations->get_referring_domains();
 			$results['ahrefs'] = array(
@@ -1101,7 +1100,7 @@ class ProductScraperAnalytics {
 
 		global $wpdb;
 
-		// Clear all plugin transients
+		// Clear all plugin transients.
 		$wpdb->query(
 			"DELETE FROM {$wpdb->options} 
             WHERE option_name LIKE '_transient_product_scraper_%' 

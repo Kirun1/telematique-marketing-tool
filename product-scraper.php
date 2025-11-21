@@ -8,23 +8,23 @@
  * Text Domain: product-scraper
  */
 
-// Prevent direct access
+// Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Define plugin constants
+// Define plugin constants.
 define( 'PRODUCT_SCRAPER_VERSION', '2.1.0' );
 define( 'PRODUCT_SCRAPER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'PRODUCT_SCRAPER_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
-// Load Composer dependencies
+// Load Composer dependencies.
 $vendor_autoload = __DIR__ . '/vendor/autoload.php';
 if ( file_exists( $vendor_autoload ) ) {
 	require_once $vendor_autoload;
 }
 
-// Include required files
+// Include required files.
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-scraper.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-admin.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-woocommerce-importer.php';
@@ -76,19 +76,19 @@ class ProductScraper {
 		$this->link_manager      = new ProductScraper_Link_Manager();
 		$this->robots_manager    = new ProductScraper_Robots_Txt();
 
-		// Core SEO hooks
+		// Core SEO hooks.
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'wp_head', array( $this, 'output_seo_meta_tags' ) );
 		add_action( 'template_redirect', array( $this, 'canonical_redirects' ) );
 
-		// Admin hooks
+		// Admin hooks.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 
-		// XML Sitemaps
+		// XML Sitemaps.
 		add_action( 'init', array( $this, 'setup_sitemaps' ) );
 
-		// REST API
+		// REST API.
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 	}
 
@@ -97,34 +97,34 @@ class ProductScraper {
 			new ProductScraperAdmin();
 		}
 
-		// Initialize SEO features
+		// Initialize SEO features.
 		$this->setup_seo_features();
 	}
 
 	public function setup_seo_features() {
-		// Remove other SEO plugins' meta boxes to avoid conflicts
+		// Remove other SEO plugins' meta boxes to avoid conflicts.
 		if ( is_admin() ) {
 			add_action( 'add_meta_boxes', array( $this, 'remove_other_seo_meta_boxes' ), 100 );
 		}
 
-		// Add Open Graph meta tags
+		// Add Open Graph meta tags.
 		add_action( 'wp_head', array( $this, 'add_opengraph_meta' ), 5 );
 
-		// Add Twitter Card meta tags
+		// Add Twitter Card meta tags.
 		add_action( 'wp_head', array( $this, 'add_twitter_card_meta' ), 5 );
 
-		// Add JSON-LD structured data
+		// Add JSON-LD structured data.
 		add_action( 'wp_head', array( $this, 'add_structured_data' ), 10 );
 	}
 
 	public function remove_other_seo_meta_boxes() {
-		// Remove Yoast SEO meta box
+		// Remove Yoast SEO meta box.
 		remove_meta_box( 'wpseo_meta', get_post_types(), 'normal' );
 
-		// Remove Rank Math meta box
+		// Remove Rank Math meta box.
 		remove_meta_box( 'rank_math_metabox', get_post_types(), 'normal' );
 
-		// Remove All in One SEO meta box
+		// Remove All in One SEO meta box.
 		remove_meta_box( 'aioseo-settings', get_post_types(), 'normal' );
 	}
 
@@ -156,14 +156,14 @@ class ProductScraper {
 		$canonical_url    = get_post_meta( $post->ID, '_canonical_url', true );
 		$meta_robots      = get_post_meta( $post->ID, '_meta_robots', true );
 
-		// Title tag
+		// Title tag.
 		if ( ! empty( $seo_title ) ) {
 			echo '<title>' . esc_html( $seo_title ) . '</title>' . "\n";
 		} else {
 			echo '<title>' . esc_html( get_the_title() ) . ' | ' . esc_html( get_bloginfo( 'name' ) ) . '</title>' . "\n";
 		}
 
-		// Meta description
+		// Meta description.
 		if ( ! empty( $meta_description ) ) {
 			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
 		} elseif ( $post->post_excerpt ) {
@@ -172,14 +172,14 @@ class ProductScraper {
 			echo '<meta name="description" content="' . esc_attr( wp_trim_words( wp_strip_all_tags( $post->post_content ), 25 ) ) . '" />' . "\n";
 		}
 
-		// Canonical URL
+		// Canonical URL.
 		if ( ! empty( $canonical_url ) ) {
 			echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
 		} else {
 			echo '<link rel="canonical" href="' . esc_url( get_permalink( $post->ID ) ) . '" />' . "\n";
 		}
 
-		// Meta robots
+		// Meta robots.
 		if ( ! empty( $meta_robots ) ) {
 			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
 		}
@@ -198,13 +198,13 @@ class ProductScraper {
 		$term_id  = $term->term_id;
 		$taxonomy = $term->taxonomy;
 
-		// Get SEO meta from term meta
+		// Get SEO meta from term meta.
 		$seo_title        = get_term_meta( $term_id, '_seo_title', true );
 		$meta_description = get_term_meta( $term_id, '_meta_description', true );
 		$canonical_url    = get_term_meta( $term_id, '_canonical_url', true );
 		$meta_robots      = get_term_meta( $term_id, '_meta_robots', true );
 
-		// Generate title
+		// Generate title.
 		if ( ! empty( $seo_title ) ) {
 			$title = esc_html( $seo_title );
 		} else {
@@ -221,7 +221,7 @@ class ProductScraper {
 		}
 		echo '<title>' . $title . '</title>' . "\n";
 
-		// Meta description
+		// Meta description.
 		if ( ! empty( $meta_description ) ) {
 			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
 		} elseif ( ! empty( $term->description ) ) {
@@ -235,18 +235,18 @@ class ProductScraper {
 			echo '<meta name="description" content="' . $default_description . '" />' . "\n";
 		}
 
-		// Canonical URL
+		// Canonical URL.
 		if ( ! empty( $canonical_url ) ) {
 			echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
 		} else {
 			echo '<link rel="canonical" href="' . esc_url( get_term_link( $term ) ) . '" />' . "\n";
 		}
 
-		// Meta robots
+		// Meta robots.
 		if ( ! empty( $meta_robots ) ) {
 			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
 		} else {
-			// Default for taxonomy pages - index, follow unless paginated
+			// Default for taxonomy pages - index, follow unless paginated.
 			if ( $this->is_paginated_archive() ) {
 				echo '<meta name="robots" content="noindex, follow" />' . "\n";
 			} else {
@@ -254,7 +254,7 @@ class ProductScraper {
 			}
 		}
 
-		// Prevent pagination duplication
+		// Prevent pagination duplication.
 		if ( $this->is_paginated_archive() ) {
 			$this->output_pagination_meta( $term );
 		}
@@ -271,13 +271,13 @@ class ProductScraper {
 			return;
 		}
 
-		// Get SEO meta from user meta
+		// Get SEO meta from user meta.
 		$seo_title        = get_user_meta( $author_id, '_seo_title', true );
 		$meta_description = get_user_meta( $author_id, '_meta_description', true );
 		$canonical_url    = get_user_meta( $author_id, '_canonical_url', true );
 		$meta_robots      = get_user_meta( $author_id, '_meta_robots', true );
 
-		// Generate title
+		// Generate title.
 		if ( ! empty( $seo_title ) ) {
 			$title = esc_html( $seo_title );
 		} else {
@@ -285,7 +285,7 @@ class ProductScraper {
 		}
 		echo '<title>' . $title . '</title>' . "\n";
 
-		// Meta description
+		// Meta description.
 		if ( ! empty( $meta_description ) ) {
 			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
 		} elseif ( ! empty( $author->description ) ) {
@@ -307,18 +307,18 @@ class ProductScraper {
 			echo '<meta name="description" content="' . $default_description . '" />' . "\n";
 		}
 
-		// Canonical URL
+		// Canonical URL.
 		if ( ! empty( $canonical_url ) ) {
 			echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
 		} else {
 			echo '<link rel="canonical" href="' . esc_url( get_author_posts_url( $author_id ) ) . '" />' . "\n";
 		}
 
-		// Meta robots
+		// Meta robots.
 		if ( ! empty( $meta_robots ) ) {
 			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
 		} else {
-			// Default for author pages - index, follow unless paginated
+			// Default for author pages - index, follow unless paginated.
 			if ( $this->is_paginated_archive() ) {
 				echo '<meta name="robots" content="noindex, follow" />' . "\n";
 			} else {
@@ -326,7 +326,7 @@ class ProductScraper {
 			}
 		}
 
-		// Prevent pagination duplication
+		// Prevent pagination duplication.
 		if ( $this->is_paginated_archive() ) {
 			$this->output_pagination_meta( $author );
 		}
@@ -340,24 +340,24 @@ class ProductScraper {
 		$meta_description = get_option( 'product_scraper_homepage_description' );
 		$canonical_url    = home_url( '/' );
 
-		// Title tag
+		// Title tag.
 		if ( ! empty( $seo_title ) ) {
 			echo '<title>' . esc_html( $seo_title ) . '</title>' . "\n";
 		} else {
 			echo '<title>' . esc_html( get_bloginfo( 'name' ) ) . ' | ' . esc_html( get_bloginfo( 'description' ) ) . '</title>' . "\n";
 		}
 
-		// Meta description
+		// Meta description.
 		if ( ! empty( $meta_description ) ) {
 			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
 		} elseif ( ! empty( get_bloginfo( 'description' ) ) ) {
 			echo '<meta name="description" content="' . esc_attr( get_bloginfo( 'description' ) ) . '" />' . "\n";
 		}
 
-		// Canonical URL
+		// Canonical URL.
 		echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
 
-		// Meta robots
+		// Meta robots.
 		echo '<meta name="robots" content="index, follow" />' . "\n";
 	}
 
@@ -373,7 +373,7 @@ class ProductScraper {
 
 		echo '<link rel="canonical" href="' . esc_url( get_search_link() ) . '" />' . "\n";
 
-		// Typically noindex search results to avoid duplicate content
+		// Typically noindex search results to avoid duplicate content.
 		echo '<meta name="robots" content="noindex, follow" />' . "\n";
 	}
 
@@ -384,7 +384,7 @@ class ProductScraper {
 		if ( is_date() ) {
 			$this->output_date_archive_meta_tags();
 		} else {
-			// Fallback for other archive types
+			// Fallback for other archive types.
 			echo '<title>' . esc_html( get_the_archive_title() ) . ' | ' . esc_html( get_bloginfo( 'name' ) ) . '</title>' . "\n";
 			echo '<meta name="description" content="' . esc_attr( wp_trim_words( get_the_archive_description(), 25 ) ) . '" />' . "\n";
 			echo '<link rel="canonical" href="' . esc_url( get_pagenum_link() ) . '" />' . "\n";
@@ -416,7 +416,7 @@ class ProductScraper {
 		echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
 		echo '<link rel="canonical" href="' . esc_url( get_pagenum_link() ) . '" />' . "\n";
 
-		// Typically noindex date archives to avoid thin content
+		// Typically noindex date archives to avoid thin content.
 		echo '<meta name="robots" content="noindex, follow" />' . "\n";
 	}
 
@@ -429,12 +429,12 @@ class ProductScraper {
 		$paged = get_query_var( 'paged' ) ?: 1;
 
 		if ( $paged > 1 ) {
-			// Prev link
+			// Prev link.
 			if ( $paged > 1 ) {
 				echo '<link rel="prev" href="' . esc_url( get_pagenum_link( $paged - 1 ) ) . '" />' . "\n";
 			}
 
-			// Next link
+			// Next link.
 			if ( $paged < $wp_query->max_num_pages ) {
 				echo '<link rel="next" href="' . esc_url( get_pagenum_link( $paged + 1 ) ) . '" />' . "\n";
 			}
@@ -629,16 +629,16 @@ class ProductScraper {
 	}
 
 	public function register_settings() {
-		// Core SEO settings
+		// Core SEO settings.
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_title_template' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_description_template' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_robots_default' );
 
-		// Social media settings
+		// Social media settings.
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_facebook_app_id' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_twitter_site' );
 
-		// Analytics settings
+		// Analytics settings.
 		register_setting( 'product_scraper_settings', 'product_scraper_google_analytics_id' );
 		register_setting( 'product_scraper_settings', 'product_scraper_google_search_console' );
 		register_setting( 'product_scraper_settings', 'product_scraper_semrush_api' );
@@ -646,7 +646,7 @@ class ProductScraper {
 		register_setting( 'product_scraper_settings', 'product_scraper_ga4_property_id' );
 		register_setting( 'product_scraper_settings', 'product_scraper_pagespeed_api' );
 
-		// Advanced SEO settings
+		// Advanced SEO settings.
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_breadcrumbs' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_schema' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_clean_permalinks' );
@@ -672,7 +672,7 @@ class ProductScraper {
 		$is_tax_edit    = in_array( $hook, array( 'edit-tags.php', 'term.php' ) );
 
 		if ( $is_plugin_page || $is_post_edit || $is_tax_edit ) {
-			// Enqueue Chart.js for analytics
+			// Enqueue Chart.js for analytics.
 			wp_enqueue_script(
 				'chart-js',
 				'https://cdn.jsdelivr.net/npm/chart.js',
@@ -681,7 +681,7 @@ class ProductScraper {
 				true
 			);
 
-			// Enqueue Select2 for better dropdowns
+			// Enqueue Select2 for better dropdowns.
 			wp_enqueue_script(
 				'select2-js',
 				'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
@@ -697,7 +697,7 @@ class ProductScraper {
 				'4.1.0'
 			);
 
-			// Plugin styles
+			// Plugin styles.
 			wp_enqueue_style(
 				'product-scraper-analytics-css',
 				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/sa-analytics.css',
@@ -712,7 +712,7 @@ class ProductScraper {
 				PRODUCT_SCRAPER_VERSION
 			);
 
-			// Plugin scripts
+			// Plugin scripts.
 			wp_enqueue_script(
 				'product-scraper-seo-admin-js',
 				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/seo-admin.js',
@@ -780,7 +780,7 @@ class ProductScraper {
 		return current_user_can( 'edit_posts' );
 	}
 
-	// Helper methods for structured data
+	// Helper methods for structured data.
 	private function output_product_structured_data() {
 		global $post;
 		$product = wc_get_product( $post->ID );
@@ -868,7 +868,7 @@ class ProductScraper {
 	}
 
 	public function canonical_redirects() {
-		// Prevent duplicate content by redirecting non-canonical URLs
+		// Prevent duplicate content by redirecting non-canonical URLs.
 		if ( is_attachment() ) {
 			wp_redirect( get_attachment_link(), 301 );
 			exit;

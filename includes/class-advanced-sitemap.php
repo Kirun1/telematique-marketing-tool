@@ -9,7 +9,7 @@ class ProductScraper_Advanced_Sitemap {
 	public function __construct() {
 		$this->sitemap_path         = ABSPATH;
 		$this->base_url             = home_url();
-		$this->max_urls_per_sitemap = 500; // Google's recommended limit
+		$this->max_urls_per_sitemap = 500; // Google's recommended limit.
 		$this->sitemap_indexes      = array();
 	}
 
@@ -25,12 +25,12 @@ class ProductScraper_Advanced_Sitemap {
 			'videos'     => $this->generate_video_sitemap(),
 		);
 
-		// News sitemap for eligible sites
+		// News sitemap for eligible sites.
 		if ( $this->is_news_site() ) {
 			$sitemap_types['news'] = $this->generate_news_sitemap();
 		}
 
-		// Generate sitemap index
+		// Generate sitemap index.
 		$sitemap_types['index'] = $this->generate_sitemap_index();
 
 		return $sitemap_types;
@@ -59,7 +59,7 @@ class ProductScraper_Advanced_Sitemap {
 				'priority'   => $this->calculate_priority( $post, 'post' ),
 			);
 
-			// Add images if available
+			// Add images if available.
 			$images = $this->get_post_images( $post );
 			if ( ! empty( $images ) ) {
 				$url_data['images'] = $images;
@@ -85,7 +85,7 @@ class ProductScraper_Advanced_Sitemap {
 
 		$urls = array();
 		foreach ( $pages as $page ) {
-			// Skip noindex pages
+			// Skip noindex pages.
 			if ( $this->is_noindex_page( $page->ID ) ) {
 				continue;
 			}
@@ -127,7 +127,7 @@ class ProductScraper_Advanced_Sitemap {
 				'priority'   => 0.8,
 			);
 
-			// Add product-specific data
+			// Add product-specific data.
 			$product_data['product'] = array(
 				'name'         => $product->get_name(),
 				'price'        => $product->get_price(),
@@ -135,7 +135,7 @@ class ProductScraper_Advanced_Sitemap {
 				'availability' => $product->is_in_stock() ? 'in stock' : 'out of stock',
 			);
 
-			// Add product images
+			// Add product images.
 			$image_id = $product->get_image_id();
 			if ( $image_id ) {
 				$product_data['images'] = array(
@@ -146,7 +146,7 @@ class ProductScraper_Advanced_Sitemap {
 				);
 			}
 
-			// Add gallery images
+			// Add gallery images.
 			$gallery_ids = $product->get_gallery_image_ids();
 			foreach ( $gallery_ids as $gallery_id ) {
 				$product_data['images'][] = array(
@@ -246,7 +246,7 @@ class ProductScraper_Advanced_Sitemap {
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image',
 				'post_status'    => 'inherit',
-				'numberposts'    => 1000, // Limit for performance
+				'numberposts'    => 1000, // Limit for performance.
 				'orderby'        => 'post_modified',
 				'order'          => 'DESC',
 			)
@@ -263,7 +263,7 @@ class ProductScraper_Advanced_Sitemap {
 				'license' => $this->get_image_license( $image ),
 			);
 
-			// If image is attached to a post, use that post's URL
+			// If image is attached to a post, use that post's URL.
 			if ( $parent_post && $parent_post->post_status === 'publish' ) {
 				$urls[] = array(
 					'loc'     => get_permalink( $parent_post ),
@@ -271,7 +271,7 @@ class ProductScraper_Advanced_Sitemap {
 					'images'  => array( $image_data ),
 				);
 			} else {
-				// Standalone images
+				// Standalone images.
 				$urls[] = array(
 					'loc'     => $this->base_url . '/image/' . $image->ID,
 					'lastmod' => $this->format_date( $image->post_modified ),
@@ -345,7 +345,7 @@ class ProductScraper_Advanced_Sitemap {
 						'after' => '2 days ago',
 					),
 				),
-				'numberposts' => 1000, // Google News limit
+				'numberposts' => 1000, // Google News limit.
 				'orderby'     => 'date',
 				'order'       => 'DESC',
 			)
@@ -377,7 +377,7 @@ class ProductScraper_Advanced_Sitemap {
 					),
 					'publication_date' => $this->format_date( $post->post_date ),
 					'title'            => get_the_title( $post->ID ),
-					'keywords'         => implode( ', ', array_slice( $news_keywords, 0, 10 ) ), // Max 10 keywords
+					'keywords'         => implode( ', ', array_slice( $news_keywords, 0, 10 ) ), // Max 10 keywords.
 				),
 			);
 		}
@@ -442,7 +442,7 @@ class ProductScraper_Advanced_Sitemap {
 					'size'      => filesize( $filepath ),
 				);
 
-				// Add to sitemap index
+				// Add to sitemap index.
 				$this->sitemap_indexes[] = array(
 					'loc'     => $this->base_url . '/' . $filename,
 					'lastmod' => $this->format_date( current_time( 'mysql' ) ),
@@ -489,7 +489,7 @@ class ProductScraper_Advanced_Sitemap {
 				$xml .= '<priority>' . $url_data['priority'] . '</priority>' . "\n";
 			}
 
-			// Add images
+			// Add images.
 			if ( ! empty( $url_data['images'] ) ) {
 				foreach ( $url_data['images'] as $image ) {
 					$xml .= '<image:image>' . "\n";
@@ -507,7 +507,7 @@ class ProductScraper_Advanced_Sitemap {
 				}
 			}
 
-			// Add videos
+			// Add videos.
 			if ( ! empty( $url_data['video'] ) ) {
 				$video = $url_data['video'];
 				$xml  .= '<video:video>' . "\n";
@@ -537,7 +537,7 @@ class ProductScraper_Advanced_Sitemap {
 				$xml .= '</video:video>' . "\n";
 			}
 
-			// Add news
+			// Add news.
 			if ( ! empty( $url_data['news'] ) ) {
 				$news = $url_data['news'];
 				$xml .= '<news:news>' . "\n";
@@ -596,11 +596,11 @@ class ProductScraper_Advanced_Sitemap {
 	private function calculate_priority( $post, $post_type ) {
 		switch ( $post_type ) {
 			case 'page':
-				// Homepage gets highest priority
+				// Homepage gets highest priority.
 				if ( get_option( 'page_on_front' ) == $post->ID ) {
 					return 1.0;
 				}
-				// Important pages get higher priority
+				// Important pages get higher priority.
 				$important_pages = array(
 					get_option( 'page_for_posts' ),
 					get_option( 'woocommerce_shop_page_id' ),
@@ -614,7 +614,7 @@ class ProductScraper_Advanced_Sitemap {
 				return 0.7;
 
 			case 'post':
-				// Recent posts get higher priority
+				// Recent posts get higher priority.
 				$post_age = ( current_time( 'timestamp' ) - strtotime( $post->post_date ) ) / DAY_IN_SECONDS;
 				if ( $post_age < 30 ) {
 					return 0.8;
@@ -634,7 +634,7 @@ class ProductScraper_Advanced_Sitemap {
 	private function get_post_images( $post ) {
 		$images = array();
 
-		// Featured image
+		// Featured image.
 		$featured_image_id = get_post_thumbnail_id( $post->ID );
 		if ( $featured_image_id ) {
 			$images[] = array(
@@ -644,7 +644,7 @@ class ProductScraper_Advanced_Sitemap {
 			);
 		}
 
-		// Images from content
+		// Images from content.
 		$content_images = $this->extract_images_from_content( $post->post_content );
 		foreach ( $content_images as $image_url ) {
 			$images[] = array(
@@ -665,7 +665,7 @@ class ProductScraper_Advanced_Sitemap {
 
 		if ( ! empty( $matches[1] ) ) {
 			foreach ( $matches[1] as $image_url ) {
-				// Convert relative URLs to absolute
+				// Convert relative URLs to absolute.
 				if ( strpos( $image_url, 'http' ) !== 0 ) {
 					$image_url = $this->base_url . $image_url;
 				}
@@ -685,7 +685,7 @@ class ProductScraper_Advanced_Sitemap {
 			return true;
 		}
 
-		// Check for other SEO plugins
+		// Check for other SEO plugins.
 		$aioseop_robots = get_post_meta( $post_id, '_aioseop_noindex', true );
 		if ( $aioseop_robots === 'on' ) {
 			return true;
@@ -770,7 +770,7 @@ class ProductScraper_Advanced_Sitemap {
 	 * Get image license
 	 */
 	private function get_image_license( $image ) {
-		// This would typically come from a custom field or plugin
+		// This would typically come from a custom field or plugin.
 		return get_post_meta( $image->ID, '_image_license_url', true ) ?: '';
 	}
 
@@ -783,7 +783,7 @@ class ProductScraper_Advanced_Sitemap {
 			return wp_get_attachment_url( $thumbnail_id );
 		}
 
-		// Try to extract from video URL (for YouTube, Vimeo, etc.)
+		// Try to extract from video URL (for YouTube, Vimeo, etc.).
 		$video_url = get_post_meta( $post->ID, '_video_url', true );
 		return $this->extract_video_thumbnail( $video_url );
 	}
@@ -817,12 +817,12 @@ class ProductScraper_Advanced_Sitemap {
 	 * Check if site is eligible for news sitemap
 	 */
 	private function is_news_site() {
-		// Check if site is registered with Google News
+		// Check if site is registered with Google News.
 		if ( get_option( 'google_news_verification' ) ) {
 			return true;
 		}
 
-		// Check if site frequently publishes news content
+		// Check if site frequently publishes news content.
 		$recent_posts = get_posts(
 			array(
 				'post_type'   => 'post',
@@ -853,12 +853,12 @@ class ProductScraper_Advanced_Sitemap {
 		$sitemap_url = $this->base_url . '/sitemap-index.xml';
 		$results     = array();
 
-		// Submit to Google
+		// Submit to Google.
 		$google_url        = 'https://www.google.com/ping?sitemap=' . urlencode( $sitemap_url );
 		$google_response   = wp_remote_get( $google_url );
 		$results['google'] = ! is_wp_error( $google_response ) && wp_remote_retrieve_response_code( $google_response ) === 200;
 
-		// Submit to Bing
+		// Submit to Bing.
 		$bing_url        = 'https://www.bing.com/ping?sitemap=' . urlencode( $sitemap_url );
 		$bing_response   = wp_remote_get( $bing_url );
 		$results['bing'] = ! is_wp_error( $bing_response ) && wp_remote_retrieve_response_code( $bing_response ) === 200;
@@ -884,13 +884,13 @@ class ProductScraper_Advanced_Sitemap {
 			}
 
 			if ( isset( $sitemap_data['file'] ) ) {
-				// Single sitemap file
+				// Single sitemap file.
 				++$stats['total_sitemaps'];
 				$stats['total_urls']            += $sitemap_data['url_count'];
 				$stats['total_size']            += $sitemap_data['size'];
 				$stats['sitemap_types'][ $type ] = $sitemap_data['url_count'];
 			} elseif ( is_array( $sitemap_data ) && isset( $sitemap_data[0]['file'] ) ) {
-				// Multiple sitemap files
+				// Multiple sitemap files.
 				foreach ( $sitemap_data as $sitemap_file ) {
 					++$stats['total_sitemaps'];
 					$stats['total_urls'] += $sitemap_file['url_count'];

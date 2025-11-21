@@ -67,12 +67,12 @@ class ProductScraper_OnPage_Analyzer {
 		$meta_description = get_post_meta( $post_id, '_meta_description', true );
 
 		if ( empty( $meta_description ) ) {
-			// Try to get from Yoast or other SEO plugins
+			// Try to get from Yoast or other SEO plugins.
 			$meta_description = get_post_meta( $post_id, '_yoast_wpseo_metadesc', true );
 		}
 
 		if ( empty( $meta_description ) ) {
-			// Generate from content excerpt
+			// Generate from content excerpt.
 			$post             = get_post( $post_id );
 			$meta_description = wp_trim_words( wp_strip_all_tags( $post->post_content ), 25 );
 		}
@@ -98,7 +98,7 @@ class ProductScraper_OnPage_Analyzer {
 			$feedback = 'No meta description found.';
 		}
 
-		// Check if focus keyword is in meta description
+		// Check if focus keyword is in meta description.
 		$keyword_in_meta = false;
 		if ( ! empty( $this->focus_keyword ) && ! empty( $meta_description ) ) {
 			$keyword_in_meta = stripos( $meta_description, $this->focus_keyword ) !== false;
@@ -180,27 +180,27 @@ class ProductScraper_OnPage_Analyzer {
 		$content_lower = strtolower( $content );
 		$title_lower   = strtolower( $title );
 
-		// Count keyword occurrences
+		// Count keyword occurrences.
 		$keyword_count = substr_count( $content_lower, $keyword );
 		$word_count    = str_word_count( $content );
 
-		// Calculate keyword density
+		// Calculate keyword density.
 		$density = $word_count > 0 ? ( $keyword_count / $word_count ) * 100 : 0;
 
-		// Check keyword in title
+		// Check keyword in title.
 		$keyword_in_title = stripos( $title, $this->focus_keyword ) !== false;
 
-		// Check keyword in first paragraph
+		// Check keyword in first paragraph.
 		$first_paragraph            = $this->get_first_paragraph( $post->post_content );
 		$keyword_in_first_paragraph = stripos( wp_strip_all_tags( $first_paragraph ), $this->focus_keyword ) !== false;
 
-		// Check keyword in headings
+		// Check keyword in headings.
 		$keyword_in_headings = $this->check_keyword_in_headings( $post->post_content, $keyword );
 
 		$score    = 0;
 		$feedback = '';
 
-		// Score based on density
+		// Score based on density.
 		if ( $density >= 0.5 && $density <= 2.5 ) {
 			$score    += 4;
 			$feedback .= 'Good keyword density. ';
@@ -211,7 +211,7 @@ class ProductScraper_OnPage_Analyzer {
 			$feedback .= 'Low keyword density - consider using focus keyword more. ';
 		}
 
-		// Score based on placement
+		// Score based on placement.
 		if ( $keyword_in_title ) {
 			$score    += 2;
 			$feedback .= 'Keyword in title. ';
@@ -254,7 +254,7 @@ class ProductScraper_OnPage_Analyzer {
 		$post    = get_post( $post_id );
 		$content = $post->post_content;
 
-		// Extract images from content
+		// Extract images from content.
 		preg_match_all( '/<img[^>]+>/i', $content, $images );
 		$total_images = count( $images[0] );
 
@@ -268,7 +268,7 @@ class ProductScraper_OnPage_Analyzer {
 			if ( ! empty( $alt_text ) ) {
 				++$images_with_alt;
 
-				// Check if focus keyword is in alt text
+				// Check if focus keyword is in alt text.
 				if ( ! empty( $this->focus_keyword ) && stripos( $alt_text, $this->focus_keyword ) !== false ) {
 					++$images_with_keyword_alt;
 				}
@@ -316,7 +316,7 @@ class ProductScraper_OnPage_Analyzer {
 		$post    = get_post( $post_id );
 		$content = $post->post_content;
 
-		// Extract all links
+		// Extract all links.
 		preg_match_all( '/<a[^>]+href=([\'"])(?<url>.*?)\1[^>]*>/i', $content, $links );
 		$all_links = $links['url'] ?? array();
 
@@ -408,7 +408,7 @@ class ProductScraper_OnPage_Analyzer {
 		$post    = get_post( $post_id );
 		$content = $post->post_content;
 
-		// Extract headings
+		// Extract headings.
 		preg_match_all( '/<h([1-6])[^>]*>(.*?)<\/h\1>/i', $content, $headings );
 		$heading_levels = $headings[1] ?? array();
 		$heading_texts  = $headings[2] ?? array();
@@ -432,7 +432,7 @@ class ProductScraper_OnPage_Analyzer {
 				++$h1_count;
 			}
 
-			// Check for proper hierarchy (no skipping levels)
+			// Check for proper hierarchy (no skipping levels).
 			if ( $heading['level'] > $current_level + 1 ) {
 				$proper_structure = false;
 			}
@@ -442,7 +442,7 @@ class ProductScraper_OnPage_Analyzer {
 		$score    = 0;
 		$feedback = '';
 
-		// Check for H1
+		// Check for H1.
 		if ( ! $has_h1 ) {
 			$feedback .= 'No H1 heading found. ';
 			$score    += 0;
@@ -454,7 +454,7 @@ class ProductScraper_OnPage_Analyzer {
 			$score    += 4;
 		}
 
-		// Check heading hierarchy
+		// Check heading hierarchy.
 		if ( $proper_structure && count( $heading_structure ) > 0 ) {
 			$feedback .= 'Proper heading hierarchy. ';
 			$score    += 4;
@@ -466,7 +466,7 @@ class ProductScraper_OnPage_Analyzer {
 			$score    += 0;
 		}
 
-		// Check if focus keyword is in headings
+		// Check if focus keyword is in headings.
 		$keyword_in_headings = false;
 		if ( ! empty( $this->focus_keyword ) ) {
 			foreach ( $heading_structure as $heading ) {
@@ -503,7 +503,7 @@ class ProductScraper_OnPage_Analyzer {
 		$post    = get_post( $post_id );
 		$content = wp_strip_all_tags( $post->post_content );
 
-		// Calculate Flesch Reading Ease score
+		// Calculate Flesch Reading Ease score.
 		$words     = str_word_count( $content );
 		$sentences = preg_split( '/[.!?]+/', $content, -1, PREG_SPLIT_NO_EMPTY );
 		$syllables = $this->count_syllables( $content );
@@ -562,13 +562,13 @@ class ProductScraper_OnPage_Analyzer {
 		$has_stop_words     = false;
 		$is_lowercase       = true;
 
-		// Check if focus keyword is in URL
+		// Check if focus keyword is in URL.
 		if ( ! empty( $this->focus_keyword ) ) {
 			$clean_url          = preg_replace( '/[^a-zA-Z0-9]/', ' ', $url );
 			$has_keyword_in_url = stripos( $clean_url, $this->focus_keyword ) !== false;
 		}
 
-		// Check for stop words in URL
+		// Check for stop words in URL.
 		$stop_words = array( 'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by' );
 		$url_parts  = explode( '/', $url );
 		$last_part  = end( $url_parts );
@@ -581,7 +581,7 @@ class ProductScraper_OnPage_Analyzer {
 			}
 		}
 
-		// Check if URL is lowercase
+		// Check if URL is lowercase.
 		if ( $url !== strtolower( $url ) ) {
 			$is_lowercase = false;
 		}
@@ -589,7 +589,7 @@ class ProductScraper_OnPage_Analyzer {
 		$score    = 0;
 		$feedback = '';
 
-		// URL length check
+		// URL length check.
 		if ( $url_length <= 60 ) {
 			$score    += 4;
 			$feedback .= 'Good URL length. ';
@@ -597,7 +597,7 @@ class ProductScraper_OnPage_Analyzer {
 			$feedback .= 'URL is quite long. Consider shortening. ';
 		}
 
-		// Keyword in URL
+		// Keyword in URL.
 		if ( $has_keyword_in_url ) {
 			$score    += 3;
 			$feedback .= 'Focus keyword in URL. ';
@@ -605,7 +605,7 @@ class ProductScraper_OnPage_Analyzer {
 			$feedback .= 'Consider adding focus keyword to URL. ';
 		}
 
-		// Stop words
+		// Stop words.
 		if ( ! $has_stop_words ) {
 			$score    += 2;
 			$feedback .= 'No stop words in URL. ';
@@ -613,7 +613,7 @@ class ProductScraper_OnPage_Analyzer {
 			$feedback .= 'Remove stop words from URL. ';
 		}
 
-		// Lowercase
+		// Lowercase.
 		if ( $is_lowercase ) {
 			$score    += 1;
 			$feedback .= 'URL is lowercase. ';
@@ -657,7 +657,7 @@ class ProductScraper_OnPage_Analyzer {
 
 		$overall_score = $max_possible_score > 0 ? round( ( $total_score / $max_possible_score ) * 100 ) : 0;
 
-		// Determine SEO rating
+		// Determine SEO rating.
 		if ( $overall_score >= 90 ) {
 			$rating = 'Excellent';
 			$color  = '#4CAF50';
@@ -756,12 +756,12 @@ class ProductScraper_OnPage_Analyzer {
 			return 0;
 		}
 
-		// Basic syllable counting rules
+		// Basic syllable counting rules.
 		$vowels = '/[aeiouy]+/';
 		preg_match_all( $vowels, $word, $matches );
 		$count = count( $matches[0] );
 
-		// Adjust for common exceptions
+		// Adjust for common exceptions.
 		if ( substr( $word, -1 ) == 'e' ) {
 			--$count;
 		}
@@ -803,7 +803,7 @@ class ProductScraper_OnPage_Analyzer {
 			}
 		}
 
-		// Sort by priority
+		// Sort by priority.
 		usort(
 			$suggestions,
 			function ( $a, $b ) {

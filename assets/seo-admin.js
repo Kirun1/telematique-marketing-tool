@@ -1,5 +1,5 @@
 jQuery(document).ready(function($) {
-    // Content Analysis
+    // Content Analysis.
     $('#analyze-content').on('click', function() {
         const content = $('#content-to-analyze').val();
         const focusKeyword = $('#focus-keyword').val();
@@ -62,7 +62,7 @@ jQuery(document).ready(function($) {
         
         html += `</div>`;
         
-        // Recommendations
+        // Recommendations.
         if (data.recommendations.length > 0) {
             html += `<h4>Recommendations</h4>`;
             data.recommendations.forEach(rec => {
@@ -73,7 +73,7 @@ jQuery(document).ready(function($) {
         $('#analysis-results').html(html).show();
     }
     
-    // Keyword Research
+    // Keyword Research.
     $('#research-keywords').on('click', function() {
         const keyword = $('#research-keyword').val();
         
@@ -105,7 +105,7 @@ jQuery(document).ready(function($) {
         });
     });
     
-    // Content Optimization
+    // Content Optimization.
     $('.optimize-content').on('click', function() {
         const content = $('#content-to-analyze').val();
         const optimizationType = $(this).data('type');
@@ -150,7 +150,7 @@ jQuery(document).ready(function($) {
         errors: 0
     };
 
-    // Load stored products on page load
+    // Load stored products on page load.
     loadStoredProducts();
 
     $('#start-scraping').on('click', function() {
@@ -350,7 +350,7 @@ jQuery(document).ready(function($) {
         $('#stored-products-list').html(html);
         $('#storage-info').text(`Showing ${products.length} products`);
 
-        // Add event listeners for single actions
+        // Add event listeners for single actions.
         $('.export-single').on('click', function() {
             const productId = $(this).data('id');
             const format = $(this).data('format');
@@ -431,7 +431,6 @@ jQuery(document).ready(function($) {
         form.remove();
     }
 
-    // ... rest of your existing functions (scrapePage, updateStats, scrapingComplete, displayProducts) ...
     function scrapePage(page, maxPages, targetUrl, scrapeDetails, delay) {
         currentStats.pages = page;
         updateStats();
@@ -459,7 +458,7 @@ jQuery(document).ready(function($) {
                         currentStats.errors += response.data.errors;
                     }
 
-                    // Show debug info
+                    // Show debug info.
                     if (response.data.debug) {
                         console.log('Debug Info:', response.data.debug);
                         $('#scraping-results').append(
@@ -549,7 +548,7 @@ jQuery(document).ready(function($) {
 
         $('#products-list').html(html);
 
-        // Store products in global variable for export
+        // Store products in global variable for export.
         window.scrapedProductsData = products;
     }
 });

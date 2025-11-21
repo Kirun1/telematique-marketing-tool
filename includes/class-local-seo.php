@@ -47,12 +47,12 @@ class ProductScraper_Local_SEO {
 		$open_time  = get_option( "local_hours_{$day}_open", '' );
 		$close_time = get_option( "local_hours_{$day}_close", '' );
 
-		// Skip if no hours set or closed
+		// Skip if no hours set or closed.
 		if ( empty( $open_time ) || empty( $close_time ) || $open_time === 'closed' ) {
 			return '';
 		}
 
-		// Format: Mo 09:00-17:00
+		// Format: Mo 09:00-17:00.
 		$day_code = $this->get_day_code( $day );
 		return "{$day_code} {$open_time}-{$close_time}";
 	}
@@ -95,12 +95,12 @@ class ProductScraper_Local_SEO {
 	public function get_opening_hours_enhanced() {
 		$opening_hours = $this->get_opening_hours();
 
-		// Add 24/7 hours if applicable
+		// Add 24/7 hours if applicable.
 		if ( $this->is_24_7() ) {
 			$opening_hours = array( 'Mo-Su 00:00-23:59' );
 		}
 
-		// Handle special holiday hours
+		// Handle special holiday hours.
 		$special_hours = $this->get_special_hours();
 		if ( ! empty( $special_hours ) ) {
 			$opening_hours = array_merge( $opening_hours, $special_hours );
@@ -164,13 +164,13 @@ class ProductScraper_Local_SEO {
 	 * Format time for schema (ensure proper format)
 	 */
 	private function format_time_for_schema( $time ) {
-		// Handle various time formats
+		// Handle various time formats.
 		if ( preg_match( '/^\d{1,2}:\d{2}\s*(AM|PM)?$/i', $time ) ) {
-			// Convert to 24-hour format if needed
+			// Convert to 24-hour format if needed.
 			return date( 'H:i', strtotime( $time ) );
 		}
 
-		// Assume it's already in proper format
+		// Assume it's already in proper format.
 		return $time;
 	}
 
@@ -206,7 +206,7 @@ class ProductScraper_Local_SEO {
 		$current_day  = strtolower( current_time( 'l' ) );
 		$days         = $this->get_week_days();
 
-		// Start from current day and check next 7 days
+		// Start from current day and check next 7 days.
 		$current_index = array_search( $current_day, $days );
 
 		for ( $i = 0; $i < 7; $i++ ) {
@@ -219,7 +219,7 @@ class ProductScraper_Local_SEO {
 			if ( ! empty( $open_time ) && $open_time !== 'closed' ) {
 				$open_time_24h = date( 'H:i', strtotime( $open_time ) );
 
-				// If it's today and we haven't passed opening time yet
+				// If it's today and we haven't passed opening time yet.
 				if ( $i === 0 && $current_time < $open_time_24h ) {
 					return array(
 						'day'       => ucfirst( $check_day ),
@@ -227,7 +227,7 @@ class ProductScraper_Local_SEO {
 						'timestamp' => strtotime( "today {$open_time}" ),
 					);
 				}
-				// If it's a future day
+				// If it's a future day.
 				elseif ( $i > 0 ) {
 					return array(
 						'day'       => ucfirst( $check_day ),
@@ -267,7 +267,7 @@ class ProductScraper_Local_SEO {
 			'currenciesAccepted'        => $this->get_currencies_accepted(),
 		);
 
-		// Add business status if available
+		// Add business status if available.
 		$business_status = $this->get_business_status();
 		if ( $business_status ) {
 			$markup['hoursAvailable'] = $this->get_opening_hours_specification();
@@ -282,7 +282,7 @@ class ProductScraper_Local_SEO {
 	private function get_business_type() {
 		$business_type = get_option( 'local_business_type', 'LocalBusiness' );
 
-		// Map to specific schema.org types
+		// Map to specific schema.org types.
 		$business_types = array(
 			'restaurant'    => 'Restaurant',
 			'store'         => 'Store',
@@ -345,7 +345,7 @@ class ProductScraper_Local_SEO {
 			}
 		}
 
-		// Add featured image if available
+		// Add featured image if available.
 		$featured_image = get_option( 'local_business_featured_image' );
 		if ( $featured_image ) {
 			array_unshift( $images, $featured_image );
@@ -368,7 +368,7 @@ class ProductScraper_Local_SEO {
 			);
 		}
 
-		// Fallback to site logo
+		// Fallback to site logo.
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
 		if ( $custom_logo_id ) {
 			return array(
