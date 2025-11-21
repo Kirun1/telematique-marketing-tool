@@ -5,6 +5,7 @@
  * Version: 2.1.0
  * Author: Telematique LTD
  * Text Domain: product-scraper
+ *
  * @package ProductScraper
  */
 
@@ -377,7 +378,7 @@ class ProductScraper {
 				__( 'Author', 'product-scraper' ),
 				get_bloginfo( 'name' ),
 			);
-			$title               = implode( ' | ', array_filter( $author_title_parts ) );
+			$title              = implode( ' | ', array_filter( $author_title_parts ) );
 		}
 		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
 
@@ -614,7 +615,7 @@ class ProductScraper {
 		if ( '' === $og_description ) {
 			$og_description = wp_trim_words( get_the_excerpt(), 25 );
 		}
-		$og_image       = get_post_meta( $post->ID, '_og_image', true );
+		$og_image = get_post_meta( $post->ID, '_og_image', true );
 
 		echo '<!-- Product Scraper Open Graph -->' . "\n";
 		echo '<meta property="og:type" content="article" />' . "\n";
@@ -653,7 +654,7 @@ class ProductScraper {
 		if ( '' === $og_description ) {
 			$og_description = wp_trim_words( $term->description, 25 );
 		}
-		$og_image       = get_term_meta( $term->term_id, '_og_image', true );
+		$og_image = get_term_meta( $term->term_id, '_og_image', true );
 
 		echo '<!-- Product Scraper Taxonomy Open Graph -->' . "\n";
 		echo '<meta property="og:type" content="website" />' . "\n";
@@ -687,7 +688,7 @@ class ProductScraper {
 		if ( '' === $og_description ) {
 			$og_description = wp_trim_words( $author->description, 25 );
 		}
-		$og_image       = get_user_meta( $author_id, '_og_image', true );
+		$og_image = get_user_meta( $author_id, '_og_image', true );
 
 		echo '<!-- Product Scraper Author Open Graph -->' . "\n";
 		echo '<meta property="og:type" content="profile" />' . "\n";
@@ -724,7 +725,7 @@ class ProductScraper {
 		if ( '' === $twitter_description ) {
 			$twitter_description = wp_trim_words( get_the_excerpt(), 25 );
 		}
-		$twitter_image       = get_post_meta( $post->ID, '_twitter_image', true );
+		$twitter_image = get_post_meta( $post->ID, '_twitter_image', true );
 
 		echo '<!-- Product Scraper Twitter Card -->' . "\n";
 		echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
