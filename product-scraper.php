@@ -882,7 +882,7 @@ class ProductScraper {
 	 */
 	public static function product_scraper_render_sidebar( $current_page = '' ) {
 		if ( empty( $current_page ) ) {
-			$current_page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+			$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 		}
 
 		$sidebar_path = PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/sidebar.php';
