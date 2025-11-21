@@ -1,5 +1,4 @@
 <?php
-
 /**
  * SEO Meta Box Template
  *
@@ -13,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Get current post ID.
-$post_id  = get_the_ID();
-$seo_data = get_post_meta( $post_id, '_productscraper_seo_data', true );
+$current_post_id = get_the_ID();
+$seo_data        = get_post_meta( $current_post_id, '_productscraper_seo_data', true );
 
 // Set default values.
 $defaults = array(
