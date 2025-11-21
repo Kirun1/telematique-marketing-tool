@@ -130,7 +130,7 @@
 											?>
 										</td>
 										<td>
-											<a href="<?php echo $analysis['edit_url']; ?>" class="sa-btn sa-btn-small">Edit</a>
+											<a href="<?php echo esc_url( $analysis['edit_url'] ); ?>" class="sa-btn sa-btn-small">Edit</a>
 										</td>
 									</tr>
 									<?php endforeach; ?>
