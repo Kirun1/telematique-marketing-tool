@@ -19,17 +19,17 @@ $current_page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : 
 	<div class="sa-nav-section">
 		<h3>ANALYSIS</h3>
 		<ul class="sa-nav">
-			<li class="<?php echo $current_page === 'scraper-analytics' ? 'active' : ''; ?>">
+			<li class="<?php echo 'scraper-analytics' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scraper-analytics' ) ); ?>">
 					<span class="dashicons dashicons-dashboard"></span> &nbsp; Dashboard
 				</a>
 			</li>
-			<li class="<?php echo $current_page === 'scraper-keywords' ? 'active' : ''; ?>">
+			<li class="<?php echo 'scraper-keywords' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scraper-keywords' ) ); ?>">
 					<span class="dashicons dashicons-tag"></span> &nbsp; Keywords
 				</a>
 			</li>
-			<li class="<?php echo $current_page === 'scraper-competitors' ? 'active' : ''; ?>">
+			<li class="<?php echo 'scraper-competitors' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scraper-competitors' ) ); ?>">
 					<span class="dashicons dashicons-chart-bar"></span> &nbsp; Competitors
 				</a>
@@ -40,17 +40,17 @@ $current_page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : 
 	<div class="sa-nav-section">
 		<h3>SEO TOOLS</h3>
 		<ul class="sa-nav">
-			<li class="<?php echo $current_page === 'seo-assistant' ? 'active' : ''; ?>">
+			<li class="<?php echo 'seo-assistant' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=seo-assistant' ) ); ?>">
 					<span class="dashicons dashicons-editor-spellcheck"></span> &nbsp; SEO Assistant
 				</a>
 			</li>
-			<li class="<?php echo $current_page === 'seo-analysis' ? 'active' : ''; ?>">
+			<li class="<?php echo 'seo-analysis' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=seo-analysis' ) ); ?>">
 					<span class="dashicons dashicons-chart-line"></span> &nbsp; SEO Analysis
 				</a>
 			</li>
-			<li class="<?php echo $current_page === 'link-manager' ? 'active' : ''; ?>">
+			<li class="<?php echo 'link-manager' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=link-manager' ) ); ?>">
 					<span class="dashicons dashicons-admin-links"></span> &nbsp; Link Manager
 				</a>
@@ -61,17 +61,17 @@ $current_page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : 
 	<div class="sa-nav-section">
 		<h3>DATA</h3>
 		<ul class="sa-nav">
-			<li class="<?php echo $current_page === 'product-scraper' ? 'active' : ''; ?>">
+			<li class="<?php echo 'product-scraper' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=product-scraper' ) ); ?>">
 					<span class="dashicons dashicons-download"></span> &nbsp; Product Scraper
 				</a>
 			</li>
-			<li class="<?php echo $current_page === 'scraper-reports' ? 'active' : ''; ?>">
+			<li class="<?php echo 'scraper-reports' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scraper-reports' ) ); ?>">
 					<span class="dashicons dashicons-media-text"></span> &nbsp; Reports
 				</a>
 			</li>
-			<li class="<?php echo $current_page === 'scraper-settings' ? 'active' : ''; ?>">
+			<li class="<?php echo 'scraper-settings' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scraper-settings' ) ); ?>">
 					<span class="dashicons dashicons-admin-generic"></span> &nbsp; Settings
 				</a>
