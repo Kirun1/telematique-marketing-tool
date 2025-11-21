@@ -859,6 +859,11 @@ class ProductScraper {
 			'</script>' . "\n";
 	}
 
+	/**
+	 * Retrieve the site logo URL if set.
+	 *
+	 * @return string Site logo URL or empty string.
+	 */
 	private function get_site_logo() {
 		$custom_logo_id = get_theme_mod( 'custom_logo' );
 		if ( $custom_logo_id ) {
