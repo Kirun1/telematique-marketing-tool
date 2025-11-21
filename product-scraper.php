@@ -367,9 +367,23 @@ class ProductScraper {
 	public function output_search_meta_tags() {
 		$search_query = get_search_query();
 
-		echo '<title>' . sprintf( __( 'Search Results for: "%1$s" | %2$s', 'product-scraper' ), esc_html( $search_query ), esc_html( get_bloginfo( 'name' ) ) ) . '</title>' . "\n";
+		// translators: 1: search query, 2: site name.
+		$title = sprintf(
+			__( 'Search Results for: "%1$s" | %2$s', 'product-scraper' ),
+			$search_query,
+			get_bloginfo( 'name' )
+		);
 
-		echo '<meta name="description" content="' . sprintf( __( 'Search results for "%1$s". Find relevant content and products on %2$s.', 'product-scraper' ), esc_attr( $search_query ), esc_attr( get_bloginfo( 'name' ) ) ) . '" />' . "\n";
+		// translators: 1: search query, 2: site name.
+		$description = sprintf(
+			__( 'Search results for "%1$s". Find relevant content and products on %2$s.', 'product-scraper' ),
+			$search_query,
+			get_bloginfo( 'name' )
+		);
+
+		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
+
+		echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
 
 		echo '<link rel="canonical" href="' . esc_url( get_search_link() ) . '" />' . "\n";
 
@@ -402,14 +416,44 @@ class ProductScraper {
 	 */
 	public function output_date_archive_meta_tags() {
 		if ( is_year() ) {
-			$title       = sprintf( __( 'Posts from %1$s | %2$s', 'product-scraper' ), get_the_date( 'Y' ), get_bloginfo( 'name' ) );
-			$description = sprintf( __( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ), get_the_date( 'Y' ), get_bloginfo( 'name' ) );
+			// translators: 1: year, 2: site name.
+			$title = sprintf(
+				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
+				get_the_date( 'Y' ),
+				get_bloginfo( 'name' )
+			);
+			// translators: 1: year, 2: site name.
+			$description = sprintf(
+				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
+				get_the_date( 'Y' ),
+				get_bloginfo( 'name' )
+			);
 		} elseif ( is_month() ) {
-			$title       = sprintf( __( 'Posts from %1$s | %2$s', 'product-scraper' ), get_the_date( 'F Y' ), get_bloginfo( 'name' ) );
-			$description = sprintf( __( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ), get_the_date( 'F Y' ), get_bloginfo( 'name' ) );
+			// translators: 1: month and year, 2: site name.
+			$title = sprintf(
+				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
+				get_the_date( 'F Y' ),
+				get_bloginfo( 'name' )
+			);
+			// translators: 1: month and year, 2: site name.
+			$description = sprintf(
+				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
+				get_the_date( 'F Y' ),
+				get_bloginfo( 'name' )
+			);
 		} elseif ( is_day() ) {
-			$title       = sprintf( __( 'Posts from %1$s | %2$s', 'product-scraper' ), get_the_date(), get_bloginfo( 'name' ) );
-			$description = sprintf( __( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ), get_the_date(), get_bloginfo( 'name' ) );
+			// translators: 1: date, 2: site name.
+			$title = sprintf(
+				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
+				get_the_date(),
+				get_bloginfo( 'name' )
+			);
+			// translators: 1: date, 2: site name.
+			$description = sprintf(
+				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
+				get_the_date(),
+				get_bloginfo( 'name' )
+			);
 		}
 
 		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
@@ -422,9 +466,13 @@ class ProductScraper {
 
 	/**
 	 * Output pagination meta tags to prevent duplicate content
+	 *
+	 * @param WP_Post|WP_Term|null $pagination_object Optional object context.
 	 */
-	private function output_pagination_meta( $object = null ) {
+	private function output_pagination_meta( $pagination_object = null ) {
 		global $wp_query;
+
+		unset( $pagination_object );
 
 		$paged = get_query_var( 'paged' );
 		if ( ! $paged ) {
