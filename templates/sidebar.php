@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Get current page to set active state.
-$current_page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 ?>
 
 <div class="sa-sidebar">
