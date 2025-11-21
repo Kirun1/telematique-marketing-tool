@@ -878,7 +878,7 @@ class ProductScraper {
 	/**
 	 * Render the admin sidebar
 	 *
-	 * @param string $current_page The current page slug
+	 * @param string $current_page The current page slug.
 	 */
 	public static function product_scraper_render_sidebar( $current_page = '' ) {
 		if ( empty( $current_page ) ) {
