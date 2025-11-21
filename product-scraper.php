@@ -870,7 +870,7 @@ class ProductScraper {
 	public function canonical_redirects() {
 		// Prevent duplicate content by redirecting non-canonical URLs.
 		if ( is_attachment() ) {
-			wp_redirect( get_attachment_link(), 301 );
+			wp_safe_redirect( get_attachment_link(), 301 );
 			exit;
 		}
 	}
