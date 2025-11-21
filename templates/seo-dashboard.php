@@ -312,7 +312,7 @@ jQuery(document).ready(function($) {
 				action: 'analyze_content',
 				content: content,
 				keyword: keyword,
-				nonce: '<?php echo wp_create_nonce( 'product_scraper_nonce' ); ?>'
+				nonce: '<?php echo esc_js( wp_create_nonce( 'product_scraper_nonce' ) ); ?>'
 			},
 			success: function(response) {
 				button.text(originalText).prop('disabled', false);
