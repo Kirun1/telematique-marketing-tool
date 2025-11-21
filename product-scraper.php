@@ -206,20 +206,26 @@ class ProductScraper {
 
 		// Generate title.
 		if ( ! empty( $seo_title ) ) {
-			$title = esc_html( $seo_title );
+			$title = $seo_title;
 		} else {
-			$title = esc_html( $term->name );
+			$title_parts = array( $term->name );
+
 			if ( is_category() ) {
-				$title .= ' | ' . __( 'Category', 'product-scraper' );
+				$title_parts[] = __( 'Category', 'product-scraper' );
 			} elseif ( is_tag() ) {
-				$title .= ' | ' . __( 'Tag', 'product-scraper' );
+				$title_parts[] = __( 'Tag', 'product-scraper' );
 			} else {
 				$taxonomy_obj = get_taxonomy( $taxonomy );
-				$title       .= ' | ' . esc_html( $taxonomy_obj->labels->singular_name );
+				if ( $taxonomy_obj && ! empty( $taxonomy_obj->labels->singular_name ) ) {
+					$title_parts[] = $taxonomy_obj->labels->singular_name;
+				}
 			}
-			$title .= ' | ' . esc_html( get_bloginfo( 'name' ) );
+			$title_parts[] = get_bloginfo( 'name' );
+
+			$title = implode( ' | ', array_filter( $title_parts ) );
 		}
-		echo '<title>' . $title . '</title>' . "\n";
+
+		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
 
 		// Meta description.
 		if ( ! empty( $meta_description ) ) {
@@ -228,11 +234,12 @@ class ProductScraper {
 			echo '<meta name="description" content="' . esc_attr( wp_trim_words( $term->description, 25 ) ) . '" />' . "\n";
 		} else {
 			$default_description = sprintf(
+				/* translators: 1: taxonomy term name, 2: taxonomy term name. */
 				__( 'Browse our collection of %1$s. Find the best products and content related to %2$s.', 'product-scraper' ),
-				esc_attr( $term->name ),
-				esc_attr( $term->name )
+				$term->name,
+				$term->name
 			);
-			echo '<meta name="description" content="' . $default_description . '" />' . "\n";
+			echo '<meta name="description" content="' . esc_attr( $default_description ) . '" />' . "\n";
 		}
 
 		// Canonical URL.
@@ -245,13 +252,11 @@ class ProductScraper {
 		// Meta robots.
 		if ( ! empty( $meta_robots ) ) {
 			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
-		} else {
+		} elseif ( $this->is_paginated_archive() ) {
 			// Default for taxonomy pages - index, follow unless paginated.
-			if ( $this->is_paginated_archive() ) {
-				echo '<meta name="robots" content="noindex, follow" />' . "\n";
-			} else {
-				echo '<meta name="robots" content="index, follow" />' . "\n";
-			}
+			echo '<meta name="robots" content="noindex, follow" />' . "\n";
+		} else {
+			echo '<meta name="robots" content="index, follow" />' . "\n";
 		}
 
 		// Prevent pagination duplication.
@@ -279,11 +284,16 @@ class ProductScraper {
 
 		// Generate title.
 		if ( ! empty( $seo_title ) ) {
-			$title = esc_html( $seo_title );
+			$title = $seo_title;
 		} else {
-			$title = esc_html( $author->display_name ) . ' | ' . __( 'Author', 'product-scraper' ) . ' | ' . esc_html( get_bloginfo( 'name' ) );
+			$author_title_parts = array(
+				$author->display_name,
+				__( 'Author', 'product-scraper' ),
+				get_bloginfo( 'name' ),
+			);
+			$title               = implode( ' | ', array_filter( $author_title_parts ) );
 		}
-		echo '<title>' . $title . '</title>' . "\n";
+		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
 
 		// Meta description.
 		if ( ! empty( $meta_description ) ) {
@@ -293,6 +303,7 @@ class ProductScraper {
 		} else {
 			$post_count          = count_user_posts( $author_id );
 			$default_description = sprintf(
+				/* translators: 1: post count, 2: author display name, 3: author display name, 4: site name. */
 				_n(
 					'View all %1$d post by %2$s. %3$s is an author on %4$s.',
 					'View all %1$d posts by %2$s. %3$s is an author on %4$s.',
@@ -300,11 +311,11 @@ class ProductScraper {
 					'product-scraper'
 				),
 				$post_count,
-				esc_attr( $author->display_name ),
-				esc_attr( $author->display_name ),
-				esc_attr( get_bloginfo( 'name' ) )
+				$author->display_name,
+				$author->display_name,
+				get_bloginfo( 'name' )
 			);
-			echo '<meta name="description" content="' . $default_description . '" />' . "\n";
+			echo '<meta name="description" content="' . esc_attr( $default_description ) . '" />' . "\n";
 		}
 
 		// Canonical URL.
@@ -317,13 +328,11 @@ class ProductScraper {
 		// Meta robots.
 		if ( ! empty( $meta_robots ) ) {
 			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
-		} else {
+		} elseif ( $this->is_paginated_archive() ) {
 			// Default for author pages - index, follow unless paginated.
-			if ( $this->is_paginated_archive() ) {
-				echo '<meta name="robots" content="noindex, follow" />' . "\n";
-			} else {
-				echo '<meta name="robots" content="index, follow" />' . "\n";
-			}
+			echo '<meta name="robots" content="noindex, follow" />' . "\n";
+		} else {
+			echo '<meta name="robots" content="index, follow" />' . "\n";
 		}
 
 		// Prevent pagination duplication.
