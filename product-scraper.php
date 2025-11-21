@@ -867,6 +867,9 @@ class ProductScraper {
 		return '';
 	}
 
+	/**
+	 * Redirect attachment pages to their canonical URLs to prevent duplicates.
+	 */
 	public function canonical_redirects() {
 		// Prevent duplicate content by redirecting non-canonical URLs.
 		if ( is_attachment() ) {
