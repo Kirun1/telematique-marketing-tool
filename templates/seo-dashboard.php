@@ -161,7 +161,7 @@
 							</div>
 							<div class="quick-action-card">
 								<h4>Fix SEO Issues</h4>
-								<p>Address <?php echo $stats['posts_without_meta']; ?> posts without meta descriptions</p>
+								<p>Address <?php echo esc_html( absint( $stats['posts_without_meta'] ) ); ?> posts without meta descriptions</p>
 								<button class="sa-btn sa-btn-secondary">Fix Issues</button>
 							</div>
 						</div>
