@@ -69,8 +69,18 @@
 								<h3>Keyword Usage</h3>
 							</div>
 							<div class="stat-main">
-								<span class="stat-number"><?php echo $stats['posts_with_focus_keyword']; ?></span>
-								<span class="stat-percentage"><?php echo $stats['total_posts'] > 0 ? round( ( $stats['posts_with_focus_keyword'] / $stats['total_posts'] ) * 100 ) : 0; ?>%</span>
+								<span class="stat-number"><?php echo esc_html( absint( $stats['posts_with_focus_keyword'] ) ); ?></span>
+								<span class="stat-percentage">
+									<?php
+									$keyword_percentage = 0;
+									if ( $stats['total_posts'] > 0 ) {
+										$keyword_percentage = round(
+											( absint( $stats['posts_with_focus_keyword'] ) / absint( $stats['total_posts'] ) ) * 100
+										);
+									}
+									echo esc_html( $keyword_percentage );
+									?>%
+								</span>
 							</div>
 							<div class="stat-target">
 								Posts with focus keywords
