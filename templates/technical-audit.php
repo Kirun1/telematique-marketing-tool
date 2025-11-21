@@ -12,8 +12,8 @@
  */
 
 // Security check to prevent direct access
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
