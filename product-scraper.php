@@ -667,9 +667,9 @@ class ProductScraper {
 			'scraper-analytics_page_scraper-settings',
 		);
 
-		$is_plugin_page = in_array( $hook, $plugin_pages );
-		$is_post_edit   = in_array( $hook, array( 'post.php', 'post-new.php' ) );
-		$is_tax_edit    = in_array( $hook, array( 'edit-tags.php', 'term.php' ) );
+		$is_plugin_page = in_array( $hook, $plugin_pages, true );
+		$is_post_edit   = in_array( $hook, array( 'post.php', 'post-new.php' ), true );
+		$is_tax_edit    = in_array( $hook, array( 'edit-tags.php', 'term.php' ), true );
 
 		if ( $is_plugin_page || $is_post_edit || $is_tax_edit ) {
 			// Enqueue Chart.js for analytics.
@@ -744,6 +744,9 @@ class ProductScraper {
 		}
 	}
 
+	/**
+	 * Register REST API routes for content analysis endpoints.
+	 */
 	public function register_rest_routes() {
 		register_rest_route(
 			'product-scraper/v1',
@@ -776,11 +779,23 @@ class ProductScraper {
 		);
 	}
 
+	/**
+	 * REST API permission callback.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return bool
+	 */
 	public function rest_permission_check( $request ) {
+		unset( $request );
+
 		return current_user_can( 'edit_posts' );
 	}
 
 	// Helper methods for structured data.
+	/**
+	 * Output structured data for WooCommerce products.
+	 */
 	private function output_product_structured_data() {
 		global $post;
 		$product = wc_get_product( $post->ID );
@@ -794,11 +809,14 @@ class ProductScraper {
 
 		if ( ! empty( $schema ) && ! isset( $schema['error'] ) ) {
 			echo '<script type="application/ld+json">' .
-				json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+				wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
 				'</script>' . "\n";
 		}
 	}
 
+	/**
+	 * Output structured data for articles.
+	 */
 	private function output_article_structured_data() {
 		global $post;
 
