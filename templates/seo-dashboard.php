@@ -56,7 +56,7 @@
 								<h3>SEO Issues</h3>
 							</div>
 							<div class="stat-main">
-								<span class="stat-number"><?php echo $stats['posts_without_meta'] + $stats['low_content_posts']; ?></span>
+								<span class="stat-number"><?php echo esc_html( absint( $stats['posts_without_meta'] ) + absint( $stats['low_content_posts'] ) ); ?></span>
 							</div>
 							<div class="stat-target">
 								<?php echo esc_html( absint( $stats['posts_without_meta'] ) ); ?> without meta,
