@@ -837,6 +837,9 @@ class ProductScraper {
 			'</script>' . "\n";
 	}
 
+	/**
+	 * Output website-level structured data markup.
+	 */
 	private function output_website_structured_data() {
 		$schema = array(
 			'@context'        => 'https://schema.org',
