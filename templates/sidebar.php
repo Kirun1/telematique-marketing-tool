@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Get current page to set active state.
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Used only to determine the active admin menu item.
 $current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 ?>
 
