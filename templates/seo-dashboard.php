@@ -59,7 +59,8 @@
 								<span class="stat-number"><?php echo $stats['posts_without_meta'] + $stats['low_content_posts']; ?></span>
 							</div>
 							<div class="stat-target">
-								<?php echo $stats['posts_without_meta']; ?> without meta, <?php echo $stats['low_content_posts']; ?> low content
+								<?php echo esc_html( absint( $stats['posts_without_meta'] ) ); ?> without meta,
+								<?php echo esc_html( absint( $stats['low_content_posts'] ) ); ?> low content
 							</div>
 						</div>
 
