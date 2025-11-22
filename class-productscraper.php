@@ -895,14 +895,14 @@ class ProductScraper {
 			// Plugin styles.
 			wp_enqueue_style(
 				'product-scraper-analytics-css',
-				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/sa-analytics.css',
+				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/css/sa-analytics.css',
 				array(),
 				PRODUCT_SCRAPER_VERSION
 			);
 
 			wp_enqueue_style(
 				'product-scraper-seo-admin-css',
-				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/seo-admin.css',
+				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/css/seo-admin.css',
 				array(),
 				PRODUCT_SCRAPER_VERSION
 			);
