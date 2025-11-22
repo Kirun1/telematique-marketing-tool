@@ -33,7 +33,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-data-storage.
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-analytics-dashboard.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-assistant.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-content-optimizer.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-keyword-research.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-keyword-research.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-voice-search.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-social-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-schema-generator.php';
@@ -49,7 +49,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-competitor-
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/ai/class-ai-title-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/ai/class-ai-content-writer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-advanced-sitemap.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-api-integrations.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-api-integrations.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-analysis.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-link-manager.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-robots-txt.php';
