@@ -46,8 +46,8 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-international-seo
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-ecommerce-seo.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-analytics.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-competitor-analysis.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ai-title-optimizer.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ai-content-writer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/ai/class-ai-title-optimizer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/ai/class-ai-content-writer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-advanced-sitemap.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-api-integrations.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-analysis.php';
