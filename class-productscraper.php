@@ -910,7 +910,7 @@ class ProductScraper {
 			// Plugin scripts.
 			wp_enqueue_script(
 				'product-scraper-seo-admin-js',
-				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/seo-admin.js',
+				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/js/seo-admin.js',
 				array( 'jquery', 'wp-api', 'chart-js', 'select2-js' ),
 				PRODUCT_SCRAPER_VERSION,
 				true
