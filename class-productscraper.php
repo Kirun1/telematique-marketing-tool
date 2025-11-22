@@ -26,16 +26,16 @@ if ( file_exists( $vendor_autoload ) ) {
 }
 
 // Include required files.
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-scraper.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-scraper.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/admin/class-admin.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-woocommerceproductimporter.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-data-storage.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-data-storage.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-analytics-dashboard.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-seo-assistant.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-keyword-research.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-productscraper-voice-search.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-productscraper-social-optimizer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-voice-search.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-social-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-schema-generator.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-roi-tracker.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-redirect-manager.php';
