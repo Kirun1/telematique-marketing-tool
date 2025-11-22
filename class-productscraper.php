@@ -28,7 +28,7 @@ if ( file_exists( $vendor_autoload ) ) {
 // Include required files.
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-scraper.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/admin/class-admin.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-woocommerceproductimporter.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-woocommerceproductimporter.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-data-storage.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-analytics-dashboard.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-assistant.php';
