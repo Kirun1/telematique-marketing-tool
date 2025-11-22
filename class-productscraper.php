@@ -1110,7 +1110,7 @@ class ProductScraper {
 			$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 		}
 
-		$sidebar_path = PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/sidebar.php';
+		$sidebar_path = PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/sidebar.php';
 		if ( file_exists( $sidebar_path ) ) {
 			include $sidebar_path;
 		}

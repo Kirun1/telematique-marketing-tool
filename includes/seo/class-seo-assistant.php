@@ -67,7 +67,7 @@ class ProductScraper_SEO_Assistant {
 		$seo_data = $this->get_seo_data( $post->ID );
 		$analysis = $this->analyze_content( $post->post_content, $seo_data['focus_keyword'] );
 
-		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/seo-meta-box.php';
+		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/seo-meta-box.php';
 	}
 
 	private function get_seo_data( $post_id ) {
@@ -400,18 +400,18 @@ class ProductScraper_SEO_Assistant {
 		$stats           = $this->get_seo_stats();
 		$recent_analysis = $this->get_recent_analysis();
 
-		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/seo-dashboard.php';
+		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/seo-dashboard.php';
 	}
 
 	public function display_seo_analysis() {
 		$site_analysis = $this->analyze_site_seo();
-		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/seo-analysis.php';
+		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/seo-analysis.php';
 	}
 
 	public function display_link_manager() {
 		$internal_links = $this->get_internal_links();
 		$external_links = $this->get_external_links();
-		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/link-manager.php';
+		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/link-manager.php';
 	}
 
 	private function analyze_site_seo() {
