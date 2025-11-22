@@ -31,28 +31,28 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/admin/class-admin.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-woocommerceproductimporter.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-data-storage.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-analytics-dashboard.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-seo-assistant.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-optimizer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-assistant.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-content-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-keyword-research.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-voice-search.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-social-optimizer.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-schema-generator.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-schema-generator.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-roi-tracker.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-redirect-manager.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-redirect-manager.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-rank-tracker.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-onpage-analyzer.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-local-seo.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-international-seo.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ecommerce-seo.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-onpage-analyzer.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-local-seo.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-international-seo.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-ecommerce-seo.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-content-analytics.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-competitor-analysis.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ai-title-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-ai-content-writer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-advanced-sitemap.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-api-integrations.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-seo-analysis.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-analysis.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-link-manager.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/class-robots-txt.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-robots-txt.php';
 
 /**
  * Main plugin controller for Product Scraper.

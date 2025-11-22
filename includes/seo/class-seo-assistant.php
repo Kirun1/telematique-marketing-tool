@@ -672,6 +672,12 @@ class ProductScraper_SEO_Assistant {
 		}
 	}
 
+	/**
+	 * Optimize content on save if auto-optimization is enabled
+	 *
+	 * @param array $data Post data.
+	 * @return array Modified post data.
+	 */
 	public function optimize_content_on_save( $data ) {
 		if ( ! isset( $_POST['seo_auto_optimize'] ) || ! $_POST['seo_auto_optimize'] ) {
 			return $data;
@@ -685,8 +691,10 @@ class ProductScraper_SEO_Assistant {
 	}
 
 		/**
-		 * Analyze content SEO across the site
-		 */
+	 * Analyze content SEO across the site
+	 *
+	 * @return array Content SEO analysis.
+	 */
 	private function analyze_content_seo() {
 		$stats = $this->get_seo_stats();
 
@@ -700,6 +708,8 @@ class ProductScraper_SEO_Assistant {
 
 	/**
 	 * Analyze performance SEO
+	 *
+	 * @return array Performance SEO analysis.
 	 */
 	private function analyze_performance_seo() {
 		return array(
