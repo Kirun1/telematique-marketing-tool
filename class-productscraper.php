@@ -53,6 +53,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-api-integrations.
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-analysis.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/helpers/class-link-manager.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-robots-txt.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-chart-manager.php';
 
 /**
  * Main plugin controller for Product Scraper.
@@ -125,18 +126,26 @@ class ProductScraper {
 	public $robots_manager;
 
 	/**
+	 * Chart manager service.
+	 *
+	 * @var ProductScraper_Chart_Manager
+	 */
+	public $chart_manager;
+
+	/**
 	 * Bootstrap plugin services and hooks.
 	 */
 	public function __construct() {
-		$this->storage           = new ProductScraperDataStorage();
-		$this->analytics         = new ProductScraperAnalytics();
-		$this->seo_assistant     = new ProductScraper_SEO_Assistant();
-		$this->content_optimizer = new ProductScraper_Content_Optimizer();
-		$this->keyword_research  = new ProductScraper_Keyword_Research();
-		$this->api_integrations  = new ProductScraper_API_Integrations();
-		$this->seo_analysis      = new ProductScraper_SEO_Analysis();
-		$this->link_manager      = new ProductScraper_Link_Manager();
-		$this->robots_manager    = new ProductScraper_Robots_Txt();
+		$this->storage           	= new ProductScraperDataStorage();
+		$this->analytics         	= new ProductScraperAnalytics();
+		$this->seo_assistant     	= new ProductScraper_SEO_Assistant();
+		$this->content_optimizer 	= new ProductScraper_Content_Optimizer();
+		$this->keyword_research  	= new ProductScraper_Keyword_Research();
+		$this->api_integrations  	= new ProductScraper_API_Integrations();
+		$this->seo_analysis      	= new ProductScraper_SEO_Analysis();
+		$this->link_manager      	= new ProductScraper_Link_Manager();
+		$this->robots_manager    	= new ProductScraper_Robots_Txt();
+		$this->chart_manager		= new ProductScraper_Chart_Manager();
 
 		// Core SEO hooks.
 		add_action( 'init', array( $this, 'init' ) );
@@ -883,6 +892,21 @@ class ProductScraper {
 				array( 'jquery' ),
 				'4.1.0',
 				true
+			);
+
+			wp_enqueue_script(
+				'product-scraper-charts-js',
+				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/js/product-scraper-charts.js',
+				array('jquery', 'chart-js', 'product-scraper-seo-admin-js'),
+				PRODUCT_SCRAPER_VERSION,
+				true
+			);
+
+			wp_enqueue_style(
+				'product-scraper-charts-css',
+				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/css/chart.css',
+				array(),
+				PRODUCT_SCRAPER_VERSION
 			);
 
 			wp_enqueue_style(

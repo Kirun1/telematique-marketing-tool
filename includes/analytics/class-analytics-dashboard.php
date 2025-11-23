@@ -1,20 +1,22 @@
 <?php
 
-class ProductScraperAnalytics {
+class ProductScraperAnalytics
+{
 
 
 	private $api;
 
-	public function __construct() {
+	public function __construct()
+	{
 		$this->api = new ProductScraper_API_Integrations();
 
-		add_action( 'admin_menu', array( $this, 'add_analytics_menu' ) );
-		add_action( 'wp_ajax_get_scraper_analytics', array( $this, 'ajax_get_analytics' ) );
-		add_action( 'wp_ajax_get_keyword_data', array( $this, 'ajax_get_keyword_data' ) );
-		add_action( 'wp_ajax_sync_seo_data', array( $this, 'ajax_sync_seo_data' ) );
+		add_action('admin_menu', array($this, 'add_analytics_menu'));
+		add_action('wp_ajax_get_scraper_analytics', array($this, 'ajax_get_analytics'));
+		add_action('wp_ajax_get_keyword_data', array($this, 'ajax_get_keyword_data'));
+		add_action('wp_ajax_sync_seo_data', array($this, 'ajax_sync_seo_data'));
 
-		add_action( 'wp_ajax_test_api_connections', array( $this, 'ajax_test_api_connections' ) );
-		add_action( 'wp_ajax_clear_seo_cache', array( $this, 'ajax_clear_seo_cache' ) );
+		add_action('wp_ajax_test_api_connections', array($this, 'ajax_test_api_connections'));
+		add_action('wp_ajax_clear_seo_cache', array($this, 'ajax_clear_seo_cache'));
 
 		// Initialize the admin class for the scraper functionality.
 		$this->admin = new ProductScraperAdmin();
@@ -23,13 +25,14 @@ class ProductScraperAnalytics {
 	/**
 	 * Add standalone analytics menu with scraper as subpage
 	 */
-	public function add_analytics_menu() {
+	public function add_analytics_menu()
+	{
 		add_menu_page(
 			'Scraper Analytics',
 			'Scraper Analytics',
 			'manage_options',
 			'scraper-analytics',
-			array( $this, 'display_analytics_dashboard' ),
+			array($this, 'display_analytics_dashboard'),
 			'dashicons-chart-line',
 			30
 		);
@@ -41,7 +44,7 @@ class ProductScraperAnalytics {
 			'Dashboard',
 			'manage_options',
 			'scraper-analytics',
-			array( $this, 'display_analytics_dashboard' )
+			array($this, 'display_analytics_dashboard')
 		);
 
 		add_submenu_page(
@@ -50,7 +53,7 @@ class ProductScraperAnalytics {
 			'Keyword Analysis',
 			'manage_options',
 			'scraper-keywords',
-			array( $this, 'display_keyword_analysis' )
+			array($this, 'display_keyword_analysis')
 		);
 
 		add_submenu_page(
@@ -59,7 +62,7 @@ class ProductScraperAnalytics {
 			'Competitor Analysis',
 			'manage_options',
 			'scraper-competitors',
-			array( $this, 'display_competitor_analysis' )
+			array($this, 'display_competitor_analysis')
 		);
 
 		// Add Product Scraper as a subpage.
@@ -69,7 +72,7 @@ class ProductScraperAnalytics {
 			'Product Scraper',
 			'manage_options',
 			'product-scraper',
-			array( $this, 'display_product_scraper' )
+			array($this, 'display_product_scraper')
 		);
 
 		// Add Reports page.
@@ -79,7 +82,7 @@ class ProductScraperAnalytics {
 			'Reports',
 			'manage_options',
 			'scraper-reports',
-			array( $this, 'display_reports_page' )
+			array($this, 'display_reports_page')
 		);
 
 		// Add Settings page.
@@ -89,14 +92,15 @@ class ProductScraperAnalytics {
 			'Settings',
 			'manage_options',
 			'scraper-settings',
-			array( $this, 'display_settings_page' )
+			array($this, 'display_settings_page')
 		);
 	}
 
 	/**
 	 * Display the product scraper page
 	 */
-	public function display_product_scraper() {
+	public function display_product_scraper()
+	{
 		// Call the existing admin page from ProductScraperAdmin class.
 		$this->admin->admin_page();
 	}
@@ -104,9 +108,10 @@ class ProductScraperAnalytics {
 	/**
 	 * Main analytics dashboard
 	 */
-	public function display_analytics_dashboard() {
+	public function display_analytics_dashboard()
+	{
 		$stats = $this->get_dashboard_stats();
-		?>
+?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<!-- sa-style Header -->
@@ -125,7 +130,7 @@ class ProductScraperAnalytics {
 
 				<div class="sa-container">
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'scraper-analytics' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('scraper-analytics'); ?>
 
 					<!-- Main Content -->
 					<div class="sa-main-content">
@@ -140,10 +145,10 @@ class ProductScraperAnalytics {
 										<span class="stat-change positive">+0.9%</span>
 									</div>
 									<div class="stat-main">
-										<span class="stat-number"><?php echo number_format( $stats['organic_traffic'] ); ?></span>
+										<span class="stat-number"><?php echo number_format($stats['organic_traffic']); ?></span>
 									</div>
 									<div class="stat-target">
-										Target: <?php echo number_format( $stats['traffic_target'] ); ?>
+										Target: <?php echo number_format($stats['traffic_target']); ?>
 									</div>
 								</div>
 
@@ -153,7 +158,7 @@ class ProductScraperAnalytics {
 										<span class="stat-change positive">+0.9%</span>
 									</div>
 									<div class="stat-main">
-										<span class="stat-number"><?php echo number_format( $stats['referring_domains'] ); ?></span>
+										<span class="stat-number"><?php echo number_format($stats['referring_domains']); ?></span>
 									</div>
 									<div class="stat-trend">
 										S M T W T F S
@@ -176,57 +181,118 @@ class ProductScraperAnalytics {
 								</div>
 							</div>
 
-							<!-- Search Volume Chart -->
-							<div class="sa-chart-section">
-								<div class="chart-header">
-									<h3>Search Volume</h3>
-									<div class="chart-legend">
-										<span class="legend-item">Current</span>
-										<span class="legend-item">Previous</span>
+							<!-- CHARTS SECTION -->
+							<div class="sa-charts-grid">
+								<!-- Traffic Chart -->
+								<div class="sa-chart-card">
+									<div class="chart-header">
+										<h3>Organic Traffic Trend</h3>
+										<div class="chart-actions">
+											<select id="traffic-period" class="chart-period-selector">
+												<option value="7d">7 Days</option>
+												<option value="30d" selected>30 Days</option>
+												<option value="90d">90 Days</option>
+											</select>
+										</div>
+									</div>
+									<div class="chart-container">
+										<canvas id="trafficTrendChart" height="250"></canvas>
 									</div>
 								</div>
-								<div class="chart-container">
-									<canvas id="searchVolumeChart" width="400" height="200"></canvas>
+
+								<!-- Keyword Performance -->
+								<div class="sa-chart-card">
+									<div class="chart-header">
+										<h3>Top Performing Keywords</h3>
+									</div>
+									<div class="chart-container">
+										<canvas id="keywordPerformanceChart" height="250"></canvas>
+									</div>
+								</div>
+
+								<!-- Competitor Comparison -->
+								<div class="sa-chart-card">
+									<div class="chart-header">
+										<h3>Competitor Analysis</h3>
+									</div>
+									<div class="chart-container">
+										<canvas id="competitorRadarChart" height="250"></canvas>
+									</div>
+								</div>
+
+								<!-- SEO Health Score -->
+								<div class="sa-chart-card">
+									<div class="chart-header">
+										<h3>SEO Health Score</h3>
+									</div>
+									<div class="chart-container">
+										<canvas id="seoHealthGauge" height="250"></canvas>
+									</div>
 								</div>
 							</div>
+						</div>
 
-							<!-- Keywords Table -->
-							<div class="sa-table-section">
-								<div class="table-header">
-									<h3>Top Performing Keywords</h3>
-									<button class="sa-btn sa-btn-secondary">Export CSV</button>
+						<script>
+							jQuery(document).ready(function($) {
+								// Initialize all charts
+								ProductScraperCharts.init({
+									ajaxurl: '<?php echo admin_url('admin-ajax.php'); ?>',
+									nonce: '<?php echo wp_create_nonce('product_scraper_charts'); ?>'
+								});
+							});
+						</script>
+
+						<!-- Search Volume Chart -->
+						<div class="sa-chart-section">
+							<div class="chart-header">
+								<h3>Search Volume</h3>
+								<div class="chart-legend">
+									<span class="legend-item">Current</span>
+									<span class="legend-item">Previous</span>
 								</div>
-								<table class="sa-table">
-									<thead>
-										<tr>
-											<th>No</th>
-											<th>Keywords</th>
-											<th>Volume</th>
-											<th>Traffic</th>
-											<th>Date</th>
-										</tr>
-									</thead>
-									<tbody id="keywords-table-body">
-										<!-- Dynamic content will be loaded via AJAX -->
-									</tbody>
-								</table>
 							</div>
+							<div class="chart-container">
+								<canvas id="searchVolumeChart" width="400" height="200"></canvas>
+							</div>
+						</div>
 
-							<!-- Additional Metrics -->
-							<div class="sa-metrics-grid">
-								<div class="metric-card">
-									<h4>Visit Duration</h4>
-									<div class="metric-value">90K <span class="positive">+12%</span></div>
-								</div>
-								<div class="metric-card">
-									<h4>Page View</h4>
-									<div class="metric-value">170K <span class="positive">+6%</span></div>
-								</div>
+						<!-- Keywords Table -->
+						<div class="sa-table-section">
+							<div class="table-header">
+								<h3>Top Performing Keywords</h3>
+								<button class="sa-btn sa-btn-secondary">Export CSV</button>
+							</div>
+							<table class="sa-table">
+								<thead>
+									<tr>
+										<th>No</th>
+										<th>Keywords</th>
+										<th>Volume</th>
+										<th>Traffic</th>
+										<th>Date</th>
+									</tr>
+								</thead>
+								<tbody id="keywords-table-body">
+									<!-- Dynamic content will be loaded via AJAX -->
+								</tbody>
+							</table>
+						</div>
+
+						<!-- Additional Metrics -->
+						<div class="sa-metrics-grid">
+							<div class="metric-card">
+								<h4>Visit Duration</h4>
+								<div class="metric-value">90K <span class="positive">+12%</span></div>
+							</div>
+							<div class="metric-card">
+								<h4>Page View</h4>
+								<div class="metric-value">170K <span class="positive">+6%</span></div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+		</div>
 		</div>
 
 		<script>
@@ -240,7 +306,7 @@ class ProductScraperAnalytics {
 						type: 'POST',
 						data: {
 							action: 'get_keyword_data',
-							nonce: '<?php echo wp_create_nonce( 'analytics_nonce' ); ?>'
+							nonce: '<?php echo wp_create_nonce('analytics_nonce'); ?>'
 						},
 						success: function(response) {
 							if (response.success) {
@@ -309,14 +375,15 @@ class ProductScraperAnalytics {
 				};
 			});
 		</script>
-		<?php
+	<?php
 	}
 
 	/**
 	 * Keyword analysis page
 	 */
-	public function display_keyword_analysis() {
-		?>
+	public function display_keyword_analysis()
+	{
+	?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -329,7 +396,7 @@ class ProductScraperAnalytics {
 				<div class="sa-container">
 					<!-- Sidebar -->
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'scraper-keywords' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('scraper-keywords'); ?>
 
 					<div class="sa-main-content">
 						<div class="sa-section">
@@ -343,14 +410,15 @@ class ProductScraperAnalytics {
 				</div>
 			</div>
 		</div>
-		<?php
+	<?php
 	}
 
 	/**
 	 * Competitor analysis page
 	 */
-	public function display_competitor_analysis() {
-		?>
+	public function display_competitor_analysis()
+	{
+	?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -362,7 +430,7 @@ class ProductScraperAnalytics {
 
 				<div class="sa-container">
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'scraper-competitors' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('scraper-competitors'); ?>
 
 					<div class="sa-main-content">
 						<div class="sa-section">
@@ -376,13 +444,14 @@ class ProductScraperAnalytics {
 				</div>
 			</div>
 		</div>
-		<?php
+	<?php
 	}
 
 	/**
 	 * Get dashboard statistics
 	 */
-	private function get_dashboard_stats() {
+	private function get_dashboard_stats()
+	{
 		$seo_data      = $this->api->get_seo_dashboard_data();
 		$plugin        = new ProductScraper();
 		$scraper_stats = $plugin->storage->get_stats();
@@ -401,51 +470,55 @@ class ProductScraperAnalytics {
 	/**
 	 * AJAX handler for analytics data
 	 */
-	public function ajax_get_analytics() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'analytics_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	public function ajax_get_analytics()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'analytics_nonce')) {
+			wp_die('Security check failed');
 		}
 
 		$stats = $this->get_dashboard_stats();
-		wp_send_json_success( $stats );
+		wp_send_json_success($stats);
 	}
 
 	/**
 	 * AJAX handler for keyword data
 	 */
-	public function ajax_get_keyword_data() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'analytics_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	public function ajax_get_keyword_data()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'analytics_nonce')) {
+			wp_die('Security check failed');
 		}
 
 		$seo_data = $this->api->get_seo_dashboard_data();
-		wp_send_json_success( array( 'keywords' => $seo_data['top_keywords'] ) );
+		wp_send_json_success(array('keywords' => $seo_data['top_keywords']));
 	}
 
 	/**
 	 * AJAX handler for data sync
 	 */
-	public function ajax_sync_seo_data() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'analytics_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	public function ajax_sync_seo_data()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'analytics_nonce')) {
+			wp_die('Security check failed');
 		}
 
 		$new_data = $this->api->get_seo_dashboard_data();
-		wp_send_json_success( $new_data );
+		wp_send_json_success($new_data);
 	}
 
 	/**
 	 * Display settings page for API configurations
 	 */
-	public function display_settings_page() {
+	public function display_settings_page()
+	{
 		// Handle form submissions.
-		if ( isset( $_POST['submit_settings'] ) && check_admin_referer( 'product_scraper_settings_nonce' ) ) {
+		if (isset($_POST['submit_settings']) && check_admin_referer('product_scraper_settings_nonce')) {
 			$this->save_settings();
 		}
 
 		// Get current settings.
 		$settings = $this->get_current_settings();
-		?>
+	?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -457,7 +530,7 @@ class ProductScraperAnalytics {
 
 				<div class="sa-container">
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'scraper-settings' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('scraper-settings'); ?>
 
 					<!-- Main Content -->
 					<div class="sa-main-content">
@@ -466,7 +539,7 @@ class ProductScraperAnalytics {
 							<p class="sa-description">Configure your API keys to enable real data collection from various SEO platforms.</p>
 
 							<form method="post" class="sa-settings-form">
-								<?php wp_nonce_field( 'product_scraper_settings_nonce' ); ?>
+								<?php wp_nonce_field('product_scraper_settings_nonce'); ?>
 
 								<!-- Google Services -->
 								<div class="sa-settings-group">
@@ -475,7 +548,7 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="ga4_property_id">Google Analytics 4 Property ID</label>
 										<input type="text" id="ga4_property_id" name="ga4_property_id"
-											value="<?php echo esc_attr( $settings['ga4_property_id'] ); ?>"
+											value="<?php echo esc_attr($settings['ga4_property_id']); ?>"
 											class="sa-form-control"
 											placeholder="123456789">
 										<p class="description">Enter your <strong>numeric GA4 Property ID</strong> (e.g., 123456789), NOT the Measurement ID that starts with "G-". Find it in Google Analytics under Admin → Property Settings.</p>
@@ -485,14 +558,14 @@ class ProductScraperAnalytics {
 										<label for="google_service_account">Google Service Account JSON</label>
 										<textarea id="google_service_account" name="google_service_account"
 											class="sa-form-control" rows="6"
-											placeholder='Paste your service account JSON credentials'><?php echo esc_textarea( $settings['google_service_account'] ); ?></textarea>
+											placeholder='Paste your service account JSON credentials'><?php echo esc_textarea($settings['google_service_account']); ?></textarea>
 										<p class="description">Service account credentials for Google Analytics API access</p>
 									</div>
 
 									<div class="sa-setting-row">
 										<label for="pagespeed_api">Google PageSpeed Insights API Key</label>
 										<input type="password" id="pagespeed_api" name="pagespeed_api"
-											value="<?php echo esc_attr( $settings['pagespeed_api'] ); ?>"
+											value="<?php echo esc_attr($settings['pagespeed_api']); ?>"
 											class="sa-form-control"
 											placeholder="AIza...">
 										<p class="description">API key for PageSpeed Insights performance data</p>
@@ -506,7 +579,7 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="ahrefs_api">Ahrefs API Key</label>
 										<input type="password" id="ahrefs_api" name="ahrefs_api"
-											value="<?php echo esc_attr( $settings['ahrefs_api'] ); ?>"
+											value="<?php echo esc_attr($settings['ahrefs_api']); ?>"
 											class="sa-form-control"
 											placeholder="Ahrefs API key">
 										<p class="description">For backlink data and competitor analysis</p>
@@ -515,7 +588,7 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="semrush_api">SEMrush API Key</label>
 										<input type="password" id="semrush_api" name="semrush_api"
-											value="<?php echo esc_attr( $settings['semrush_api'] ); ?>"
+											value="<?php echo esc_attr($settings['semrush_api']); ?>"
 											class="sa-form-control"
 											placeholder="SEMrush API key">
 										<p class="description">For keyword research and ranking data</p>
@@ -529,18 +602,18 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="cache_duration">Data Cache Duration</label>
 										<select id="cache_duration" name="cache_duration" class="sa-form-control">
-											<option value="900" <?php selected( $settings['cache_duration'], '900' ); ?>>15 minutes</option>
-											<option value="1800" <?php selected( $settings['cache_duration'], '1800' ); ?>>30 minutes</option>
-											<option value="3600" <?php selected( $settings['cache_duration'], '3600' ); ?>>1 hour</option>
-											<option value="7200" <?php selected( $settings['cache_duration'], '7200' ); ?>>2 hours</option>
-											<option value="14400" <?php selected( $settings['cache_duration'], '14400' ); ?>>4 hours</option>
+											<option value="900" <?php selected($settings['cache_duration'], '900'); ?>>15 minutes</option>
+											<option value="1800" <?php selected($settings['cache_duration'], '1800'); ?>>30 minutes</option>
+											<option value="3600" <?php selected($settings['cache_duration'], '3600'); ?>>1 hour</option>
+											<option value="7200" <?php selected($settings['cache_duration'], '7200'); ?>>2 hours</option>
+											<option value="14400" <?php selected($settings['cache_duration'], '14400'); ?>>4 hours</option>
 										</select>
 										<p class="description">How long to cache API data before refreshing</p>
 									</div>
 
 									<div class="sa-setting-row">
 										<label>
-											<input type="checkbox" name="enable_debug" value="1" <?php checked( $settings['enable_debug'], 1 ); ?>>
+											<input type="checkbox" name="enable_debug" value="1" <?php checked($settings['enable_debug'], 1); ?>>
 											Enable Debug Mode
 										</label>
 										<p class="description">Log API requests and errors for troubleshooting</p>
@@ -548,7 +621,7 @@ class ProductScraperAnalytics {
 
 									<div class="sa-setting-row">
 										<label>
-											<input type="checkbox" name="auto_sync" value="1" <?php checked( $settings['auto_sync'], 1 ); ?>>
+											<input type="checkbox" name="auto_sync" value="1" <?php checked($settings['auto_sync'], 1); ?>>
 											Auto-sync Data
 										</label>
 										<p class="description">Automatically refresh data when visiting dashboard</p>
@@ -625,7 +698,7 @@ class ProductScraperAnalytics {
 						type: 'POST',
 						data: {
 							action: 'test_api_connections',
-							nonce: '<?php echo wp_create_nonce( 'test_apis_nonce' ); ?>'
+							nonce: '<?php echo wp_create_nonce('test_apis_nonce'); ?>'
 						},
 						success: function(response) {
 							if (response.success) {
@@ -663,7 +736,7 @@ class ProductScraperAnalytics {
 						type: 'POST',
 						data: {
 							action: 'clear_seo_cache',
-							nonce: '<?php echo wp_create_nonce( 'clear_cache_nonce' ); ?>'
+							nonce: '<?php echo wp_create_nonce('clear_cache_nonce'); ?>'
 						},
 						success: function(response) {
 							if (response.success) {
@@ -679,45 +752,47 @@ class ProductScraperAnalytics {
 				});
 			});
 		</script>
-		<?php
+	<?php
 	}
 
 	/**
 	 * Get current settings
 	 */
-	private function get_current_settings() {
+	private function get_current_settings()
+	{
 		return array(
-			'ga4_property_id'        => get_option( 'product_scraper_ga4_property_id', '' ),
-			'google_service_account' => get_option( 'product_scraper_google_service_account', '' ),
-			'pagespeed_api'          => get_option( 'product_scraper_pagespeed_api', '' ),
-			'ahrefs_api'             => get_option( 'product_scraper_ahrefs_api', '' ),
-			'semrush_api'            => get_option( 'product_scraper_semrush_api', '' ),
-			'cache_duration'         => get_option( 'product_scraper_cache_duration', '3600' ),
-			'enable_debug'           => get_option( 'product_scraper_enable_debug', 0 ),
-			'auto_sync'              => get_option( 'product_scraper_auto_sync', 1 ),
+			'ga4_property_id'        => get_option('product_scraper_ga4_property_id', ''),
+			'google_service_account' => get_option('product_scraper_google_service_account', ''),
+			'pagespeed_api'          => get_option('product_scraper_pagespeed_api', ''),
+			'ahrefs_api'             => get_option('product_scraper_ahrefs_api', ''),
+			'semrush_api'            => get_option('product_scraper_semrush_api', ''),
+			'cache_duration'         => get_option('product_scraper_cache_duration', '3600'),
+			'enable_debug'           => get_option('product_scraper_enable_debug', 0),
+			'auto_sync'              => get_option('product_scraper_auto_sync', 1),
 		);
 	}
 
 	/**
 	 * Save settings
 	 */
-	private function save_settings() {
+	private function save_settings()
+	{
 		// Google Services.
-		update_option( 'product_scraper_ga4_property_id', sanitize_text_field( $_POST['ga4_property_id'] ) );
-		update_option( 'product_scraper_pagespeed_api', sanitize_text_field( $_POST['pagespeed_api'] ) );
-		if ( isset( $_POST['google_service_account'] ) ) {
-			$json = wp_unslash( trim( $_POST['google_service_account'] ) );
-			update_option( 'product_scraper_google_service_account', $json );
+		update_option('product_scraper_ga4_property_id', sanitize_text_field($_POST['ga4_property_id']));
+		update_option('product_scraper_pagespeed_api', sanitize_text_field($_POST['pagespeed_api']));
+		if (isset($_POST['google_service_account'])) {
+			$json = wp_unslash(trim($_POST['google_service_account']));
+			update_option('product_scraper_google_service_account', $json);
 		}
 
 		// SEO Platforms.
-		update_option( 'product_scraper_ahrefs_api', sanitize_text_field( $_POST['ahrefs_api'] ) );
-		update_option( 'product_scraper_semrush_api', sanitize_text_field( $_POST['semrush_api'] ) );
+		update_option('product_scraper_ahrefs_api', sanitize_text_field($_POST['ahrefs_api']));
+		update_option('product_scraper_semrush_api', sanitize_text_field($_POST['semrush_api']));
 
 		// Advanced Settings.
-		update_option( 'product_scraper_cache_duration', intval( $_POST['cache_duration'] ) );
-		update_option( 'product_scraper_enable_debug', isset( $_POST['enable_debug'] ) ? 1 : 0 );
-		update_option( 'product_scraper_auto_sync', isset( $_POST['auto_sync'] ) ? 1 : 0 );
+		update_option('product_scraper_cache_duration', intval($_POST['cache_duration']));
+		update_option('product_scraper_enable_debug', isset($_POST['enable_debug']) ? 1 : 0);
+		update_option('product_scraper_auto_sync', isset($_POST['auto_sync']) ? 1 : 0);
 
 		echo '<div class="notice notice-success is-dismissible"><p>Settings saved successfully!</p></div>';
 	}
@@ -725,10 +800,11 @@ class ProductScraperAnalytics {
 	/**
 	 * Display reports page
 	 */
-	public function display_reports_page() {
+	public function display_reports_page()
+	{
 		// Get report data.
 		$reports = $this->get_seo_reports();
-		?>
+	?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -750,7 +826,7 @@ class ProductScraperAnalytics {
 
 				<div class="sa-container">
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'scraper-reports' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('scraper-reports'); ?>
 
 					<!-- Main Content -->
 					<div class="sa-main-content">
@@ -791,31 +867,31 @@ class ProductScraperAnalytics {
 										<h3>Overall SEO Score</h3>
 										<span class="metric-trend positive">+5%</span>
 									</div>
-									<div class="metric-value"><?php echo esc_html( $reports['overall_score'] ); ?>%</div>
+									<div class="metric-value"><?php echo esc_html($reports['overall_score']); ?>%</div>
 									<div class="metric-progress">
 										<div class="progress-bar">
-											<div class="progress-fill" style="width: <?php echo esc_attr( $reports['overall_score'] ); ?>%"></div>
+											<div class="progress-fill" style="width: <?php echo esc_attr($reports['overall_score']); ?>%"></div>
 										</div>
 									</div>
 								</div>
 
 								<div class="sa-metric-card">
 									<h3>Organic Traffic</h3>
-									<div class="metric-value"><?php echo number_format( $reports['organic_traffic'] ); ?></div>
+									<div class="metric-value"><?php echo number_format($reports['organic_traffic']); ?></div>
 									<div class="metric-change <?php echo $reports['traffic_change'] >= 0 ? 'positive' : 'negative'; ?>">
-										<?php echo $reports['traffic_change'] >= 0 ? '+' : ''; ?><?php echo esc_html( $reports['traffic_change'] ); ?>%
+										<?php echo $reports['traffic_change'] >= 0 ? '+' : ''; ?><?php echo esc_html($reports['traffic_change']); ?>%
 									</div>
 								</div>
 
 								<div class="sa-metric-card">
 									<h3>Keyword Rankings</h3>
-									<div class="metric-value"><?php echo number_format( $reports['keyword_rankings'] ); ?></div>
+									<div class="metric-value"><?php echo number_format($reports['keyword_rankings']); ?></div>
 									<div class="metric-change positive">+12%</div>
 								</div>
 
 								<div class="sa-metric-card">
 									<h3>Backlinks</h3>
-									<div class="metric-value"><?php echo number_format( $reports['backlinks'] ); ?></div>
+									<div class="metric-value"><?php echo number_format($reports['backlinks']); ?></div>
 									<div class="metric-change positive">+8%</div>
 								</div>
 							</div>
@@ -824,13 +900,13 @@ class ProductScraperAnalytics {
 							<div class="sa-report-card">
 								<h3>Technical SEO Health</h3>
 								<div class="health-metrics">
-									<?php foreach ( $reports['technical_health'] as $metric ) : ?>
+									<?php foreach ($reports['technical_health'] as $metric) : ?>
 										<div class="health-metric">
-											<span class="metric-label"><?php echo esc_html( $metric['label'] ); ?></span>
+											<span class="metric-label"><?php echo esc_html($metric['label']); ?></span>
 											<div class="metric-score">
-												<span class="score"><?php echo esc_html( $metric['score'] ); ?>%</span>
+												<span class="score"><?php echo esc_html($metric['score']); ?>%</span>
 												<div class="score-bar">
-													<div class="score-fill <?php echo $metric['status']; ?>" style="width: <?php echo esc_attr( $metric['score'] ); ?>%"></div>
+													<div class="score-fill <?php echo $metric['status']; ?>" style="width: <?php echo esc_attr($metric['score']); ?>%"></div>
 												</div>
 											</div>
 										</div>
@@ -842,17 +918,17 @@ class ProductScraperAnalytics {
 							<div class="sa-report-card">
 								<h3>Top Performing Content</h3>
 								<div class="content-list">
-									<?php foreach ( $reports['top_content'] as $content ) : ?>
+									<?php foreach ($reports['top_content'] as $content) : ?>
 										<div class="content-item">
 											<div class="content-title">
-												<a href="<?php echo esc_url( $content['url'] ); ?>" target="_blank">
-													<?php echo esc_html( $content['title'] ); ?>
+												<a href="<?php echo esc_url($content['url']); ?>" target="_blank">
+													<?php echo esc_html($content['title']); ?>
 												</a>
 											</div>
 											<div class="content-metrics">
-												<span class="metric">Traffic: <?php echo number_format( $content['traffic'] ); ?></span>
-												<span class="metric">Keywords: <?php echo number_format( $content['keywords'] ); ?></span>
-												<span class="metric">Backlinks: <?php echo number_format( $content['backlinks'] ); ?></span>
+												<span class="metric">Traffic: <?php echo number_format($content['traffic']); ?></span>
+												<span class="metric">Keywords: <?php echo number_format($content['keywords']); ?></span>
+												<span class="metric">Backlinks: <?php echo number_format($content['backlinks']); ?></span>
 											</div>
 										</div>
 									<?php endforeach; ?>
@@ -874,13 +950,13 @@ class ProductScraperAnalytics {
 											</tr>
 										</thead>
 										<tbody>
-											<?php foreach ( $reports['competitors'] as $competitor ) : ?>
+											<?php foreach ($reports['competitors'] as $competitor) : ?>
 												<tr>
-													<td><?php echo esc_html( $competitor['domain'] ); ?></td>
-													<td><?php echo esc_html( $competitor['authority'] ); ?></td>
-													<td><?php echo number_format( $competitor['ref_domains'] ); ?></td>
-													<td><?php echo number_format( $competitor['traffic'] ); ?></td>
-													<td><?php echo number_format( $competitor['keywords'] ); ?></td>
+													<td><?php echo esc_html($competitor['domain']); ?></td>
+													<td><?php echo esc_html($competitor['authority']); ?></td>
+													<td><?php echo number_format($competitor['ref_domains']); ?></td>
+													<td><?php echo number_format($competitor['traffic']); ?></td>
+													<td><?php echo number_format($competitor['keywords']); ?></td>
 												</tr>
 											<?php endforeach; ?>
 										</tbody>
@@ -892,13 +968,13 @@ class ProductScraperAnalytics {
 							<div class="sa-report-card">
 								<h3>SEO Recommendations</h3>
 								<div class="recommendations-list">
-									<?php foreach ( $reports['recommendations'] as $rec ) : ?>
-										<div class="recommendation-item priority-<?php echo esc_attr( $rec['priority'] ); ?>">
+									<?php foreach ($reports['recommendations'] as $rec) : ?>
+										<div class="recommendation-item priority-<?php echo esc_attr($rec['priority']); ?>">
 											<span class="rec-icon">⚡</span>
 											<div class="rec-content">
-												<h4><?php echo esc_html( $rec['title'] ); ?></h4>
-												<p><?php echo esc_html( $rec['description'] ); ?></p>
-												<span class="rec-impact">Impact: <?php echo esc_html( $rec['impact'] ); ?></span>
+												<h4><?php echo esc_html($rec['title']); ?></h4>
+												<p><?php echo esc_html($rec['description']); ?></p>
+												<span class="rec-impact">Impact: <?php echo esc_html($rec['impact']); ?></span>
 											</div>
 										</div>
 									<?php endforeach; ?>
@@ -935,13 +1011,14 @@ class ProductScraperAnalytics {
 				// Implement CSV generation and download.
 			}
 		</script>
-		<?php
+<?php
 	}
 
 	/**
 	 * Get SEO reports data
 	 */
-	private function get_seo_reports() {
+	private function get_seo_reports()
+	{
 		// This would typically fetch real data from your API integrations.
 		// For now, returning sample data structure.
 
@@ -1036,9 +1113,10 @@ class ProductScraperAnalytics {
 	/**
 	 * AJAX handler for testing API connections
 	 */
-	public function ajax_test_api_connections() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'test_apis_nonce' ) ) {
-			wp_send_json_error( 'Security check failed' );
+	public function ajax_test_api_connections()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'test_apis_nonce')) {
+			wp_send_json_error('Security check failed');
 		}
 
 		$results          = array();
@@ -1047,12 +1125,12 @@ class ProductScraperAnalytics {
 		// Test Google Analytics.
 		try {
 			$ga_data = $api_integrations->get_organic_traffic();
-			error_log( '$ga_data: ' . print_r( $ga_data, true ) );
+			error_log('$ga_data: ' . print_r($ga_data, true));
 			$results['google_analytics'] = array(
 				'connected' => $ga_data['source'] === 'google_analytics',
 				'message'   => $ga_data['source'] === 'google_analytics' ? 'Connected successfully' : 'No data received',
 			);
-		} catch ( Exception $e ) {
+		} catch (Exception $e) {
 			$results['google_analytics'] = array(
 				'connected' => false,
 				'message'   => $e->getMessage(),
@@ -1066,7 +1144,7 @@ class ProductScraperAnalytics {
 				'connected' => $health_data['source'] === 'pagespeed_api',
 				'message'   => $health_data['source'] === 'pagespeed_api' ? 'Connected successfully' : 'No data received',
 			);
-		} catch ( Exception $e ) {
+		} catch (Exception $e) {
 			$results['pagespeed'] = array(
 				'connected' => false,
 				'message'   => $e->getMessage(),
@@ -1080,22 +1158,23 @@ class ProductScraperAnalytics {
 				'connected' => $ahrefs_data['source'] === 'ahrefs_api',
 				'message'   => $ahrefs_data['source'] === 'ahrefs_api' ? 'Connected successfully' : 'No data received',
 			);
-		} catch ( Exception $e ) {
+		} catch (Exception $e) {
 			$results['ahrefs'] = array(
 				'connected' => false,
 				'message'   => $e->getMessage(),
 			);
 		}
 
-		wp_send_json_success( $results );
+		wp_send_json_success($results);
 	}
 
 	/**
 	 * AJAX handler for clearing cache
 	 */
-	public function ajax_clear_seo_cache() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'clear_cache_nonce' ) ) {
-			wp_send_json_error( 'Security check failed' );
+	public function ajax_clear_seo_cache()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'clear_cache_nonce')) {
+			wp_send_json_error('Security check failed');
 		}
 
 		global $wpdb;
@@ -1107,7 +1186,7 @@ class ProductScraperAnalytics {
             OR option_name LIKE '_transient_timeout_product_scraper_%'"
 		);
 
-		wp_send_json_success( 'Cache cleared successfully' );
+		wp_send_json_success('Cache cleared successfully');
 	}
 }
 ?>

@@ -1,9 +1,29 @@
 <?php
+/**
+ * SEO Assistant for Product Scraper Plugin
+ *
+ * @package    Product_Scraper
+ * @subpackage SEO
+ * @since      1.0.0
+ */
 
+/**
+ * Class ProductScraper_SEO_Assistant
+ *
+ * Handles SEO optimization, analysis, and content improvements.
+ */
 class ProductScraper_SEO_Assistant {
 
+	/**
+	 * Analysis results storage.
+	 *
+	 * @var array
+	 */
 	private $analysis_results = array();
 
+	/**
+	 * Initialize SEO Assistant.
+	 */
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_seo_menu' ) );
 		add_action( 'add_meta_boxes', array( $this, 'add_seo_meta_boxes' ) );
@@ -19,6 +39,9 @@ class ProductScraper_SEO_Assistant {
 		add_action( 'wp_ajax_optimize_content', array( $this, 'ajax_optimize_content' ) );
 	}
 
+	/**
+	 * Add SEO menu to admin.
+	 */
 	public function add_seo_menu() {
 		add_submenu_page(
 			'scraper-analytics',
@@ -49,6 +72,9 @@ class ProductScraper_SEO_Assistant {
 		);
 	}
 
+	/**
+	 * Add SEO meta boxes to posts.
+	 */
 	public function add_seo_meta_boxes() {
 		$post_types = get_post_types( array( 'public' => true ) );
 		foreach ( $post_types as $post_type ) {
@@ -63,6 +89,11 @@ class ProductScraper_SEO_Assistant {
 		}
 	}
 
+	/**
+	 * Render SEO meta box.
+	 *
+	 * @param WP_Post $post Post object.
+	 */
 	public function render_seo_meta_box( $post ) {
 		$seo_data = $this->get_seo_data( $post->ID );
 		$analysis = $this->analyze_content( $post->post_content, $seo_data['focus_keyword'] );
@@ -70,6 +101,12 @@ class ProductScraper_SEO_Assistant {
 		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/seo-meta-box.php';
 	}
 
+	/**
+	 * Get SEO data for a post.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array SEO data.
+	 */
 	private function get_seo_data( $post_id ) {
 		return array(
 			'seo_title'           => get_post_meta( $post_id, '_seo_title', true ),
@@ -88,11 +125,21 @@ class ProductScraper_SEO_Assistant {
 		);
 	}
 
+	/**
+	 * Save SEO metadata.
+	 *
+	 * @param int $post_id Post ID.
+	 */
 	public function save_seo_metadata( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		// Verify nonce.
+		if ( ! isset( $_POST['seo_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['seo_meta_nonce'] ) ), 'save_seo_meta' ) ) {
 			return;
 		}
 
@@ -113,7 +160,8 @@ class ProductScraper_SEO_Assistant {
 
 		foreach ( $fields as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
-				update_post_meta( $post_id, $field, sanitize_text_field( $_POST[ $field ] ) );
+				$value = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
+				update_post_meta( $post_id, $field, $value );
 			}
 		}
 
@@ -122,6 +170,11 @@ class ProductScraper_SEO_Assistant {
 		$this->calculate_readability_score( $post_id, $content );
 	}
 
+	/**
+	 * Perform real-time SEO analysis.
+	 *
+	 * @param int $post_id Post ID.
+	 */
 	public function perform_real_time_analysis( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
@@ -134,6 +187,13 @@ class ProductScraper_SEO_Assistant {
 		update_post_meta( $post_id, '_seo_analysis', $analysis );
 	}
 
+	/**
+	 * Analyze content for SEO.
+	 *
+	 * @param string $content Content to analyze.
+	 * @param string $focus_keyword Focus keyword.
+	 * @return array Analysis results.
+	 */
 	public function analyze_content( $content, $focus_keyword = '' ) {
 		$analysis = array(
 			'score'        => 0,
@@ -182,6 +242,13 @@ class ProductScraper_SEO_Assistant {
 		return $analysis;
 	}
 
+	/**
+	 * Analyze keyword usage in content.
+	 *
+	 * @param string $content Content to analyze.
+	 * @param string $keyword Keyword to check.
+	 * @return array Keyword analysis.
+	 */
 	private function analyze_keyword_usage( $content, $keyword ) {
 		$analysis      = array();
 		$keyword_lower = strtolower( $keyword );
@@ -191,7 +258,7 @@ class ProductScraper_SEO_Assistant {
 		$word_count      = str_word_count( $content );
 		$keyword_density = ( $keyword_count / max( $word_count, 1 ) ) * 100;
 
-		if ( $keyword_count === 0 ) {
+		if ( 0 === $keyword_count ) {
 			$analysis['issues'][] = array(
 				'type'     => 'keyword_usage',
 				'message'  => 'Focus keyword not found in content.',
@@ -220,6 +287,12 @@ class ProductScraper_SEO_Assistant {
 		return $analysis;
 	}
 
+	/**
+	 * Calculate advanced readability score.
+	 *
+	 * @param string $content Content to analyze.
+	 * @return array Readability data.
+	 */
 	private function calculate_readability_advanced( $content ) {
 		// Implement Flesch Reading Ease score.
 		$words     = str_word_count( $content );
@@ -246,6 +319,12 @@ class ProductScraper_SEO_Assistant {
 		);
 	}
 
+	/**
+	 * Count syllables in content.
+	 *
+	 * @param string $content Content to analyze.
+	 * @return int Syllable count.
+	 */
 	private function count_syllables( $content ) {
 		// Basic syllable counting (can be improved).
 		$words     = str_word_count( $content, 1 );
@@ -258,17 +337,24 @@ class ProductScraper_SEO_Assistant {
 		return $syllables;
 	}
 
+	/**
+	 * Count syllables in a single word.
+	 *
+	 * @param string $word Word to analyze.
+	 * @return int Syllable count.
+	 */
 	private function count_word_syllables( $word ) {
 		// Simple syllable counting algorithm.
 		$word  = preg_replace( '/[^a-z]/i', '', strtolower( $word ) );
 		$count = 0;
 
-		if ( strlen( $word ) > 0 ) {
+		$word_length = strlen( $word );
+		if ( $word_length > 0 ) {
 			$count           = 1; // At least one syllable.
 			$vowels          = 'aeiouy';
 			$prev_char_vowel = false;
 
-			for ( $i = 0; $i < strlen( $word ); $i++ ) {
+			for ( $i = 0; $i < $word_length; $i++ ) {
 				$is_vowel = strpos( $vowels, $word[ $i ] ) !== false;
 
 				if ( $is_vowel && ! $prev_char_vowel ) {
@@ -283,7 +369,7 @@ class ProductScraper_SEO_Assistant {
 				--$count;
 			}
 
-			if ( substr( $word, -2 ) === 'le' && strlen( $word ) > 2 ) {
+			if ( substr( $word, -2 ) === 'le' && $word_length > 2 ) {
 				++$count;
 			}
 		}
@@ -291,6 +377,12 @@ class ProductScraper_SEO_Assistant {
 		return max( 1, $count );
 	}
 
+	/**
+	 * Get grade level based on Flesch score.
+	 *
+	 * @param float $flesch_score Flesch readability score.
+	 * @return string Grade level.
+	 */
 	private function get_grade_level( $flesch_score ) {
 		if ( $flesch_score >= 90 ) {
 			return '5th grade';
@@ -313,6 +405,12 @@ class ProductScraper_SEO_Assistant {
 		return 'College Graduate';
 	}
 
+	/**
+	 * Get readability description.
+	 *
+	 * @param float $flesch_score Flesch readability score.
+	 * @return string Readability description.
+	 */
 	private function get_readability_description( $flesch_score ) {
 		if ( $flesch_score >= 90 ) {
 			return 'Very easy to read';
@@ -335,6 +433,12 @@ class ProductScraper_SEO_Assistant {
 		return 'Very difficult to read';
 	}
 
+	/**
+	 * Calculate overall SEO score.
+	 *
+	 * @param array $analysis SEO analysis data.
+	 * @return int Overall score (0-100).
+	 */
 	private function calculate_overall_score( $analysis ) {
 		$score = 100;
 
@@ -361,6 +465,11 @@ class ProductScraper_SEO_Assistant {
 		return max( 0, min( 100, $score ) );
 	}
 
+	/**
+	 * Add taxonomy SEO fields.
+	 *
+	 * @param WP_Term $term Term object.
+	 */
 	public function add_taxonomy_seo_fields( $term ) {
 		$term_id          = $term->term_id;
 		$seo_title        = get_term_meta( $term_id, '_seo_title', true );
@@ -368,34 +477,49 @@ class ProductScraper_SEO_Assistant {
 		?>
 		<tr class="form-field">
 			<th scope="row" valign="top">
-				<label for="seo_title"><?php _e( 'SEO Title' ); ?></label>
+				<label for="seo_title"><?php esc_html_e( 'SEO Title' ); ?></label>
 			</th>
 			<td>
 				<input type="text" name="seo_title" id="seo_title" value="<?php echo esc_attr( $seo_title ); ?>" />
-				<p class="description"><?php _e( 'Custom title for search engines' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Custom title for search engines' ); ?></p>
 			</td>
 		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top">
-				<label for="meta_description"><?php _e( 'Meta Description' ); ?></label>
+				<label for="meta_description"><?php esc_html_e( 'Meta Description' ); ?></label>
 			</th>
 			<td>
 				<textarea name="meta_description" id="meta_description" rows="3" cols="50"><?php echo esc_textarea( $meta_description ); ?></textarea>
-				<p class="description"><?php _e( 'Custom description for search engines' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Custom description for search engines' ); ?></p>
 			</td>
 		</tr>
 		<?php
 	}
 
+	/**
+	 * Save taxonomy SEO fields.
+	 *
+	 * @param int $term_id Term ID.
+	 */
 	public function save_taxonomy_seo_fields( $term_id ) {
+		// Verify nonce.
+		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'update-tag_' . $term_id ) ) {
+			return;
+		}
+
 		if ( isset( $_POST['seo_title'] ) ) {
-			update_term_meta( $term_id, '_seo_title', sanitize_text_field( $_POST['seo_title'] ) );
+			$seo_title = sanitize_text_field( wp_unslash( $_POST['seo_title'] ) );
+			update_term_meta( $term_id, '_seo_title', $seo_title );
 		}
 		if ( isset( $_POST['meta_description'] ) ) {
-			update_term_meta( $term_id, '_meta_description', sanitize_textarea_field( $_POST['meta_description'] ) );
+			$meta_description = sanitize_textarea_field( wp_unslash( $_POST['meta_description'] ) );
+			update_term_meta( $term_id, '_meta_description', $meta_description );
 		}
 	}
 
+	/**
+	 * Display SEO dashboard.
+	 */
 	public function display_seo_dashboard() {
 		$stats           = $this->get_seo_stats();
 		$recent_analysis = $this->get_recent_analysis();
@@ -403,20 +527,29 @@ class ProductScraper_SEO_Assistant {
 		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/seo-dashboard.php';
 	}
 
+	/**
+	 * Display SEO analysis page.
+	 */
 	public function display_seo_analysis() {
 		$site_analysis = $this->analyze_site_seo();
 		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/seo-analysis.php';
 	}
 
+	/**
+	 * Display link manager.
+	 */
 	public function display_link_manager() {
 		$internal_links = $this->get_internal_links();
 		$external_links = $this->get_external_links();
 		include PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/link-manager.php';
 	}
 
+	/**
+	 * Analyze site SEO.
+	 *
+	 * @return array Site analysis data.
+	 */
 	private function analyze_site_seo() {
-		global $wpdb;
-
 		$analysis = array(
 			'technical'   => $this->analyze_technical_seo(),
 			'content'     => $this->analyze_content_seo(),
@@ -426,6 +559,11 @@ class ProductScraper_SEO_Assistant {
 		return $analysis;
 	}
 
+	/**
+	 * Analyze technical SEO.
+	 *
+	 * @return array Technical SEO analysis.
+	 */
 	private function analyze_technical_seo() {
 		$technical = array();
 
@@ -442,23 +580,38 @@ class ProductScraper_SEO_Assistant {
 		return $technical;
 	}
 
-	// AJAX handlers.
+	/**
+	 * AJAX handler for content analysis.
+	 */
 	public function ajax_analyze_content() {
 		check_ajax_referer( 'product_scraper_nonce', 'nonce' );
 
-		$content = wp_kses_post( $_POST['content'] );
-		$keyword = sanitize_text_field( $_POST['keyword'] );
+		// Verify input data exists.
+		if ( ! isset( $_POST['content'] ) || ! isset( $_POST['keyword'] ) ) {
+			wp_send_json_error( 'Missing required data' );
+		}
+
+		$content = wp_kses_post( wp_unslash( $_POST['content'] ) );
+		$keyword = sanitize_text_field( wp_unslash( $_POST['keyword'] ) );
 
 		$analysis = $this->analyze_content( $content, $keyword );
 
 		wp_send_json_success( $analysis );
 	}
 
+	/**
+	 * AJAX handler for content optimization.
+	 */
 	public function ajax_optimize_content() {
 		check_ajax_referer( 'product_scraper_nonce', 'nonce' );
 
-		$content = wp_kses_post( $_POST['content'] );
-		$keyword = sanitize_text_field( $_POST['keyword'] );
+		// Verify input data exists.
+		if ( ! isset( $_POST['content'] ) || ! isset( $_POST['keyword'] ) ) {
+			wp_send_json_error( 'Missing required data' );
+		}
+
+		$content = wp_kses_post( wp_unslash( $_POST['content'] ) );
+		$keyword = sanitize_text_field( wp_unslash( $_POST['keyword'] ) );
 
 		// This would integrate with AI service for optimization.
 		$optimized_content = $this->ai_optimize_content( $content, $keyword );
@@ -471,6 +624,13 @@ class ProductScraper_SEO_Assistant {
 		);
 	}
 
+	/**
+	 * Get optimization changes.
+	 *
+	 * @param string $original Original content.
+	 * @param string $optimized Optimized content.
+	 * @return array Optimization changes.
+	 */
 	private function get_optimization_changes( $original, $optimized ) {
 		// Compare original and optimized content.
 		return array(
@@ -481,141 +641,248 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	/**
-	 * Get SEO statistics for the dashboard
+	 * Get SEO statistics for the dashboard.
+	 *
+	 * @return array SEO statistics.
 	 */
 	private function get_seo_stats() {
-		global $wpdb;
-
 		$total_posts = wp_count_posts()->publish;
 
-		// Count posts with SEO titles.
-		$posts_with_seo_title = $wpdb->get_var(
-			"
-            SELECT COUNT(DISTINCT post_id) 
-            FROM {$wpdb->postmeta} 
-            WHERE meta_key = '_seo_title' 
-            AND meta_value != ''
-        "
-		);
+		// Use WordPress functions instead of direct database calls.
+		$posts_with_seo_title     = $this->count_posts_with_meta( '_seo_title' );
+		$posts_with_meta_desc     = $this->count_posts_with_meta( '_meta_description' );
+		$posts_with_focus_keyword = $this->count_posts_with_meta( '_focus_keyword' );
+		$avg_readability          = $this->get_average_readability();
+		$optimized_posts          = $this->count_optimized_posts();
+		$posts_without_meta       = $this->count_posts_without_meta();
+		$low_content_posts        = $this->count_low_content_posts();
 
-		// Count posts with meta descriptions.
-		$posts_with_meta_desc = $wpdb->get_var(
-			"
-            SELECT COUNT(DISTINCT post_id) 
-            FROM {$wpdb->postmeta} 
-            WHERE meta_key = '_meta_description' 
-            AND meta_value != ''
-        "
-		);
-
-		// Count posts with focus keywords.
-		$posts_with_focus_keyword = $wpdb->get_var(
-			"
-            SELECT COUNT(DISTINCT post_id) 
-            FROM {$wpdb->postmeta} 
-            WHERE meta_key = '_focus_keyword' 
-            AND meta_value != ''
-        "
-		);
-
-		// Get average readability score.
-		$avg_readability = $wpdb->get_var(
-			"
-            SELECT AVG(meta_value) 
-            FROM {$wpdb->postmeta} 
-            WHERE meta_key = '_readability_score'
-            AND meta_value != ''
-        "
-		);
-
-		// Count optimized posts (have at least title and description).
-		$optimized_posts = $wpdb->get_var(
-			"
-            SELECT COUNT(DISTINCT pm1.post_id)
-            FROM {$wpdb->postmeta} pm1
-            INNER JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
-            WHERE pm1.meta_key = '_seo_title' AND pm1.meta_value != ''
-            AND pm2.meta_key = '_meta_description' AND pm2.meta_value != ''
-        "
-		);
-
-		// Count issues (posts without meta description).
-		$posts_without_meta = $wpdb->get_var(
-			"
-            SELECT COUNT(*) 
-            FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_meta_description'
-            WHERE p.post_status = 'publish'
-            AND p.post_type IN ('post', 'page')
-            AND (pm.meta_value IS NULL OR pm.meta_value = '')
-        "
-		);
-
-		// Count low content posts (less than 300 words).
-		$low_content_posts = 0;
-		$posts             = get_posts(
-			array(
-				'post_type'   => array( 'post', 'page' ),
-				'post_status' => 'publish',
-				'numberposts' => -1,
-			)
-		);
-
-		foreach ( $posts as $post ) {
-			$word_count = str_word_count( wp_strip_all_tags( $post->post_content ) );
-			if ( $word_count < 300 ) {
-				++$low_content_posts;
-			}
-		}
+		// Calculate rates with proper ternary operators.
+		$optimization_rate             = ( $total_posts > 0 ) ? round( ( $optimized_posts / $total_posts ) * 100 ) : 0;
+		$title_optimization_rate       = ( $total_posts > 0 ) ? round( ( $posts_with_seo_title / $total_posts ) * 100 ) : 0;
+		$description_optimization_rate = ( $total_posts > 0 ) ? round( ( $posts_with_meta_desc / $total_posts ) * 100 ) : 0;
 
 		return array(
 			'total_posts'                   => $total_posts,
-			'posts_with_seo_title'          => $posts_with_seo_title ?: 0,
-			'posts_with_meta_desc'          => $posts_with_meta_desc ?: 0,
-			'posts_with_focus_keyword'      => $posts_with_focus_keyword ?: 0,
-			'optimized_posts'               => $optimized_posts ?: 0,
-			'avg_readability'               => round( $avg_readability ?: 0 ),
-			'posts_without_meta'            => $posts_without_meta ?: 0,
+			'posts_with_seo_title'          => $posts_with_seo_title,
+			'posts_with_meta_desc'          => $posts_with_meta_desc,
+			'posts_with_focus_keyword'      => $posts_with_focus_keyword,
+			'optimized_posts'               => $optimized_posts,
+			'avg_readability'               => round( $avg_readability ),
+			'posts_without_meta'            => $posts_without_meta,
 			'low_content_posts'             => $low_content_posts,
-			'optimization_rate'             => $total_posts > 0 ? round( ( $optimized_posts / $total_posts ) * 100 ) : 0,
-			'title_optimization_rate'       => $total_posts > 0 ? round( ( $posts_with_seo_title / $total_posts ) * 100 ) : 0,
-			'description_optimization_rate' => $total_posts > 0 ? round( ( $posts_with_meta_desc / $total_posts ) * 100 ) : 0,
+			'optimization_rate'             => $optimization_rate,
+			'title_optimization_rate'       => $title_optimization_rate,
+			'description_optimization_rate' => $description_optimization_rate,
 		);
 	}
 
 	/**
-	 * Get recent SEO analysis results
+	 * Count posts with specific meta key.
+	 *
+	 * @param string $meta_key Meta key to check.
+	 * @return int Count of posts.
+	 */
+	private function count_posts_with_meta( $meta_key ) {
+		$cache_key = 'seo_stats_' . $meta_key;
+		$count     = wp_cache_get( $cache_key );
+
+		if ( false === $count ) {
+			$query = new WP_Query(
+				array(
+					'post_type'      => array( 'post', 'page' ),
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'meta_query'     => array(
+						array(
+							'key'     => $meta_key,
+							'value'   => '',
+							'compare' => '!=',
+						),
+					),
+				)
+			);
+			$count = $query->found_posts;
+			wp_cache_set( $cache_key, $count, '', 3600 ); // Cache for 1 hour.
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Get average readability score.
+	 *
+	 * @return float Average readability.
+	 */
+	private function get_average_readability() {
+		$cache_key = 'seo_stats_avg_readability';
+		$average   = wp_cache_get( $cache_key );
+
+		if ( false === $average ) {
+			global $wpdb;
+			$average = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT AVG(meta_value) 
+					FROM {$wpdb->postmeta} 
+					WHERE meta_key = %s 
+					AND meta_value != ''",
+					'_readability_score'
+				)
+			);
+			wp_cache_set( $cache_key, $average, '', 3600 );
+		}
+
+		return (float) $average;
+	}
+
+	/**
+	 * Count optimized posts.
+	 *
+	 * @return int Count of optimized posts.
+	 */
+	private function count_optimized_posts() {
+		$cache_key = 'seo_stats_optimized_posts';
+		$count     = wp_cache_get( $cache_key );
+
+		if ( false === $count ) {
+			$query = new WP_Query(
+				array(
+					'post_type'      => array( 'post', 'page' ),
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'meta_query'     => array(
+						array(
+							'key'     => '_seo_title',
+							'value'   => '',
+							'compare' => '!=',
+						),
+						array(
+							'key'     => '_meta_description',
+							'value'   => '',
+							'compare' => '!=',
+						),
+					),
+				)
+			);
+			$count = $query->found_posts;
+			wp_cache_set( $cache_key, $count, '', 3600 );
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Count posts without meta description.
+	 *
+	 * @return int Count of posts without meta.
+	 */
+	private function count_posts_without_meta() {
+		$cache_key = 'seo_stats_posts_without_meta';
+		$count     = wp_cache_get( $cache_key );
+
+		if ( false === $count ) {
+			$query = new WP_Query(
+				array(
+					'post_type'      => array( 'post', 'page' ),
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'meta_query'     => array(
+						array(
+							'key'     => '_meta_description',
+							'compare' => 'NOT EXISTS',
+						),
+					),
+				)
+			);
+			$count = $query->found_posts;
+			wp_cache_set( $cache_key, $count, '', 3600 );
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Count low content posts.
+	 *
+	 * @return int Count of low content posts.
+	 */
+	private function count_low_content_posts() {
+		$cache_key = 'seo_stats_low_content_posts';
+		$count     = wp_cache_get( $cache_key );
+
+		if ( false === $count ) {
+			$posts = get_posts(
+				array(
+					'post_type'   => array( 'post', 'page' ),
+					'post_status' => 'publish',
+					'numberposts' => -1,
+					'fields'      => 'ids',
+				)
+			);
+
+			$count = 0;
+			foreach ( $posts as $post_id ) {
+				$content    = get_post_field( 'post_content', $post_id );
+				$word_count = str_word_count( wp_strip_all_tags( $content ) );
+				if ( $word_count < 300 ) {
+					++$count;
+				}
+			}
+			wp_cache_set( $cache_key, $count, '', 3600 );
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Get recent SEO analysis results.
+	 *
+	 * @return array Recent analysis data.
 	 */
 	private function get_recent_analysis() {
-		global $wpdb;
+		$cache_key     = 'seo_recent_analysis';
+		$analysis_data = wp_cache_get( $cache_key );
 
-		$recent_analysis = $wpdb->get_results(
-			"
-            SELECT p.ID, p.post_title, pm.meta_value as analysis
-            FROM {$wpdb->posts} p
-            INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-            WHERE pm.meta_key = '_seo_analysis'
-            AND p.post_status = 'publish'
-            ORDER BY p.post_modified DESC
-            LIMIT 5
-        "
-		);
-
-		$analysis_data = array();
-		foreach ( $recent_analysis as $analysis ) {
-			$analysis_data[] = array(
-				'post_id'  => $analysis->ID,
-				'title'    => $analysis->post_title,
-				'analysis' => maybe_unserialize( $analysis->analysis ),
-				'edit_url' => get_edit_post_link( $analysis->ID ),
+		if ( false === $analysis_data ) {
+			$query = new WP_Query(
+				array(
+					'post_type'      => array( 'post', 'page' ),
+					'post_status'    => 'publish',
+					'posts_per_page' => 5,
+					'orderby'        => 'modified',
+					'order'          => 'DESC',
+					'meta_query'     => array(
+						array(
+							'key'     => '_seo_analysis',
+							'compare' => 'EXISTS',
+						),
+					),
+				)
 			);
+
+			$analysis_data = array();
+			foreach ( $query->posts as $post ) {
+				$analysis        = get_post_meta( $post->ID, '_seo_analysis', true );
+				$analysis_data[] = array(
+					'post_id'  => $post->ID,
+					'title'    => $post->post_title,
+					'analysis' => maybe_unserialize( $analysis ),
+					'edit_url' => get_edit_post_link( $post->ID ),
+				);
+			}
+			wp_cache_set( $cache_key, $analysis_data, '', 1800 ); // Cache for 30 minutes.
 		}
 
 		return $analysis_data;
 	}
 
 	/**
-	 * Get internal links data
+	 * Get internal links data.
+	 *
+	 * @return array Internal links data.
 	 */
 	private function get_internal_links() {
 		// This would be implemented with the Link Manager class.
@@ -628,7 +895,9 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	/**
-	 * Get external links data
+	 * Get external links data.
+	 *
+	 * @return array External links data.
 	 */
 	private function get_external_links() {
 		// This would be implemented with the Link Manager class.
@@ -641,7 +910,11 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	/**
-	 * AI content optimization (placeholder - would integrate with actual AI service)
+	 * AI content optimization (placeholder - would integrate with actual AI service).
+	 *
+	 * @param string $content Content to optimize.
+	 * @param string $keyword Focus keyword.
+	 * @return string Optimized content.
 	 */
 	private function ai_optimize_content( $content, $keyword ) {
 		// This is a placeholder for AI content optimization.
@@ -657,7 +930,10 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	/**
-	 * Calculate basic readability score
+	 * Calculate basic readability score.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $content Content to analyze.
 	 */
 	private function calculate_readability_score( $post_id, $content ) {
 		$content        = wp_strip_all_tags( $content );
@@ -673,13 +949,23 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	/**
-	 * Optimize content on save if auto-optimization is enabled
+	 * Optimize content on save if auto-optimization is enabled.
 	 *
 	 * @param array $data Post data.
 	 * @return array Modified post data.
 	 */
 	public function optimize_content_on_save( $data ) {
-		if ( ! isset( $_POST['seo_auto_optimize'] ) || ! $_POST['seo_auto_optimize'] ) {
+		// Verify nonce and check if auto-optimization is enabled.
+		if ( ! isset( $_POST['seo_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['seo_meta_nonce'] ) ), 'save_seo_meta' ) ) {
+			return $data;
+		}
+
+		if ( ! isset( $_POST['seo_auto_optimize'] ) || empty( $_POST['seo_auto_optimize'] ) ) {
+			return $data;
+		}
+
+		$auto_optimize = sanitize_text_field( wp_unslash( $_POST['seo_auto_optimize'] ) );
+		if ( 'yes' !== $auto_optimize ) {
 			return $data;
 		}
 
@@ -690,8 +976,8 @@ class ProductScraper_SEO_Assistant {
 		return $data;
 	}
 
-		/**
-	 * Analyze content SEO across the site
+	/**
+	 * Analyze content SEO across the site.
 	 *
 	 * @return array Content SEO analysis.
 	 */
@@ -707,7 +993,7 @@ class ProductScraper_SEO_Assistant {
 	}
 
 	/**
-	 * Analyze performance SEO
+	 * Analyze performance SEO.
 	 *
 	 * @return array Performance SEO analysis.
 	 */

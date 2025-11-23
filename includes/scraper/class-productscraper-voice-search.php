@@ -286,7 +286,7 @@ class ProductScraper_Voice_Search {
 	private function calculate_question_optimization_score( $detected_questions, $suggested_questions ) {
 
 		unset( $suggested_questions ); // Parameter not used in this implementation.
-				
+
 		$total_detected = 0;
 		foreach ( $detected_questions as $type_questions ) {
 			$total_detected += count( $type_questions );
