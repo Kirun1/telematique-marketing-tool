@@ -30,7 +30,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-scraper.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/admin/class-admin.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-woocommerceproductimporter.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-data-storage.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-analytics-dashboard.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-productscraperanalytics.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-assistant.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-content-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-keyword-research.php';
