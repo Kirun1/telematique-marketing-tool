@@ -136,16 +136,16 @@ class ProductScraper {
 	 * Bootstrap plugin services and hooks.
 	 */
 	public function __construct() {
-		$this->storage           	= new ProductScraperDataStorage();
-		$this->analytics         	= new ProductScraperAnalytics();
-		$this->seo_assistant     	= new ProductScraper_SEO_Assistant();
-		$this->content_optimizer 	= new ProductScraper_Content_Optimizer();
-		$this->keyword_research  	= new ProductScraper_Keyword_Research();
-		$this->api_integrations  	= new ProductScraper_API_Integrations();
-		$this->seo_analysis      	= new ProductScraper_SEO_Analysis();
-		$this->link_manager      	= new ProductScraper_Link_Manager();
-		$this->robots_manager    	= new ProductScraper_Robots_Txt();
-		$this->chart_manager		= new ProductScraper_Chart_Manager();
+		$this->storage           = new ProductScraperDataStorage();
+		$this->analytics         = new ProductScraperAnalytics();
+		$this->seo_assistant     = new ProductScraper_SEO_Assistant();
+		$this->content_optimizer = new ProductScraper_Content_Optimizer();
+		$this->keyword_research  = new ProductScraper_Keyword_Research();
+		$this->api_integrations  = new ProductScraper_API_Integrations();
+		$this->seo_analysis      = new ProductScraper_SEO_Analysis();
+		$this->link_manager      = new ProductScraper_Link_Manager();
+		$this->robots_manager    = new ProductScraper_Robots_Txt();
+		$this->chart_manager     = new ProductScraper_Chart_Manager();
 
 		// Core SEO hooks.
 		add_action( 'init', array( $this, 'init' ) );
@@ -897,7 +897,7 @@ class ProductScraper {
 			wp_enqueue_script(
 				'product-scraper-charts-js',
 				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/js/product-scraper-charts.js',
-				array('jquery', 'chart-js', 'product-scraper-seo-admin-js'),
+				array( 'jquery', 'chart-js', 'product-scraper-seo-admin-js' ),
 				PRODUCT_SCRAPER_VERSION,
 				true
 			);
