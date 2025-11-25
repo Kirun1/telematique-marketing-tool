@@ -49,7 +49,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-competitor-
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/ai/class-ai-title-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/ai/class-ai-content-writer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/helpers/class-advanced-sitemap.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-api-integrations.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-productscraper-api-integrations.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-analysis.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/helpers/class-link-manager.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-robots-txt.php';
