@@ -407,18 +407,6 @@ class ProductScraperAnalytics {
 								</tbody>
 							</table>
 						</div>
-
-						<!-- Additional Metrics -->
-						<div class="sa-metrics-grid">
-							<div class="metric-card">
-								<h4>Visit Duration</h4>
-								<div class="metric-value">90K <span class="positive">+12%</span></div>
-							</div>
-							<div class="metric-card">
-								<h4>Page View</h4>
-								<div class="metric-value">170K <span class="positive">+6%</span></div>
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>
