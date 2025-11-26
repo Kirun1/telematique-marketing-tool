@@ -1,4 +1,7 @@
 jQuery(document).ready(function($) {
+
+    lucide.createIcons();
+
     // Content Analysis.
     $('#analyze-content').on('click', function() {
         const content = $('#content-to-analyze').val();

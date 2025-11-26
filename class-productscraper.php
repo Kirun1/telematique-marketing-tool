@@ -876,6 +876,15 @@ class ProductScraper {
 		$is_tax_edit    = in_array( $hook, array( 'edit-tags.php', 'term.php' ), true );
 
 		if ( $is_plugin_page || $is_post_edit || $is_tax_edit ) {
+			// Enqueue lucide for icons.
+			wp_enqueue_script(
+				'lucide-js',
+				'https://unpkg.com/lucide@latest',
+				array('jquery'),
+				PRODUCT_SCRAPER_VERSION,
+				true
+			);
+
 			// Enqueue Chart.js for analytics.
 			wp_enqueue_script(
 				'chart-js',
@@ -905,6 +914,13 @@ class ProductScraper {
 			wp_enqueue_style(
 				'product-scraper-charts-css',
 				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/css/chart.css',
+				array(),
+				PRODUCT_SCRAPER_VERSION
+			);
+
+			wp_enqueue_style(
+				'tailwindcss-css',
+				PRODUCT_SCRAPER_PLUGIN_URL . 'src/output.css',
 				array(),
 				PRODUCT_SCRAPER_VERSION
 			);
