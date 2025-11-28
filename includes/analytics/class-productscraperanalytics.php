@@ -206,12 +206,12 @@ class ProductScraperAnalytics
 
 							<!-- Stats Grid -->
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								<div class="rounded-xl border bg-card text-card-foreground shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
-											<p class="text-sm font-medium text-muted-foreground mb-1">Organic Traffic</p>
-											<p class="text-2xl font-bold tracking-tight mb-1"><?php echo number_format($stats['organic_traffic']); ?></p>
-											<p class="text-xs font-medium text-green-600">+<?php echo number_format($stats['traffic_target']); ?> from last month</p>
+											<div class="text-sm font-medium text-gray-500 mb-1">Organic Traffic</div>
+											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo number_format($stats['organic_traffic']); ?></div>
+											<div class="text-xs font-medium text-green-600">+<?php echo number_format($stats['traffic_target']); ?> from last month</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
 											<i data-lucide="trending-up" class="lucide-icon"></i>
@@ -219,138 +219,109 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="sa-stat-card">
-									<div class="stat-header">
-										<h3><span class="dashicons dashicons-external"></span> &nbsp; Referring Domains</h3>
-										<?php // echo $this->format_percentage_change( $stats['referring_domains_change'] ); 
-										?>
-										<span class="lucide-icon p-3 rounded-xl bg-gradient-to-br from-secondary to-accent text-blue-500">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="flex items-start justify-between">
+										<div class="flex-1">
+											<div class="text-sm font-medium text-gray-500 mb-1">Referring Domains</div>
+											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo number_format($stats['referring_domains']); ?></div>
+											<div class="text-xs font-medium text-green-600">+<?php echo $this->format_percentage_change($stats['referring_domains_change']); ?> from last month</div>
+										</div>
+										<div class="p-3 rounded-xl bg-blue-500/10 text-green-500">
 											<i data-lucide="link-2" class=""></i>
-										</span>
-									</div>
-									<div class="stat-main">
-										<span class="stat-number"><?php echo number_format($stats['referring_domains']); ?></span>
-									</div>
-									<div class="stat-target">
-										+<?php echo $this->format_percentage_change($stats['referring_domains_change']); ?> from last month
-										<?php // echo $this->generate_weekly_trend_html( $stats['weekly_trend'] ); 
-										?>
+										</div>
 									</div>
 								</div>
 
-								<div class="sa-stat-card">
-									<div class="stat-header">
-										<h3><span class="dashicons dashicons-cart"></span> &nbsp; Digital Score</h3>
-										<?php // echo $this->format_percentage_change($stats['digital_score_change']); 
-										?>
-										<span class="lucide-icon">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="flex items-start justify-between">
+										<div class="flex-1">
+											<div class="text-sm font-medium text-gray-500 mb-1">Digital Score</div>
+											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($stats['digital_score']); ?>%</div>
+											<div class="text-xs font-medium text-green-600">+<?php echo $this->format_percentage_change($stats['digital_score_change']); ?> from last month</div>
+										</div>
+										<div class="p-3 rounded-xl bg-blue-500/10 text-violet-500">
 											<i data-lucide="target" class=""></i>
-										</span>
-									</div>
-									<div class="stat-main">
-										<span class="score"><?php echo esc_html($stats['digital_score']); ?>%</span>
-										<!-- <div class="score-circle" style="--score: <?php // echo esc_attr($stats['digital_score']); 
-																						?>%">
-									</div> -->
-									</div>
-									<div class="score-status">
-										+<?php echo $this->format_percentage_change($stats['digital_score_change']); ?> from last month
-										<!-- <span class="status-text"><?php echo $this->get_score_status($stats['digital_score']); ?></span> -->
-										<!-- <button class="sa-btn-link">See Details →</button> -->
+										</div>
 									</div>
 								</div>
-							</div>
 
-							<!-- Additional engagement metrics -->
-							<div class="sa-stats-grid" style="margin-top: 20px;">
-								<div class="sa-stat-card">
-									<div class="stat-header">
-										<h3><span class="dashicons dashicons-clock"></span> &nbsp; Avg. Visit Duration</h3>
-										<?php
-										// $duration_change = $stats['engagement']['visit_duration_change'] ?? 0;
-										// echo $this->format_percentage_change($duration_change);
-										?>
-										<span class="lucide-icon">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="flex items-start justify-between">
+										<div class="flex-1">
+											<div class="text-sm font-medium text-gray-500 mb-1">Avg. Visit Duration</div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php
+												$duration = $stats['engagement']['visit_duration'] ?? 0;
+												echo $this->format_duration($duration);
+												?>
+											</div>
+											<div class="text-xs font-medium text-red-600">
+												-<?php
+												$duration_change = $stats['engagement']['visit_duration_change'] ?? 0;
+												echo $this->format_percentage_change($duration_change);
+												?> from last month
+											</div>
+										</div>
+										<div class="p-3 rounded-xl bg-blue-500/10 text-teal-500">
 											<i data-lucide="clock" class=""></i>
-										</span>
-									</div>
-									<div class="stat-main">
-										<span class="stat-number">
-											<?php
-											$duration = $stats['engagement']['visit_duration'] ?? 0;
-											echo $this->format_duration($duration);
-											?>
-										</span>
-									</div>
-									<div class="stat-subtitle">
-										-<?php
-											$duration_change = $stats['engagement']['visit_duration_change'] ?? 0;
-											echo $this->format_percentage_change($duration_change);
-											?> from last month
+										</div>
 									</div>
 								</div>
 
-								<div class="sa-stat-card">
-									<div class="stat-header">
-										<h3><span class="dashicons dashicons-visibility"></span> &nbsp; Page Views</h3>
-										<?php
-										// $pageviews_change = $stats['engagement']['page_views_change'] ?? 0;
-										// echo $this->format_percentage_change($pageviews_change);
-										?>
-										<span class="lucide-icon">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="flex items-start justify-between">
+										<div class="flex-1">
+											<div class="text-sm font-medium text-gray-500 mb-1">Page Views</div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php
+												$pageviews = $stats['engagement']['page_views'] ?? 0;
+												echo $this->format_large_number($pageviews);
+												?>
+											</div>
+											<div class="text-xs font-medium text-red-600">
+												-<?php
+												$pageviews_change = $stats['engagement']['page_views_change'] ?? 0;
+												echo $this->format_percentage_change($pageviews_change);
+												?> from last month
+											</div>
+										</div>
+										<div class="p-3 rounded-xl bg-blue-500/10 text-orange-500">
 											<i data-lucide="eye" class=""></i>
-										</span>
-									</div>
-									<div class="stat-main">
-										<span class="stat-number">
-											<?php
-											$pageviews = $stats['engagement']['page_views'] ?? 0;
-											echo $this->format_large_number($pageviews);
-											?>
-										</span>
-									</div>
-									<div class="stat-subtitle">
-										-<?php
-											$pageviews_change = $stats['engagement']['page_views_change'] ?? 0;
-											echo $this->format_percentage_change($pageviews_change);
-											?> from last month
+										</div>
 									</div>
 								</div>
 
-								<div class="sa-stat-card">
-									<div class="stat-header">
-										<h3><span class="dashicons dashicons-chart-bar"></span> &nbsp; Bounce Rate</h3>
-
-										<span class="lucide-icon">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="flex items-start justify-between">
+										<div class="flex-1">
+											<div class="text-sm font-medium text-gray-500 mb-1">Bounce Rate</div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php
+													$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
+													$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
+													// For bounce rate, negative change is good
+													$bounce_display_change = -$bounce_change;
+													echo number_format($bounce_rate, 1); ?>%
+											</div>
+											<div class="text-xs font-medium text-red-600">
+												+<?php
+												$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
+												$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
+												// For bounce rate, negative change is good
+												$bounce_display_change = -$bounce_change;
+												echo $this->format_percentage_change($bounce_display_change);
+												?> from last month
+											</div>
+										</div>
+										<div class="p-3 rounded-xl bg-blue-500/10 text-green-500">
 											<i data-lucide="mouse-pointer-click" class=""></i>
-										</span>
-									</div>
-									<div class="stat-main">
-										<?php
-										$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
-										$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
-										// For bounce rate, negative change is good
-										$bounce_display_change = -$bounce_change;
-										// echo $this->format_percentage_change($bounce_display_change);
-										?>
-										<span class="stat-number <?php echo $bounce_rate < 40 ? 'positive' : ($bounce_rate < 70 ? 'neutral' : 'negative'); ?>">
-											<?php echo number_format($bounce_rate, 1); ?>%
-										</span>
-									</div>
-									<div class="stat-subtitle">
-										+<?php
-											$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
-											$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
-											// For bounce rate, negative change is good
-											$bounce_display_change = -$bounce_change;
-											echo $this->format_percentage_change($bounce_display_change);
-											?> from last month
+										</div>
 									</div>
 								</div>
 							</div>
 
 							<!-- CHARTS SECTION -->
-							<div class="sa-charts-grid">
+							<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
 								<!-- Traffic Chart -->
 								<div class="sa-chart-card">
 									<div class="chart-header">
