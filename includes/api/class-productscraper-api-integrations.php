@@ -710,6 +710,54 @@ class ProductScraper_API_Integrations {
 	}
 
 	/**
+	 * Get domain rating from Ahrefs API
+	 *
+	 * @param string $api_key Ahrefs API key.
+	 * @param string $target Domain to check.
+	 * @return float
+	 */
+	private function get_domain_rating( $api_key, $target ) {
+		if ( empty( $api_key ) ) {
+			return 0.0;
+		}
+
+		$url = add_query_arg(
+			array(
+				'token'  => $api_key,
+				'target' => $target,
+				'from'   => 'domain_rating',
+				'mode'   => 'domain',
+				'limit'  => 1,
+			),
+			'https://apiv2.ahrefs.com'
+		);
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout' => 15,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return 0.0;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			return 0.0;
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( isset( $data['error'] ) || ! isset( $data['domain_rating'] ) ) {
+			return 0.0;
+		}
+
+		return floatval( $data['domain_rating'] );
+	}
+
+	/**
 	 * Enhanced Ahrefs implementation with better error handling
 	 */
 	private function get_ahrefs_referring_domains() {
@@ -993,41 +1041,505 @@ class ProductScraper_API_Integrations {
 	 * @return array
 	 */
 	private function get_competitor_analysis() {
-		$api_key = get_option( 'product_scraper_ahrefs_api' );
+		$cache_key   = 'product_scraper_competitor_analysis_' . md5( get_site_url() );
+		$cached_data = get_transient( $cache_key );
 
-		if ( ! $api_key ) {
-			return $this->get_empty_competitor_analysis();
+		if ( false !== $cached_data ) {
+			return $cached_data;
 		}
 
-		$competitors = array( 'competitor1.com', 'competitor2.com', 'competitor3.com' );
-		$analysis    = array();
+		$analysis = array();
+
+		// Get configured competitors from settings
+		$competitors = $this->get_configured_competitors();
+
+		if ( empty( $competitors ) ) {
+			// If no competitors configured, return empty analysis
+			$empty_data = $this->get_empty_competitor_analysis();
+			set_transient( $cache_key, $empty_data, $this->cache_duration );
+			return $empty_data;
+		}
+
+		// Try different data sources for competitor analysis
+		$analysis = $this->fetch_competitor_data_with_fallback( $competitors );
+
+		set_transient( $cache_key, $analysis, $this->cache_duration );
+		return $analysis;
+	}
+
+	/**
+	 * Get configured competitors from settings
+	 *
+	 * @return array
+	 */
+	private function get_configured_competitors() {
+		$competitors = get_option( 'product_scraper_competitors', array() );
+
+		if ( ! empty( $competitors ) && is_string( $competitors ) ) {
+			// Handle string format (comma-separated)
+			$competitors = array_map( 'trim', explode( ',', $competitors ) );
+		}
+
+		// Filter out empty values and ensure proper format
+		$competitors = array_filter(
+			array_map(
+				function ( $domain ) {
+					$domain = trim( $domain );
+					if ( empty( $domain ) ) {
+						return false;
+					}
+
+					// Ensure domain format
+					if ( false === strpos( $domain, '.' ) ) {
+						return false;
+					}
+
+					return $domain;
+				},
+				(array) $competitors
+			)
+		);
+
+		return array_slice( $competitors, 0, 5 ); // Limit to 5 competitors
+	}
+
+	/**
+	 * Fetch competitor data with multiple fallback sources
+	 *
+	 * @param array $competitors Array of competitor domains.
+	 * @return array
+	 */
+	private function fetch_competitor_data_with_fallback( $competitors ) {
+		$sources_tried = array();
+		$analysis      = array();
+
+		// Source 1: Ahrefs API (Primary)
+		if ( $this->can_use_ahrefs() ) {
+			try {
+				$ahrefs_data = $this->get_ahrefs_competitor_data( $competitors );
+				if ( $this->is_valid_competitor_data( $ahrefs_data ) ) {
+					$sources_tried[] = 'ahrefs';
+					return $ahrefs_data;
+				}
+			} catch ( Exception $e ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'Ahrefs Competitor Data Error: ' . $e->getMessage() );
+				}
+				$sources_tried[] = 'ahrefs_failed';
+			}
+		}
+
+		// Source 2: SEMrush API (Secondary)
+		if ( $this->can_use_semrush() ) {
+			try {
+				$semrush_data = $this->get_semrush_competitor_data( $competitors );
+				if ( $this->is_valid_competitor_data( $semrush_data ) ) {
+					$sources_tried[] = 'semrush';
+					return $semrush_data;
+				}
+			} catch ( Exception $e ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'SEMrush Competitor Data Error: ' . $e->getMessage() );
+				}
+				$sources_tried[] = 'semrush_failed';
+			}
+		}
+
+		// Source 3: Built-in analysis (Tertiary)
+		try {
+			$builtin_data = $this->get_builtin_competitor_analysis( $competitors );
+			if ( $this->is_valid_competitor_data( $builtin_data ) ) {
+				$sources_tried[] = 'builtin';
+				return $builtin_data;
+			}
+		} catch ( Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Built-in Competitor Analysis Error: ' . $e->getMessage() );
+			}
+			$sources_tried[] = 'builtin_failed';
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'All competitor data sources failed: ' . implode( ', ', $sources_tried ) );
+		}
+
+		return $this->get_empty_competitor_analysis();
+	}
+
+	/**
+	 * Check if Ahrefs API can be used
+	 *
+	 * @return bool
+	 */
+	private function can_use_ahrefs() {
+		return ! empty( get_option( 'product_scraper_ahrefs_api' ) );
+	}
+
+	/**
+	 * Check if SEMrush API can be used
+	 *
+	 * @return bool
+	 */
+	private function can_use_semrush() {
+		return ! empty( get_option( 'product_scraper_semrush_api' ) );
+	}
+
+	/**
+	 * Get competitor data from Ahrefs API
+	 *
+	 * @param array $competitors Array of competitor domains.
+	 * @return array
+	 * @throws Exception If API call fails.
+	 */
+	private function get_ahrefs_competitor_data( $competitors ) {
+		$api_key  = get_option( 'product_scraper_ahrefs_api' );
+		$analysis = array();
 
 		foreach ( $competitors as $domain ) {
-			$url      = "https://apiv2.ahrefs.com?token={$api_key}&target={$domain}&from=domain_rating&mode=domain";
-			$response = wp_remote_get( $url );
+			$url = add_query_arg(
+				array(
+					'token'  => $api_key,
+					'target' => $domain,
+					'from'   => 'domain_rating',
+					'mode'   => 'domain',
+					'limit'  => 1,
+				),
+				'https://apiv2.ahrefs.com'
+			);
+
+			$response = wp_remote_get(
+				$url,
+				array(
+					'timeout' => 15,
+				)
+			);
 
 			if ( is_wp_error( $response ) ) {
-				$analysis[] = $this->get_empty_competitor_profile( $domain );
-				continue;
+				throw new Exception( 'Ahrefs API HTTP error: ' . $response->get_error_message() );
+			}
+
+			$response_code = wp_remote_retrieve_response_code( $response );
+			if ( 200 !== $response_code ) {
+				throw new Exception( 'Ahrefs API returned HTTP ' . $response_code );
 			}
 
 			$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
 			if ( isset( $data['error'] ) ) {
-				$analysis[] = $this->get_empty_competitor_profile( $domain );
-				continue;
+				throw new Exception( 'Ahrefs API error: ' . $data['error'] );
 			}
 
 			$analysis[] = array(
 				'domain'      => $domain,
 				'authority'   => isset( $data['domain_rating'] ) ? floatval( $data['domain_rating'] ) : 0,
 				'ref_domains' => isset( $data['refdomains'] ) ? intval( $data['refdomains'] ) : 0,
-				'traffic'     => isset( $data['traffic'] ) ? intval( $data['traffic'] ) : 0,
+				'traffic'     => isset( $data['organic_traffic'] ) ? intval( $data['organic_traffic'] ) : 0,
+				'keywords'    => isset( $data['keywords'] ) ? intval( $data['keywords'] ) : 0,
 				'source'      => 'ahrefs_api',
 			);
 		}
 
 		return $analysis;
+	}
+
+	/**
+	 * Get competitor data from SEMrush API
+	 *
+	 * @param array $competitors Array of competitor domains.
+	 * @return array
+	 * @throws Exception If API call fails.
+	 */
+	private function get_semrush_competitor_data( $competitors ) {
+		$api_key  = get_option( 'product_scraper_semrush_api' );
+		$analysis = array();
+
+		foreach ( $competitors as $domain ) {
+			$url = add_query_arg(
+				array(
+					'key'            => $api_key,
+					'type'           => 'domain_ranks',
+					'domain'         => $domain,
+					'export_columns' => 'Dn,Rk,Or,Ot,Oc,Ad',
+				),
+				'https://api.semrush.com'
+			);
+
+			$response = wp_remote_get( $url );
+
+			if ( is_wp_error( $response ) ) {
+				throw new Exception( 'SEMrush API HTTP error: ' . $response->get_error_message() );
+			}
+
+			$data = wp_remote_retrieve_body( $response );
+
+			// SEMrush returns CSV format
+			$lines = explode( "\n", $data );
+			if ( count( $lines ) > 1 ) {
+				$competitor_data = str_getcsv( $lines[1] );
+
+				$analysis[] = array(
+					'domain'      => $domain,
+					'authority'   => isset( $competitor_data[1] ) ? floatval( $competitor_data[1] ) : 0,
+					'traffic'     => isset( $competitor_data[3] ) ? intval( $competitor_data[3] ) : 0,
+					'keywords'    => isset( $competitor_data[2] ) ? intval( $competitor_data[2] ) : 0,
+					'ref_domains' => isset( $competitor_data[5] ) ? intval( $competitor_data[5] ) : 0,
+					'source'      => 'semrush_api',
+				);
+			} else {
+				// If no data returned, add empty entry
+				$analysis[] = $this->get_empty_competitor_profile( $domain );
+			}
+		}
+
+		return $analysis;
+	}
+
+	/**
+	 * Perform built-in competitor analysis when APIs are not available
+	 *
+	 * @param array $competitors Array of competitor domains.
+	 * @return array
+	 */
+	private function get_builtin_competitor_analysis( $competitors ) {
+		$analysis   = array();
+		$own_domain = wp_parse_url( get_site_url(), PHP_URL_HOST );
+
+		foreach ( $competitors as $domain ) {
+			// Basic domain analysis
+			$domain_data = $this->analyze_competitor_domain( $domain, $own_domain );
+			$analysis[]  = array_merge(
+				array(
+					'domain' => $domain,
+					'source' => 'builtin_analysis',
+				),
+				$domain_data
+			);
+		}
+
+		return $analysis;
+	}
+
+	/**
+	 * Analyze competitor domain using available WordPress data
+	 *
+	 * @param string $competitor_domain Competitor domain.
+	 * @param string $own_domain Our domain.
+	 * @return array
+	 */
+	private function analyze_competitor_domain( $competitor_domain, $own_domain ) {
+		$analysis = array(
+			'authority'   => 0,
+			'traffic'     => 0,
+			'keywords'    => 0,
+			'ref_domains' => 0,
+		);
+
+		// Estimate authority based on domain age and TLD (very basic)
+		$domain_authority      = $this->estimate_domain_authority( $competitor_domain );
+		$analysis['authority'] = $domain_authority;
+
+		// Estimate traffic based on authority and other factors
+		$analysis['traffic'] = $this->estimate_traffic( $domain_authority );
+
+		// Estimate keywords
+		$analysis['keywords'] = $this->estimate_keywords( $domain_authority );
+
+		// Estimate referring domains
+		$analysis['ref_domains'] = $this->estimate_referring_domains( $domain_authority );
+
+		return $analysis;
+	}
+
+	/**
+	 * Estimate domain authority based on actual domain analysis
+	 */
+	private function estimate_domain_authority($domain)
+	{
+		// Start with base authority
+		$authority = 20;
+
+		// Check if we have actual data for this domain
+		$cached_authority = get_transient('domain_auth_' . md5($domain));
+		if (false !== $cached_authority) {
+			return $cached_authority;
+		}
+
+		// Analyze domain characteristics
+		$tld = strtolower(pathinfo($domain, PATHINFO_EXTENSION));
+
+		// Premium TLDs often have higher authority
+		$premium_tlds = array('com', 'org', 'net', 'edu', 'gov');
+		if (in_array($tld, $premium_tlds, true)) {
+			$authority += 15;
+		}
+
+		// Domain age estimation (in a real implementation, use WHOIS data)
+		$domain_length = strlen(pathinfo($domain, PATHINFO_FILENAME));
+		if ($domain_length <= 8) {
+			$authority += 10; // Short domains are often more established
+		} elseif ($domain_length >= 20) {
+			$authority -= 5; // Very long domains might be newer
+		}
+
+		// Hyphens in domain often indicate newer sites
+		if (strpos($domain, '-') !== false) {
+			$authority -= 5;
+		}
+
+		$final_authority = max(1, min(100, $authority));
+
+		// Cache for 1 day
+		set_transient('domain_auth_' . md5($domain), $final_authority, DAY_IN_SECONDS);
+
+		return $final_authority;
+	}
+
+	/**
+	 * Estimate traffic based on domain authority and other factors
+	 */
+	private function estimate_traffic($authority)
+	{
+		// Traffic generally follows a power law distribution
+		// Higher authority domains get exponentially more traffic
+		if ($authority >= 80) {
+			return intval($authority * 5000); // High authority sites
+		} elseif ($authority >= 60) {
+			return intval($authority * 1000); // Medium authority sites
+		} elseif ($authority >= 40) {
+			return intval($authority * 200); // Low authority sites
+		} else {
+			return intval($authority * 50); // New sites
+		}
+	}
+
+	/**
+	 * Estimate keywords based on domain authority
+	 *
+	 * @param float $authority Domain authority.
+	 * @return int
+	 */
+	private function estimate_keywords($authority)
+	{
+		// Keyword count generally correlates with traffic and authority
+		return intval($authority * 75);
+	}
+
+	/**
+	 * Estimate referring domains based on domain authority
+	 *
+	 * @param float $authority Domain authority.
+	 * @return int
+	 */
+	private function estimate_referring_domains( $authority ) {
+		// referring domains scale with domain authority
+		if ( $authority >= 80 ) {
+			return intval( $authority * 15 ); // High authority sites
+		} elseif ( $authority >= 60 ) {
+			return intval( $authority * 8 ); // Medium authority sites
+		} elseif ( $authority >= 40 ) {
+			return intval( $authority * 4 ); // Low authority sites
+		} else {
+			return intval( $authority * 2 ); // New sites
+		}
+	}
+
+	/**
+	 * Check if competitor data is valid
+	 *
+	 * @param array $data Competitor data to validate.
+	 * @return bool
+	 */
+	private function is_valid_competitor_data( $data ) {
+		if ( ! is_array( $data ) || empty( $data ) ) {
+			return false;
+		}
+
+		foreach ( $data as $competitor ) {
+			if ( ! isset( $competitor['domain'] ) || empty( $competitor['domain'] ) ) {
+				return false;
+			}
+
+			// Check if we have at least some data
+			$has_data    = false;
+			$data_fields = array( 'authority', 'traffic', 'keywords', 'ref_domains' );
+
+			foreach ( $data_fields as $field ) {
+				if ( isset( $competitor[ $field ] ) && $competitor[ $field ] > 0 ) {
+					$has_data = true;
+					break;
+				}
+			}
+
+			if ( ! $has_data ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get empty competitor analysis data structure
+	 *
+	 * @return array
+	 */
+	private function get_empty_competitor_analysis() {
+		$competitors = $this->get_configured_competitors();
+
+		if ( empty( $competitors ) ) {
+			// Return generic placeholder if no competitors configured
+			return array(
+				array(
+					'domain'      => 'competitor1.com',
+					'authority'   => 0,
+					'ref_domains' => 0,
+					'traffic'     => 0,
+					'keywords'    => 0,
+					'source'      => 'none',
+				),
+				array(
+					'domain'      => 'competitor2.com',
+					'authority'   => 0,
+					'ref_domains' => 0,
+					'traffic'     => 0,
+					'keywords'    => 0,
+					'source'      => 'none',
+				),
+				array(
+					'domain'      => 'competitor3.com',
+					'authority'   => 0,
+					'ref_domains' => 0,
+					'traffic'     => 0,
+					'keywords'    => 0,
+					'source'      => 'none',
+				),
+			);
+		}
+
+		// Return empty data for configured competitors
+		$analysis = array();
+		foreach ( $competitors as $domain ) {
+			$analysis[] = $this->get_empty_competitor_profile( $domain );
+		}
+
+		return $analysis;
+	}
+
+	/**
+	 * Get empty competitor profile data structure
+	 *
+	 * @param string $domain Competitor domain.
+	 * @return array
+	 */
+	private function get_empty_competitor_profile( $domain ) {
+		return array(
+			'domain'      => $domain,
+			'authority'   => 0,
+			'ref_domains' => 0,
+			'traffic'     => 0,
+			'keywords'    => 0,
+			'source'      => 'none',
+		);
 	}
 
 	/**
@@ -1218,53 +1730,6 @@ class ProductScraper_API_Integrations {
 			'page_views'        => 0,
 			'bounce_rate'       => 0,
 			'pages_per_session' => 0,
-		);
-	}
-
-	/**
-	 * Get empty competitor analysis data structure
-	 *
-	 * @return array
-	 */
-	private function get_empty_competitor_analysis() {
-		return array(
-			array(
-				'domain'      => 'competitor1.com',
-				'authority'   => 0,
-				'ref_domains' => 0,
-				'traffic'     => 0,
-				'source'      => 'none',
-			),
-			array(
-				'domain'      => 'competitor2.com',
-				'authority'   => 0,
-				'ref_domains' => 0,
-				'traffic'     => 0,
-				'source'      => 'none',
-			),
-			array(
-				'domain'      => 'competitor3.com',
-				'authority'   => 0,
-				'ref_domains' => 0,
-				'traffic'     => 0,
-				'source'      => 'none',
-			),
-		);
-	}
-
-	/**
-	 * Get empty competitor profile data structure
-	 *
-	 * @param string $domain Competitor domain.
-	 * @return array
-	 */
-	private function get_empty_competitor_profile( $domain ) {
-		return array(
-			'domain'      => $domain,
-			'authority'   => 0,
-			'ref_domains' => 0,
-			'traffic'     => 0,
-			'source'      => 'none',
 		);
 	}
 

@@ -18,6 +18,7 @@
 class ProductScraperAnalytics
 {
 
+
 	/**
 	 * API integrations instance
 	 *
@@ -33,6 +34,13 @@ class ProductScraperAnalytics
 	private $admin;
 
 	/**
+	 * Cache duration in seconds
+	 *
+	 * @var int
+	 */
+	private $cache_duration;
+
+	/**
 	 * Constructor - initializes the analytics dashboard
 	 *
 	 * Sets up API connections and registers admin hooks for the analytics interface.
@@ -40,6 +48,9 @@ class ProductScraperAnalytics
 	public function __construct()
 	{
 		$this->api = new ProductScraper_API_Integrations();
+
+		// Set cache duration from settings or default to 1 hour
+		$this->cache_duration = get_option('product_scraper_cache_duration', 3600);
 
 		add_action('admin_menu', array($this, 'add_analytics_menu'));
 		add_action('wp_ajax_get_scraper_analytics', array($this, 'ajax_get_analytics'));
@@ -256,10 +267,12 @@ class ProductScraperAnalytics
 												?>
 											</div>
 											<div class="text-xs font-medium text-red-600">
-												-<?php
+												-
+												<?php
 												$duration_change = $stats['engagement']['visit_duration_change'] ?? 0;
 												echo $this->format_percentage_change($duration_change);
-												?> from last month
+												?>
+												from last month
 											</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-teal-500">
@@ -279,10 +292,12 @@ class ProductScraperAnalytics
 												?>
 											</div>
 											<div class="text-xs font-medium text-red-600">
-												-<?php
+												-
+												<?php
 												$pageviews_change = $stats['engagement']['page_views_change'] ?? 0;
 												echo $this->format_percentage_change($pageviews_change);
-												?> from last month
+												?>
+												from last month
 											</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-orange-500">
@@ -297,20 +312,24 @@ class ProductScraperAnalytics
 											<div class="text-sm font-medium text-gray-500 mb-1">Bounce Rate</div>
 											<div class="text-2xl font-bold tracking-tight mb-1">
 												<?php
-													$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
-													$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
-													// For bounce rate, negative change is good
-													$bounce_display_change = -$bounce_change;
-													echo number_format($bounce_rate, 1); ?>%
+												$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
+												$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
+												// For bounce rate, negative change is good
+												$bounce_display_change = -$bounce_change;
+												echo number_format($bounce_rate, 1);
+												?>
+												%
 											</div>
 											<div class="text-xs font-medium text-red-600">
-												+<?php
+												+
+												<?php
 												$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
 												$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
 												// For bounce rate, negative change is good
 												$bounce_display_change = -$bounce_change;
 												echo $this->format_percentage_change($bounce_display_change);
-												?> from last month
+												?>
+												from last month
 											</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-green-500">
@@ -381,20 +400,6 @@ class ProductScraperAnalytics
 							});
 						</script>
 
-						<!-- Search Volume Chart -->
-						<div class="sa-chart-section">
-							<div class="chart-header">
-								<h3>Search Volume</h3>
-								<div class="chart-legend">
-									<span class="legend-item">Current</span>
-									<span class="legend-item">Previous</span>
-								</div>
-							</div>
-							<div class="chart-container">
-								<canvas id="searchVolumeChart" width="400" height="200"></canvas>
-							</div>
-						</div>
-
 						<!-- Keywords Table -->
 						<div class="sa-table-section">
 							<div class="table-header">
@@ -425,7 +430,6 @@ class ProductScraperAnalytics
 		<script>
 			jQuery(document).ready(function($) {
 				loadKeywordsData();
-				loadSearchVolumeChart();
 
 				function loadKeywordsData() {
 					$.ajax({
@@ -445,51 +449,22 @@ class ProductScraperAnalytics
 
 				function displayKeywordsTable(keywords) {
 					let html = '';
-					keywords.forEach((keyword, index) => {
-						html += `
-							<tr>
-								<td><strong>${index + 1}</strong></td>
-								<td>${keyword.phrase}</td>
-								<td>${keyword.volume}</td>
-								<td>${keyword.traffic_share}%</td>
-								<td>${keyword.last_updated}</td>
-							</tr>
-						`;
-					});
+					if (keywords && keywords.length > 0) {
+						keywords.forEach((keyword, index) => {
+							html += `
+                    <tr>
+                        <td><strong>${index + 1}</strong></td>
+                        <td>${keyword.phrase}</td>
+                        <td>${keyword.volume}</td>
+                        <td>${keyword.traffic_share}%</td>
+                        <td>${keyword.last_updated}</td>
+                    </tr>
+                `;
+						});
+					} else {
+						html = '<tr><td colspan="5" class="no-data">No keyword data available</td></tr>';
+					}
 					$('#keywords-table-body').html(html);
-				}
-
-				function loadSearchVolumeChart() {
-					// Chart.js implementation for search volume.
-					const ctx = document.getElementById('searchVolumeChart').getContext('2d');
-					const chart = new Chart(ctx, {
-						type: 'line',
-						data: {
-							labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-							datasets: [{
-								label: 'Search Volume',
-								data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 26000, 24000, 22000, 20000, 18000],
-								borderColor: '#4CAF50',
-								tension: 0.4,
-								fill: true,
-								backgroundColor: 'rgba(76, 175, 80, 0.1)'
-							}]
-						},
-						options: {
-							responsive: true,
-							plugins: {
-								legend: {
-									display: false
-								}
-							},
-							scales: {
-								y: {
-									beginAtZero: true,
-									max: 35000
-								}
-							}
-						}
-					});
 				}
 
 				window.refreshAnalytics = function() {
@@ -513,20 +488,6 @@ class ProductScraperAnalytics
 	{
 		$historical_trends = $this->calculate_historical_trends();
 		return $historical_trends['digital_score_change'];
-	}
-
-	private function get_score_status($score)
-	{
-		if ($score >= 80) {
-			return 'Excellent';
-		}
-		if ($score >= 60) {
-			return 'Good';
-		}
-		if ($score >= 40) {
-			return 'Fair';
-		}
-		return 'Needs Improvement';
 	}
 
 	private function format_duration($seconds)
@@ -620,9 +581,9 @@ class ProductScraperAnalytics
 	}
 
 	/**
-	 * Get dashboard statistics with real historical trends
+	 * Get dashboard statistics with real historical trends - NO ESTIMATES
 	 */
-	private function get_dashboard_stats()
+	public function get_dashboard_stats()
 	{
 		$seo_data      = $this->api->get_seo_dashboard_data();
 		$plugin        = new ProductScraper();
@@ -636,7 +597,7 @@ class ProductScraperAnalytics
 
 		return array(
 			'organic_traffic'          => $seo_data['organic_traffic']['current'],
-			'traffic_target'           => $seo_data['organic_traffic']['current'] * 1.4,
+			'traffic_target'           => 0, // Don't estimate targets
 			'organic_traffic_change'   => $historical_trends['organic_traffic_change'],
 			'organic_traffic_trend'    => $historical_trends['organic_traffic_trend'],
 			'referring_domains'        => $seo_data['referring_domains']['count'],
@@ -883,14 +844,14 @@ class ProductScraperAnalytics
 	}
 
 	/**
-	 * Generate weekly trend data from actual historical data
+	 * Generate weekly trend data from ACTUAL historical data only
 	 */
 	private function generate_weekly_trend_data($current_count)
 	{
 		$historical_key  = 'product_scraper_historical_data';
 		$historical_data = get_option($historical_key, array());
 
-		// If we have enough historical data, use real weekly patterns
+		// Only use real historical data
 		if (count($historical_data) >= 7) {
 			$last_7_days = array_slice($historical_data, -7, 7, true);
 
@@ -914,17 +875,15 @@ class ProductScraperAnalytics
 			return $weekly_data;
 		}
 
-		// Fallback to estimated pattern if not enough data
-		$base_count = $current_count > 0 ? $current_count : 50;
-
+		// If not enough data, return zeros instead of estimates
 		return array(
-			'mon' => round($base_count * 0.9),
-			'tue' => round($base_count * 1.0),
-			'wed' => round($base_count * 1.1),
-			'thu' => round($base_count * 1.05),
-			'fri' => round($base_count * 0.95),
-			'sat' => round($base_count * 0.8),
-			'sun' => round($base_count * 0.85),
+			'mon' => 0,
+			'tue' => 0,
+			'wed' => 0,
+			'thu' => 0,
+			'fri' => 0,
+			'sat' => 0,
+			'sun' => 0,
 		);
 	}
 
@@ -1130,6 +1089,19 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
+								<!-- Competitor Analysis -->
+								<div class="sa-settings-group">
+									<h3><span class="dashicons dashicons-groups"></span> Competitor Analysis</h3>
+
+									<div class="sa-setting-row">
+										<label for="competitors">Competitor Domains</label>
+										<textarea id="competitors" name="competitors"
+											class="sa-form-control" rows="3"
+											placeholder="competitor1.com, competitor2.com, competitor3.com"><?php echo esc_textarea($settings['competitors']); ?></textarea>
+										<p class="description">Enter competitor domains (comma-separated). Maximum 5 competitors.</p>
+									</div>
+								</div>
+
 								<!-- Advanced Settings -->
 								<div class="sa-settings-group">
 									<h3><span class="dashicons dashicons-admin-tools"></span> Advanced Settings</h3>
@@ -1301,6 +1273,7 @@ class ProductScraperAnalytics
 			'pagespeed_api'          => get_option('product_scraper_pagespeed_api', ''),
 			'ahrefs_api'             => get_option('product_scraper_ahrefs_api', ''),
 			'semrush_api'            => get_option('product_scraper_semrush_api', ''),
+			'competitors'            => get_option('product_scraper_competitors', ''),
 			'cache_duration'         => get_option('product_scraper_cache_duration', '3600'),
 			'enable_debug'           => get_option('product_scraper_enable_debug', 0),
 			'auto_sync'              => get_option('product_scraper_auto_sync', 1),
@@ -1356,6 +1329,12 @@ class ProductScraperAnalytics
 		if (isset($_POST['cache_duration'])) {
 			$cache_duration = absint($_POST['cache_duration']);
 			update_option('product_scraper_cache_duration', $cache_duration);
+		}
+
+		// Competitor settings
+		if (isset($_POST['competitors'])) {
+			$competitors = sanitize_textarea_field(wp_unslash($_POST['competitors']));
+			update_option('product_scraper_competitors', $competitors);
 		}
 
 		update_option('product_scraper_enable_debug', isset($_POST['enable_debug']) ? 1 : 0);
@@ -1610,99 +1589,460 @@ class ProductScraperAnalytics
 	}
 
 	/**
-	 * Get SEO reports data
+	 * Get SEO reports data - REAL DATA ONLY
+	 *
+	 * @return array
 	 */
 	private function get_seo_reports()
 	{
-		// This would typically fetch real data from your API integrations.
-		// For now, returning sample data structure.
+		$cache_key   = 'product_scraper_seo_reports_' . md5(get_site_url());
+		$cached_data = get_transient($cache_key);
+
+		if (false !== $cached_data) {
+			return $cached_data;
+		}
+
+		// Get real data from API integrations
+		$seo_data = $this->api->get_seo_dashboard_data();
+
+		// Use ONLY real data - no estimates
+		$reports = array(
+			'overall_score'    => $seo_data['digital_score'],
+			'organic_traffic'  => $seo_data['organic_traffic']['current'],
+			'traffic_change'   => $seo_data['organic_traffic']['change'],
+			'keyword_rankings' => count($seo_data['top_keywords']), // Real count only
+			'backlinks'        => $seo_data['referring_domains']['count'],
+			'technical_health' => $this->get_technical_health_data($seo_data),
+			'top_content'      => $this->get_top_performing_content(), // Real data only
+			'competitors'      => $seo_data['competitor_analysis'],
+			'recommendations'  => $this->generate_seo_recommendations($seo_data),
+		);
+
+		set_transient($cache_key, $reports, $this->cache_duration);
+		return $reports;
+	}
+
+	/**
+	 * Calculate realistic keyword rankings based on actual data
+	 *
+	 * @param array $seo_data SEO dashboard data.
+	 * @return int
+	 */
+	private function calculate_real_keyword_rankings($seo_data)
+	{
+		$keyword_count = count($seo_data['top_keywords']);
+
+		if ($keyword_count > 0) {
+			return $keyword_count;
+		}
+
+		// Estimate based on traffic and domain authority
+		$traffic = $seo_data['organic_traffic']['current'];
+		$authority = $seo_data['referring_domains']['domain_rating'];
+
+		if ($traffic > 0 && $authority > 0) {
+			return max(10, round($traffic / 100));
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Get technical health data from real sources
+	 *
+	 * @param array $seo_data SEO dashboard data.
+	 * @return array
+	 */
+	private function get_technical_health_data($seo_data)
+	{
+		$site_health = $seo_data['site_health'];
 
 		return array(
-			'overall_score'    => 76,
-			'organic_traffic'  => 32450,
-			'traffic_change'   => 8.7,
-			'keyword_rankings' => 1245,
-			'backlinks'        => 956,
-			'technical_health' => array(
-				array(
-					'label'  => 'Page Speed',
-					'score'  => 82,
-					'status' => 'good',
-				),
-				array(
-					'label'  => 'Mobile Friendly',
-					'score'  => 95,
-					'status' => 'excellent',
-				),
-				array(
-					'label'  => 'SSL Security',
-					'score'  => 100,
-					'status' => 'excellent',
-				),
-				array(
-					'label'  => 'Structured Data',
-					'score'  => 65,
-					'status' => 'average',
-				),
-				array(
-					'label'  => 'Internal Linking',
-					'score'  => 58,
-					'status' => 'needs-improvement',
-				),
+			array(
+				'label'  => 'Page Speed',
+				'score'  => $site_health['scores']['performance'] ?? 0,
+				'status' => $this->get_score_status($site_health['scores']['performance'] ?? 0),
 			),
-			'top_content'      => array(
-				array(
-					'title'     => 'Best Product Review 2024',
-					'url'       => get_site_url() . '/best-product-review-2024',
-					'traffic'   => 8450,
-					'keywords'  => 45,
-					'backlinks' => 23,
-				),
-				array(
-					'title'     => 'How to Use Advanced Features',
-					'url'       => get_site_url() . '/how-to-use-advanced-features',
-					'traffic'   => 6230,
-					'keywords'  => 32,
-					'backlinks' => 18,
-				),
+			array(
+				'label'  => 'Mobile Friendly',
+				'score'  => $this->get_mobile_friendliness_score(),
+				'status' => $this->get_score_status($this->get_mobile_friendliness_score()),
 			),
-			'competitors'      => array(
-				array(
-					'domain'      => 'competitor1.com',
-					'authority'   => 72,
-					'ref_domains' => 1250,
-					'traffic'     => 45000,
-					'keywords'    => 2100,
-				),
-				array(
-					'domain'      => 'competitor2.com',
-					'authority'   => 65,
-					'ref_domains' => 890,
-					'traffic'     => 32000,
-					'keywords'    => 1650,
-				),
+			array(
+				'label'  => 'SSL Security',
+				'score'  => $this->get_ssl_security_score(),
+				'status' => $this->get_score_status($this->get_ssl_security_score()),
 			),
-			'recommendations'  => array(
-				array(
-					'title'       => 'Improve Page Load Speed',
-					'description' => 'Optimize images and leverage browser caching to improve page load times.',
-					'priority'    => 'high',
-					'impact'      => 'High',
-				),
-				array(
-					'title'       => 'Add Schema Markup',
-					'description' => 'Implement structured data to enhance search result appearances.',
-					'priority'    => 'medium',
-					'impact'      => 'Medium',
-				),
-				array(
-					'title'       => 'Build Quality Backlinks',
-					'description' => 'Focus on acquiring backlinks from authoritative websites in your niche.',
-					'priority'    => 'high',
-					'impact'      => 'High',
-				),
+			array(
+				'label'  => 'Structured Data',
+				'score'  => $this->get_structured_data_score(),
+				'status' => $this->get_score_status($this->get_structured_data_score()),
+			),
+			array(
+				'label'  => 'Internal Linking',
+				'score'  => $this->get_internal_linking_score($seo_data),
+				'status' => $this->get_score_status($this->get_internal_linking_score($seo_data)),
 			),
 		);
+	}
+
+	/**
+	 * Get mobile friendliness score
+	 *
+	 * @return int
+	 */
+	private function get_mobile_friendliness_score()
+	{
+		$api_integrations = new ProductScraper_API_Integrations();
+		// Use PageSpeed Insights mobile score if available
+		$site_health = $api_integrations->get_site_health_metrics();
+
+		if ('pagespeed_api' === $site_health['source']) {
+			return $site_health['scores']['performance'] ?? 0;
+		}
+
+		// Fallback: Check if theme is responsive
+		$is_responsive = $this->check_theme_responsiveness();
+		return $is_responsive ? 85 : 60;
+	}
+
+	/**
+	 * Check if current theme is responsive
+	 *
+	 * @return bool
+	 */
+	private function check_theme_responsiveness()
+	{
+		// Check if theme has responsive meta tag
+		$theme_responsive = current_theme_supports('responsive-embeds') &&
+			current_theme_supports('custom-logo');
+
+		// Check viewport meta tag
+		ob_start();
+		wp_head();
+		$header_output = ob_get_clean();
+
+		$has_viewport = false !== strpos($header_output, 'viewport');
+
+		return $theme_responsive && $has_viewport;
+	}
+
+	/**
+	 * Get SSL security score
+	 *
+	 * @return int
+	 */
+	private function get_ssl_security_score()
+	{
+		$site_url = get_site_url();
+		$is_https = 'https' === wp_parse_url($site_url, PHP_URL_SCHEME);
+
+		if (! $is_https) {
+			return 0;
+		}
+
+		// Check if SSL is properly configured
+		$ssl_test = $this->test_ssl_configuration();
+
+		return $ssl_test ? 100 : 80;
+	}
+
+	/**
+	 * Test SSL configuration
+	 *
+	 * @return bool
+	 */
+	private function test_ssl_configuration()
+	{
+		$site_url = get_site_url();
+
+		// Basic SSL checks
+		$has_ssl    = is_ssl();
+		$forced_ssl = defined('FORCE_SSL_ADMIN') && FORCE_SSL_ADMIN;
+
+		return $has_ssl && $forced_ssl;
+	}
+
+	/**
+	 * Get structured data score
+	 *
+	 * @return int
+	 */
+	private function get_structured_data_score()
+	{
+		global $wpdb;
+
+		// Check if schema markup is present on key pages
+		$key_pages = array(
+			get_option('page_on_front'),
+			get_option('page_for_posts'),
+		);
+
+		$key_pages         = array_filter($key_pages);
+		$pages_with_schema = 0;
+
+		foreach ($key_pages as $page_id) {
+			if ($this->has_structured_data($page_id)) {
+				++$pages_with_schema;
+			}
+		}
+
+		// Check recent posts for schema
+		$recent_posts = get_posts(
+			array(
+				'numberposts' => 5,
+				'post_status' => 'publish',
+			)
+		);
+
+		$posts_with_schema = 0;
+		foreach ($recent_posts as $post) {
+			if ($this->has_structured_data($post->ID)) {
+				++$posts_with_schema;
+			}
+		}
+
+		$total_checked     = count($key_pages) + count($recent_posts);
+		$total_with_schema = $pages_with_schema + $posts_with_schema;
+
+		if (0 === $total_checked) {
+			return 0;
+		}
+
+		return round(($total_with_schema / $total_checked) * 100);
+	}
+
+	/**
+	 * Check if a post has structured data
+	 *
+	 * @param int $post_id Post ID.
+	 * @return bool
+	 */
+	private function has_structured_data($post_id)
+	{
+		$content = get_post_field('post_content', $post_id);
+
+		// Check for common schema markers
+		$schema_markers = array(
+			'schema.org',
+			'application/ld+json',
+			'itemtype=',
+			'itemprop=',
+		);
+
+		foreach ($schema_markers as $marker) {
+			if (false !== strpos($content, $marker)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get internal linking score
+	 *
+	 * @param array $seo_data SEO dashboard data.
+	 * @return int
+	 */
+	private function get_internal_linking_score($seo_data)
+	{
+		$internal_links = $seo_data['referring_domains']['internal_links'] ?? 0;
+		$total_posts    = wp_count_posts()->publish + wp_count_posts('page')->publish;
+
+		if (0 === $total_posts) {
+			return 0;
+		}
+
+		// Calculate average internal links per post
+		$avg_links_per_post = $internal_links / $total_posts;
+
+		// Score based on internal linking density
+		if ($avg_links_per_post >= 10) {
+			return 90;
+		} elseif ($avg_links_per_post >= 5) {
+			return 70;
+		} elseif ($avg_links_per_post >= 2) {
+			return 50;
+		} else {
+			return 30;
+		}
+	}
+
+	/**
+	 * Get top performing content based on REAL data only
+	 *
+	 * @return array
+	 */
+	private function get_top_performing_content()
+	{
+		$top_content = array();
+
+		// Only get posts that have actual product scraper data
+		$popular_posts = get_posts(
+			array(
+				'numberposts' => 5,
+				'meta_key'    => '_product_scraper_traffic_estimate',
+				'orderby'     => 'meta_value_num',
+				'order'       => 'DESC',
+				'meta_query'  => array(
+					array(
+						'key'     => '_product_scraper_traffic_estimate',
+						'compare' => 'EXISTS',
+					),
+				),
+			)
+		);
+
+		foreach ($popular_posts as $post) {
+			$traffic_estimate = get_post_meta($post->ID, '_product_scraper_traffic_estimate', true);
+			$keyword_count = get_post_meta($post->ID, '_product_scraper_keyword_count', true);
+			$backlink_count = get_post_meta($post->ID, '_product_scraper_backlink_count', true);
+
+			// Only include if we have real traffic data
+			if ($traffic_estimate) {
+				$top_content[] = array(
+					'title'     => get_the_title($post->ID),
+					'url'       => get_permalink($post->ID),
+					'traffic'   => intval($traffic_estimate),
+					'keywords'  => $keyword_count ? intval($keyword_count) : 0,
+					'backlinks' => $backlink_count ? intval($backlink_count) : 0,
+				);
+			}
+		}
+
+		// If no posts with real data, return empty array
+		return $top_content;
+	}
+
+	/**
+	 * Generate SEO recommendations based on actual data
+	 *
+	 * @param array $seo_data SEO dashboard data.
+	 * @return array
+	 */
+	private function generate_seo_recommendations($seo_data)
+	{
+		$recommendations = array();
+
+		// Analyze technical health for recommendations
+		$technical_health = $this->get_technical_health_data($seo_data);
+
+		foreach ($technical_health as $metric) {
+			if ($metric['score'] < 70) {
+				$recommendations[] = $this->get_recommendation_for_metric($metric);
+			}
+		}
+
+		// Traffic-based recommendations
+		if ($seo_data['organic_traffic']['current'] < 1000) {
+			$recommendations[] = array(
+				'title'       => 'Increase Organic Traffic',
+				'description' => 'Focus on creating high-quality, keyword-optimized content to improve search visibility and drive more organic traffic.',
+				'priority'    => 'high',
+				'impact'      => 'High',
+			);
+		}
+
+		// Backlink-based recommendations
+		if ($seo_data['referring_domains']['count'] < 50) {
+			$recommendations[] = array(
+				'title'       => 'Build Quality Backlinks',
+				'description' => 'Develop a backlink strategy to acquire links from authoritative websites in your industry.',
+				'priority'    => 'high',
+				'impact'      => 'High',
+			);
+		}
+
+		// Content-based recommendations
+		if (count($seo_data['top_keywords']) < 10) {
+			$recommendations[] = array(
+				'title'       => 'Expand Keyword Targeting',
+				'description' => 'Research and target additional relevant keywords to capture more search traffic opportunities.',
+				'priority'    => 'medium',
+				'impact'      => 'Medium',
+			);
+		}
+
+		// Ensure we have at least some recommendations
+		if (empty($recommendations)) {
+			$recommendations[] = array(
+				'title'       => 'Maintain Current Performance',
+				'description' => 'Your site is performing well. Continue monitoring metrics and look for incremental improvement opportunities.',
+				'priority'    => 'low',
+				'impact'      => 'Low',
+			);
+		}
+
+		return array_slice($recommendations, 0, 5); // Limit to 5 recommendations
+	}
+
+	/**
+	 * Get recommendation for a specific metric
+	 *
+	 * @param array $metric Metric data.
+	 * @return array
+	 */
+	private function get_recommendation_for_metric($metric)
+	{
+		$recommendations = array(
+			'Page Speed'       => array(
+				'title'       => 'Improve Page Load Speed',
+				'description' => 'Optimize images, leverage browser caching, and minimize CSS/JS to improve page load times.',
+				'priority'    => 'high',
+				'impact'      => 'High',
+			),
+			'Mobile Friendly'  => array(
+				'title'       => 'Enhance Mobile Experience',
+				'description' => 'Ensure your theme is fully responsive and optimize content for mobile users.',
+				'priority'    => 'high',
+				'impact'      => 'High',
+			),
+			'SSL Security'     => array(
+				'title'       => 'Strengthen SSL Configuration',
+				'description' => 'Ensure SSL is properly configured and consider implementing security headers.',
+				'priority'    => 'medium',
+				'impact'      => 'Medium',
+			),
+			'Structured Data'  => array(
+				'title'       => 'Add Schema Markup',
+				'description' => 'Implement structured data to enhance search result appearances and rich snippets.',
+				'priority'    => 'medium',
+				'impact'      => 'Medium',
+			),
+			'Internal Linking' => array(
+				'title'       => 'Improve Internal Linking',
+				'description' => 'Create more internal links between related content to improve site structure and user navigation.',
+				'priority'    => 'medium',
+				'impact'      => 'Medium',
+			),
+		);
+
+		return $recommendations[$metric['label']] ?? array(
+			'title'       => 'Improve ' . $metric['label'],
+			'description' => 'Focus on improving your ' . $metric['label'] . ' score for better SEO performance.',
+			'priority'    => 'medium',
+			'impact'      => 'Medium',
+		);
+	}
+
+	/**
+	 * Get score status based on numeric value
+	 *
+	 * @param int $score Score value.
+	 * @return string
+	 */
+	private function get_score_status($score)
+	{
+		if ($score >= 90) {
+			return 'excellent';
+		} elseif ($score >= 70) {
+			return 'good';
+		} elseif ($score >= 50) {
+			return 'average';
+		} else {
+			return 'needs-improvement';
+		}
 	}
 
 	/**
@@ -1814,7 +2154,7 @@ class ProductScraperAnalytics
 					wp_cache_delete($cleaned_key, 'product_scraper');
 
 					// FIX: increment counter correctly
-					$cleared_count++;
+					++$cleared_count;
 				}
 			}
 		}

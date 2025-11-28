@@ -1,8 +1,11 @@
 const ProductScraperCharts = {
     charts: {},
+    config: {},
+    initialData: {},
     
     init(config) {
         this.config = config;
+        this.initialData = window.productScraperChartData?.initialData || {};
         this.initTrafficChart();
         this.initKeywordChart();
         this.initCompetitorChart();
@@ -11,145 +14,188 @@ const ProductScraperCharts = {
     },
     
     initTrafficChart() {
-        const ctx = document.getElementById('trafficTrendChart').getContext('2d');
-        this.loadChartData('traffic_trend', '30d').then(data => {
-            this.charts.traffic = new Chart(ctx, {
-                type: 'line',
-                data: data,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
+        const ctx = document.getElementById('trafficTrendChart');
+        if (!ctx) return;
+        
+        // Use initial data while loading real data
+        const initialData = this.initialData.traffic_trend;
+        
+        this.charts.traffic = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: initialData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Sessions'
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
+                    tooltip: {
+                        mode: 'index',
                         intersect: false
                     }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Sessions'
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
                 }
-            });
+            }
+        });
+
+        // Load real data and update chart
+        this.loadChartData('traffic_trend', '30d').then(data => {
+            this.charts.traffic.data = data;
+            this.charts.traffic.update('none'); // Update without animation
+        }).catch(error => {
+            console.error('Failed to load traffic data:', error);
         });
     },
     
     initKeywordChart() {
-        const ctx = document.getElementById('keywordPerformanceChart').getContext('2d');
-        this.loadChartData('keyword_performance').then(data => {
-            this.charts.keywords = new Chart(ctx, {
-                type: 'bar',
-                data: data,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
+        const ctx = document.getElementById('keywordPerformanceChart');
+        if (!ctx) return;
+        
+        const initialData = this.initialData.keyword_performance;
+        
+        this.charts.keywords = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: initialData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Search Volume'
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Search Volume'
-                            }
+                    y1: {
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Traffic Share %'
                         },
-                        y1: {
-                            position: 'right',
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Traffic Share %'
-                            },
-                            grid: {
-                                drawOnChartArea: false
-                            }
+                        grid: {
+                            drawOnChartArea: false
                         }
                     }
                 }
-            });
+            }
+        });
+
+        this.loadChartData('keyword_performance').then(data => {
+            this.charts.keywords.data = data;
+            this.charts.keywords.update('none');
+        }).catch(error => {
+            console.error('Failed to load keyword data:', error);
         });
     },
     
     initCompetitorChart() {
-        const ctx = document.getElementById('competitorRadarChart').getContext('2d');
-        this.loadChartData('competitor_analysis').then(data => {
-            this.charts.competitors = new Chart(ctx, {
-                type: 'radar',
-                data: data,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    },
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                stepSize: 20
-                            }
+        const ctx = document.getElementById('competitorRadarChart');
+        if (!ctx) return;
+        
+        const initialData = this.initialData.competitor_analysis;
+        
+        this.charts.competitors = new Chart(ctx.getContext('2d'), {
+            type: 'radar',
+            data: initialData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
                         }
                     }
                 }
-            });
+            }
+        });
+
+        this.loadChartData('competitor_analysis').then(data => {
+            this.charts.competitors.data = data;
+            this.charts.competitors.update('none');
+        }).catch(error => {
+            console.error('Failed to load competitor data:', error);
         });
     },
     
     initSeoHealthChart() {
-        const ctx = document.getElementById('seoHealthGauge').getContext('2d');
-        this.loadChartData('seo_health').then(data => {
-            this.charts.seoHealth = new Chart(ctx, {
-                type: 'bar',
-                data: data,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Score'
-                            }
+        const ctx = document.getElementById('seoHealthGauge');
+        if (!ctx) return;
+        
+        const initialData = this.initialData.seo_health;
+        
+        this.charts.seoHealth = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: initialData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Score'
                         }
                     }
                 }
-            });
+            }
+        });
+
+        this.loadChartData('seo_health').then(data => {
+            this.charts.seoHealth.data = data;
+            this.charts.seoHealth.update('none');
+        }).catch(error => {
+            console.error('Failed to load SEO health data:', error);
         });
     },
     
     loadChartData(chartType, period = '30d') {
         return new Promise((resolve, reject) => {
+            // Use the localized config
             jQuery.ajax({
-                url: this.config.ajaxurl,
+                url: this.config.ajaxurl || window.productScraperChartData?.ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'get_chart_data',
                     chart_type: chartType,
                     period: period,
-                    nonce: this.config.nonce
+                    nonce: this.config.nonce || window.productScraperChartData?.nonce
                 },
                 success: (response) => {
                     if (response.success) {

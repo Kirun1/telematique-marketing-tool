@@ -880,7 +880,7 @@ class ProductScraper {
 			wp_enqueue_script(
 				'lucide-js',
 				'https://unpkg.com/lucide@latest',
-				array('jquery'),
+				array( 'jquery' ),
 				PRODUCT_SCRAPER_VERSION,
 				true
 			);
@@ -954,6 +954,34 @@ class ProductScraper {
 				array( 'jquery', 'wp-api', 'chart-js', 'select2-js' ),
 				PRODUCT_SCRAPER_VERSION,
 				true
+			);
+
+			// Get dynamic data for charts
+			$chart_data = $this->get_chart_initial_data();
+
+			// Localize the script with dynamic data
+			wp_localize_script(
+				'product-scraper-charts-js',
+				'productScraperChartData',
+				array(
+					'ajaxurl'     => admin_url( 'admin-ajax.php' ),
+					'nonce'       => wp_create_nonce( 'product_scraper_charts' ),
+					'initialData' => $chart_data,
+					'settings'    => array(
+						'colors'        => array(
+							'primary'   => '#4CAF50',
+							'secondary' => '#2196F3',
+							'tertiary'  => '#FFC107',
+							'success'   => '#4CAF50',
+							'warning'   => '#FF9800',
+							'danger'    => '#F44336',
+						),
+						'chartDefaults' => array(
+							'responsive'          => true,
+							'maintainAspectRatio' => false,
+						),
+					),
+				)
 			);
 
 			wp_localize_script(
@@ -1154,6 +1182,26 @@ class ProductScraper {
 		if ( file_exists( $sidebar_path ) ) {
 			include $sidebar_path;
 		}
+	}
+
+
+	/**
+	 * Get initial chart data to prevent empty charts
+	 */
+	private function get_chart_initial_data()
+	{
+		$analytics = new ProductScraperAnalytics();
+		$stats     = $analytics->get_dashboard_stats();
+
+		// Use chart manager to get real initial data
+		$chart_manager = new ProductScraper_Chart_Manager();
+
+		return array(
+			'traffic_trend'       => $chart_manager->get_traffic_trend_data(),
+			'keyword_performance' => $chart_manager->get_keyword_performance_data(),
+			'competitor_analysis' => $chart_manager->get_competitor_analysis_data(),
+			'seo_health'          => $chart_manager->get_seo_health_data(),
+		);
 	}
 }
 

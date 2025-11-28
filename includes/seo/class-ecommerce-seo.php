@@ -13,7 +13,7 @@ class ProductScraper_Ecommerce_SEO {
 		);
 	}
 
-	private function generate_product_schema( $product_id ) {
+	public function generate_product_schema( $product_id ) {
 		$product = wc_get_product( $product_id );
 
 		if ( ! $product ) {
