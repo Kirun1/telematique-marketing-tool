@@ -1777,4 +1777,113 @@ class ProductScraper_API_Integrations {
 		$new_data = $this->get_seo_dashboard_data();
 		wp_send_json_success( $new_data );
 	}
+
+	/**
+ * Research keyword using available APIs
+ */
+public function research_keyword($keyword) {
+    // Try SEMrush first if available
+    if ($this->can_use_semrush()) {
+        return $this->research_keyword_semrush($keyword);
+    }
+    
+    // Try Ahrefs if available
+    if ($this->can_use_ahrefs()) {
+        return $this->research_keyword_ahrefs($keyword);
+    }
+    
+    // No APIs available
+    throw new Exception('No keyword research APIs configured. Please set up SEMrush or Ahrefs in settings.');
+}
+
+/**
+ * Research keyword using SEMrush API
+ */
+private function research_keyword_semrush($keyword) {
+    $api_key = get_option('product_scraper_semrush_api');
+    
+    if (!$api_key) {
+        throw new Exception('SEMrush API not configured');
+    }
+    
+    $url = add_query_arg(
+        array(
+            'key' => $api_key,
+            'type' => 'phrase_all',
+            'phrase' => $keyword,
+            'database' => 'us',
+            'export_columns' => 'Ph,Nq,Cp,Co'
+        ),
+        'https://api.semrush.com'
+    );
+    
+    $response = wp_remote_get($url, array('timeout' => 15));
+    
+    if (is_wp_error($response)) {
+        throw new Exception('SEMrush API error: ' . $response->get_error_message());
+    }
+    
+    $data = wp_remote_retrieve_body($response);
+    $lines = explode("\n", $data);
+    
+    if (count($lines) > 1) {
+        $keyword_data = str_getcsv($lines[1]);
+        
+        return array(
+            'volume' => isset($keyword_data[1]) ? intval($keyword_data[1]) : null,
+            'cpc' => isset($keyword_data[2]) ? floatval($keyword_data[2]) : null,
+            'competition' => isset($keyword_data[3]) ? floatval($keyword_data[3]) : null,
+            'source' => 'semrush'
+        );
+    }
+    
+    throw new Exception('No data returned from SEMrush');
+}
+
+/**
+ * Research keyword using Ahrefs API
+ */
+private function research_keyword_ahrefs($keyword) {
+	$api_key = get_option('product_scraper_ahrefs_api');
+	
+	if (!$api_key) {
+		throw new Exception('Ahrefs API not configured');
+	}
+	
+	$url = add_query_arg(
+		array(
+			'token' => $api_key,
+			'target' => $keyword,
+			'from' => 'keywords_for_site',
+			'mode' => 'phrase',
+			'limit' => 1
+		),
+		'https://apiv2.ahrefs.com'
+	);
+	
+	$response = wp_remote_get($url, array('timeout' => 15));
+	
+	if (is_wp_error($response)) {
+		throw new Exception('Ahrefs API error: ' . $response->get_error_message());
+	}
+	
+	$data = json_decode(wp_remote_retrieve_body($response), true);
+	
+	if (isset($data['error'])) {
+		throw new Exception('Ahrefs API error: ' . $data['error']);
+	}
+	
+	if (isset($data['keywords']) && count($data['keywords']) > 0) {
+		$keyword_data = $data['keywords'][0];
+		
+		return array(
+			'volume' => $keyword_data['search_volume'] ?? null,
+			'cpc' => $keyword_data['cpc'] ?? null,
+			'competition' => $keyword_data['competition'] ?? null,
+			'source' => 'ahrefs'
+		);
+	}
+	
+	throw new Exception('No data returned from Ahrefs');
+}
 }
