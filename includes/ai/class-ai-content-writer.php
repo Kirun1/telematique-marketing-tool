@@ -4,11 +4,33 @@ class ProductScraper_AI_Content_Writer {
 	private $api_key;
 	private $ai_service;
 	private $content_templates;
+	private $openai_client;
 
-	public function __construct( $api_key = '', $ai_service = 'openai' ) {
-		$this->api_key    = $api_key;
+	public function __construct($api_key = '', $ai_service = 'openai')
+	{
+		$this->api_key = $api_key ?: get_option('product_scraper_openai_api_key', '');
 		$this->ai_service = $ai_service;
 		$this->initialize_content_templates();
+		$this->initialize_openai_client();
+	}
+
+	/**
+	 * Initialize OpenAI client
+	 */
+	private function initialize_openai_client()
+	{
+		if (empty($this->api_key)) {
+			return;
+		}
+
+		try {
+			// Use OpenAI PHP library if available, otherwise fallback to HTTP requests
+			if (class_exists('OpenAI\Client')) {
+				$this->openai_client = new OpenAI\Client($this->api_key);
+			}
+		} catch (Exception $e) {
+			error_log('OpenAI Client initialization failed: ' . $e->getMessage());
+		}
 	}
 
 	/**
@@ -39,20 +61,340 @@ class ProductScraper_AI_Content_Writer {
 		);
 	}
 
-	public function generate_content( $topic, $keywords = array(), $tone = 'professional' ) {
-		// Integration with OpenAI GPT, Claude, or other AI APIs.
-		return array(
-			'outline'            => $this->generate_content_outline( $topic, $keywords ),
-			'introduction'       => $this->write_introduction( $topic, $tone ),
-			'sections'           => $this->write_content_sections( $topic, $keywords, $tone ),
-			'conclusion'         => $this->write_conclusion( $topic, $tone ),
-			'meta_description'   => $this->generate_meta_description( $topic, $keywords ),
-			'social_media_posts' => $this->generate_social_posts( $topic ),
-			'title_variations'   => $this->generate_title_variations( $topic ),
-			'key_points'         => $this->extract_key_points( $topic, $keywords ),
-			'readability_score'  => $this->calculate_readability_score( $topic ),
-			'seo_optimization'   => $this->analyze_seo_optimization( $topic, $keywords ),
+	/**
+	 * Generate content using OpenAI
+	 */
+	public function generate_content($topic, $keywords = array(), $tone = 'professional', $content_type = 'blog_post')
+	{
+		// If OpenAI is available, use it for enhanced content generation
+		if ($this->openai_client && $this->api_key) {
+			return $this->generate_content_with_openai($topic, $keywords, $tone, $content_type);
+		} else {
+			// Fallback to basic content generation
+			return $this->generate_content_basic($topic, $keywords, $tone, $content_type);
+		}
+	}
+
+	/**
+	 * Generate content using OpenAI API
+	 */
+	private function generate_content_with_openai($topic, $keywords, $tone, $content_type)
+	{
+		$prompt = $this->build_openai_prompt($topic, $keywords, $tone, $content_type);
+
+		try {
+			if ($this->openai_client) {
+				// Using OpenAI PHP library
+				$response = $this->openai_client->chat()->create([
+					'model' => 'gpt-4',
+					'messages' => [
+						['role' => 'system', 'content' => 'You are an expert content writer and SEO specialist.'],
+						['role' => 'user', 'content' => $prompt]
+					],
+					'max_tokens' => 2000,
+					'temperature' => 0.7,
+				]);
+
+				$content = $response->choices[0]->message->content;
+			} else {
+				// Fallback to HTTP API
+				$content = $this->call_openai_api($prompt);
+			}
+
+			return $this->parse_openai_response($content, $topic, $keywords, $tone, $content_type);
+		} catch (Exception $e) {
+			error_log('OpenAI API Error: ' . $e->getMessage());
+			// Fallback to basic generation
+			return $this->generate_content_basic($topic, $keywords, $tone, $content_type);
+		}
+	}
+
+	/**
+	 * Build comprehensive prompt for OpenAI
+	 */
+	private function build_openai_prompt($topic, $keywords, $tone, $content_type)
+	{
+		$template = $this->content_templates[$content_type] ?? $this->content_templates['blog_post'];
+
+		$prompt = "Write a comprehensive {$content_type} about '{$topic}' with the following requirements:\n\n";
+
+		// Add tone guidance
+		$prompt .= "Tone: {$tone}\n\n";
+
+		// Add keywords
+		if (!empty($keywords)) {
+			$prompt .= "Primary keywords: " . implode(', ', $keywords) . "\n\n";
+		}
+
+		// Add structure
+		$prompt .= "Structure the content with these sections:\n";
+		foreach ($template['sections'] as $section) {
+			$purpose = $this->get_section_purpose($section, $template['structure']);
+			$prompt .= "- {$section}: {$purpose}\n";
+		}
+
+		// Add SEO requirements
+		$prompt .= "\nSEO Requirements:\n";
+		$prompt .= "- Include primary keywords naturally\n";
+		$prompt .= "- Use proper heading hierarchy (H2, H3)\n";
+		$prompt .= "- Write compelling meta description\n";
+		$prompt .= "- Create engaging social media posts\n";
+		$prompt .= "- Generate multiple title variations\n";
+
+		// Add formatting instructions
+		$prompt .= "\nFormat the response as JSON with these keys:\n";
+		$prompt .= "- outline (content structure)\n";
+		$prompt .= "- introduction\n";
+		$prompt .= "- sections (array with heading and content)\n";
+		$prompt .= "- conclusion\n";
+		$prompt .= "- meta_description\n";
+		$prompt .= "- social_media_posts (object with platform-specific posts)\n";
+		$prompt .= "- title_variations (array)\n";
+		$prompt .= "- key_points (array)\n";
+		$prompt .= "- readability_score (number)\n";
+		$prompt .= "- seo_optimization (object with analysis)\n";
+
+		return $prompt;
+	}
+
+	/**
+	 * Call OpenAI API via HTTP
+	 */
+	private function call_openai_api($prompt)
+	{
+		$response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->api_key,
+				'Content-Type' => 'application/json',
+			],
+			'body' => json_encode([
+				'model' => 'gpt-4',
+				'messages' => [
+					['role' => 'system', 'content' => 'You are an expert content writer and SEO specialist.'],
+					['role' => 'user', 'content' => $prompt]
+				],
+				'max_tokens' => 2000,
+				'temperature' => 0.7,
+			]),
+			'timeout' => 30,
+		]);
+
+		if (is_wp_error($response)) {
+			throw new Exception('OpenAI API request failed: ' . $response->get_error_message());
+		}
+
+		$body = json_decode(wp_remote_retrieve_body($response), true);
+
+		if (isset($body['error'])) {
+			throw new Exception('OpenAI API error: ' . $body['error']['message']);
+		}
+
+		return $body['choices'][0]['message']['content'];
+	}
+
+	/**
+	 * Parse OpenAI response
+	 */
+	private function parse_openai_response($content, $topic, $keywords, $tone, $content_type)
+	{
+		// Try to parse as JSON first
+		$parsed = json_decode($content, true);
+
+		if (json_last_error() === JSON_ERROR_NONE) {
+			return $this->enhance_ai_content($parsed, $topic, $keywords, $tone, $content_type);
+		}
+
+		// If not JSON, use basic content structure
+		return $this->generate_content_basic($topic, $keywords, $tone, $content_type);
+	}
+
+	/**
+	 * Enhance AI-generated content with additional features
+	 */
+	private function enhance_ai_content($content, $topic, $keywords, $tone, $content_type)
+	{
+		// Ensure all required fields are present
+		$default_structure = $this->generate_content_basic($topic, $keywords, $tone, $content_type);
+
+		foreach ($default_structure as $key => $value) {
+			if (!isset($content[$key])) {
+				$content[$key] = $value;
+			}
+		}
+
+		// Enhance with additional AI features
+		$content['ai_enhanced'] = true;
+		$content['generated_with'] = $this->ai_service;
+		$content['quality_score'] = $this->calculate_content_quality_score($content);
+
+		return $content;
+	}
+
+	/**
+	 * Calculate content quality score
+	 */
+	private function calculate_content_quality_score($content)
+	{
+		$score = 0;
+
+		// Score based on content length
+		$total_words = 0;
+		if (isset($content['sections'])) {
+			foreach ($content['sections'] as $section) {
+				if (isset($section['content'])) {
+					$total_words += str_word_count($section['content']);
+				}
+			}
+		}
+
+		if ($total_words > 800) $score += 30;
+		elseif ($total_words > 500) $score += 20;
+		elseif ($total_words > 300) $score += 10;
+
+		// Score based on structure
+		if (isset($content['sections']) && count($content['sections']) >= 3) {
+			$score += 20;
+		}
+
+		// Score based on additional elements
+		if (isset($content['key_points']) && count($content['key_points']) >= 3) {
+			$score += 15;
+		}
+
+		if (isset($content['title_variations']) && count($content['title_variations']) >= 3) {
+			$score += 15;
+		}
+
+		if (isset($content['social_media_posts']) && count((array)$content['social_media_posts']) >= 2) {
+			$score += 10;
+		}
+
+		// Score based on SEO elements
+		if (isset($content['meta_description']) && !empty($content['meta_description'])) {
+			$score += 10;
+		}
+
+		return min(100, $score);
+	}
+
+	/**
+	 * Analyze content quality using AI
+	 */
+	public function analyze_content_quality($content)
+	{
+		if ($this->openai_client && $this->api_key) {
+			return $this->analyze_content_with_openai($content);
+		}
+
+		return $this->analyze_content_basic($content);
+	}
+
+	/**
+	 * Analyze content using OpenAI
+	 */
+	private function analyze_content_with_openai($content)
+	{
+		$prompt = "Analyze the following content for SEO and quality. Provide a JSON response with:\n\n";
+		$prompt .= "- readability_score (0-100)\n";
+		$prompt .= "- seo_score (0-100)\n";
+		$prompt .= "- keyword_usage_analysis\n";
+		$prompt .= "- content_structure_analysis\n";
+		$prompt .= "- improvement_suggestions (array)\n";
+		$prompt .= "- overall_grade (A-F)\n\n";
+		$prompt .= "Content to analyze:\n{$content}";
+
+		try {
+			if ($this->openai_client) {
+				$response = $this->openai_client->chat()->create([
+					'model' => 'gpt-4',
+					'messages' => [
+						['role' => 'system', 'content' => 'You are an expert SEO analyst and content quality assessor.'],
+						['role' => 'user', 'content' => $prompt]
+					],
+					'max_tokens' => 1000,
+					'temperature' => 0.3,
+				]);
+
+				$analysis = $response->choices[0]->message->content;
+			} else {
+				$analysis = $this->call_openai_api($prompt);
+			}
+
+			$parsed_analysis = json_decode($analysis, true);
+			return is_array($parsed_analysis) ? $parsed_analysis : $this->analyze_content_basic($content);
+		} catch (Exception $e) {
+			error_log('OpenAI Content Analysis Error: ' . $e->getMessage());
+			return $this->analyze_content_basic($content);
+		}
+	}
+
+	/**
+	 * Basic content analysis fallback
+	 */
+	private function analyze_content_basic($content)
+	{
+		$word_count = str_word_count(strip_tags($content));
+		$sentence_count = preg_match_all('/[.!?]+/', $content);
+		$paragraph_count = preg_match_all('/<p>/', $content);
+
+		// Calculate basic readability score
+		$readability = $this->calculate_readability_score($content);
+
+		return [
+			'readability_score' => $readability,
+			'seo_score' => max(0, min(100, $word_count / 20)),
+			'keyword_usage_analysis' => 'Basic analysis completed',
+			'content_structure_analysis' => [
+				'word_count' => $word_count,
+				'sentence_count' => $sentence_count,
+				'paragraph_count' => $paragraph_count,
+			],
+			'improvement_suggestions' => [
+				'Aim for 300+ words for better SEO',
+				'Use more subheadings to improve structure',
+				'Include relevant keywords naturally',
+			],
+			'overall_grade' => $readability >= 70 ? 'B' : ($readability >= 50 ? 'C' : 'D'),
+		];
+	}
+
+	/**
+	 * Generate comprehensive content using the basic content generation system
+	 * This serves as the fallback when OpenAI is not available
+	 */
+	private function generate_content_basic($topic, $keywords = array(), $tone = 'professional', $content_type = 'blog_post')
+	{
+		// Generate the complete content structure using existing methods
+		$outline = $this->generate_content_outline($topic, $keywords);
+		$sections = $this->write_content_sections($topic, $keywords, $tone);
+
+		// Calculate total word count from sections
+		$total_word_count = 0;
+		foreach ($sections as $section) {
+			$total_word_count += $section['word_count'];
+		}
+
+		// Generate all required components
+		$content = array(
+			'outline' => $outline,
+			'introduction' => $this->write_introduction($topic, $tone),
+			'sections' => $sections,
+			'conclusion' => $this->write_conclusion($topic, $tone),
+			'meta_description' => $this->generate_meta_description($topic, $keywords),
+			'social_media_posts' => $this->generate_social_posts($topic),
+			'title_variations' => $this->generate_title_variations($topic),
+			'key_points' => $this->extract_key_points($topic, $keywords),
+			'readability_score' => $this->calculate_readability_score($topic),
+			'seo_optimization' => $this->analyze_seo_optimization($topic, $keywords),
+			'ai_enhanced' => false,
+			'generated_with' => 'basic',
+			'total_word_count' => $total_word_count,
+			'content_type' => $content_type,
+			'tone' => $tone,
+			'target_keywords' => $keywords
 		);
+
+		return $content;
 	}
 
 	/**

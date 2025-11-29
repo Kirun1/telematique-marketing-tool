@@ -133,6 +133,20 @@ class ProductScraper {
 	public $chart_manager;
 
 	/**
+	 * AI content writer service.
+	 *
+	 * @var ProductScraper_AI_Content_Writer
+	 */
+	public $ai_content_writer;
+
+	/**
+	 * AI title optimizer service.
+	 *
+	 * @var ProductScraper_AI_Title_Optimizer
+	 */
+	public $ai_title_optimizer;
+
+	/**
 	 * Bootstrap plugin services and hooks.
 	 */
 	public function __construct() {
@@ -146,6 +160,10 @@ class ProductScraper {
 		$this->link_manager      = new ProductScraper_Link_Manager();
 		$this->robots_manager    = new ProductScraper_Robots_Txt();
 		$this->chart_manager     = new ProductScraper_Chart_Manager();
+
+		// Initialize AI services
+		$this->ai_content_writer = new ProductScraper_AI_Content_Writer();
+		$this->ai_title_optimizer = new ProductScraper_AI_Title_Optimizer();
 
 		// Core SEO hooks.
 		add_action( 'init', array( $this, 'init' ) );
@@ -161,6 +179,11 @@ class ProductScraper {
 
 		// REST API.
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+
+		// Add AI-specific hooks.
+		add_action('wp_ajax_generate_ai_content', array($this, 'ajax_generate_ai_content'));
+		add_action('wp_ajax_optimize_title_with_ai', array($this, 'ajax_optimize_title_with_ai'));
+		add_action('wp_ajax_analyze_content_with_ai', array($this, 'ajax_analyze_content_with_ai'));
 	}
 
 	/**
@@ -849,6 +872,12 @@ class ProductScraper {
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_breadcrumbs' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_schema' );
 		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_clean_permalinks' );
+
+		// AI Settings
+		register_setting('product_scraper_ai_settings', 'product_scraper_openai_api_key');
+		register_setting('product_scraper_ai_settings', 'product_scraper_ai_content_tone');
+		register_setting('product_scraper_ai_settings', 'product_scraper_ai_max_tokens');
+		register_setting('product_scraper_ai_settings', 'product_scraper_ai_temperature');
 	}
 
 	/**
@@ -1201,6 +1230,90 @@ class ProductScraper {
 			'competitor_analysis' => $chart_manager->get_competitor_analysis_data(),
 			'seo_health'          => $chart_manager->get_seo_health_data(),
 		);
+	}
+
+	/**
+	 * AJAX handler for AI content generation
+	 */
+	public function ajax_generate_ai_content()
+	{
+		check_ajax_referer('product_scraper_nonce', 'nonce');
+
+		if (!current_user_can('edit_posts')) {
+			wp_send_json_error('Insufficient permissions');
+		}
+
+		$topic = sanitize_text_field($_POST['topic'] ?? '');
+		$keywords = isset($_POST['keywords']) ? array_map('sanitize_text_field', $_POST['keywords']) : array();
+		$tone = sanitize_text_field($_POST['tone'] ?? 'professional');
+		$content_type = sanitize_text_field($_POST['content_type'] ?? 'blog_post');
+
+		if (empty($topic)) {
+			wp_send_json_error('Topic is required');
+		}
+
+		try {
+			$content = $this->ai_content_writer->generate_content($topic, $keywords, $tone, $content_type);
+			wp_send_json_success($content);
+		} catch (Exception $e) {
+			wp_send_json_error('AI content generation failed: ' . $e->getMessage());
+		}
+	}
+
+	/**
+	 * AJAX handler for AI title optimization
+	 */
+	public function ajax_optimize_title_with_ai()
+	{
+		check_ajax_referer('product_scraper_nonce', 'nonce');
+
+		if (!current_user_can('edit_posts')) {
+			wp_send_json_error('Insufficient permissions');
+		}
+
+		$title = sanitize_text_field($_POST['title'] ?? '');
+		$keyword = sanitize_text_field($_POST['keyword'] ?? '');
+
+		if (empty($title)) {
+			wp_send_json_error('Title is required');
+		}
+
+		try {
+			$variations = $this->ai_title_optimizer->generate_title_variations($keyword, $title);
+			$analysis = $this->ai_title_optimizer->analyze_title_emotional_impact($title);
+
+			wp_send_json_success(array(
+				'variations' => $variations,
+				'analysis' => $analysis
+			));
+		} catch (Exception $e) {
+			wp_send_json_error('Title optimization failed: ' . $e->getMessage());
+		}
+	}
+
+	/**
+	 * AJAX handler for AI content analysis
+	 */
+	public function ajax_analyze_content_with_ai()
+	{
+		check_ajax_referer('product_scraper_nonce', 'nonce');
+
+		if (!current_user_can('edit_posts')) {
+			wp_send_json_error('Insufficient permissions');
+		}
+
+		$content = wp_kses_post($_POST['content'] ?? '');
+
+		if (empty($content)) {
+			wp_send_json_error('Content is required');
+		}
+
+		try {
+			$analysis = $this->ai_content_writer->analyze_content_quality($content);
+			wp_send_json_success($analysis);
+		} catch (Exception $e) {
+			wp_send_json_error('Content analysis failed: ' . $e->getMessage());
+		}
 	}
 }
 

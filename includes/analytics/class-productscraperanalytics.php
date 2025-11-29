@@ -2251,6 +2251,45 @@ class ProductScraperAnalytics {
 									</div>
 								</div>
 
+								<!-- AI Settings -->
+								<div class="sa-settings-group">
+									<h3><span class="dashicons dashicons-ai"></span> AI Content Generation</h3>
+
+									<div class="sa-setting-row">
+										<label for="openai_api_key">OpenAI API Key</label>
+										<input type="password" id="openai_api_key" name="product_scraper_openai_api_key"
+											value="<?php echo esc_attr(get_option('product_scraper_openai_api_key', '')); ?>"
+											class="sa-form-control"
+											placeholder="sk-...">
+										<p class="description">Your OpenAI API key for AI content generation</p>
+									</div>
+
+									<div class="sa-setting-row">
+										<label for="ai_content_tone">Default Content Tone</label>
+										<select id="ai_content_tone" name="product_scraper_ai_content_tone" class="sa-form-control">
+											<option value="professional" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'professional'); ?>>Professional</option>
+											<option value="casual" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'casual'); ?>>Casual</option>
+											<option value="enthusiastic" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'enthusiastic'); ?>>Enthusiastic</option>
+										</select>
+									</div>
+
+									<div class="sa-setting-row">
+										<label for="ai_max_tokens">Max Tokens</label>
+										<input type="number" id="ai_max_tokens" name="product_scraper_ai_max_tokens"
+											value="<?php echo esc_attr(get_option('product_scraper_ai_max_tokens', 1000)); ?>"
+											min="100" max="4000" class="sa-form-control">
+										<p class="description">Maximum content length (100-4000 tokens)</p>
+									</div>
+
+									<div class="sa-setting-row">
+										<label for="ai_temperature">Temperature</label>
+										<input type="number" id="ai_temperature" name="product_scraper_ai_temperature"
+											value="<?php echo esc_attr(get_option('product_scraper_ai_temperature', 0.7)); ?>"
+											min="0" max="2" step="0.1" class="sa-form-control">
+										<p class="description">Creativity level (0.0-2.0)</p>
+									</div>
+								</div>
+
 								<!-- Advanced Settings -->
 								<div class="sa-settings-group">
 									<h3><span class="dashicons dashicons-admin-tools"></span> Advanced Settings</h3>
@@ -2482,6 +2521,19 @@ class ProductScraperAnalytics {
 		if ( isset( $_POST['competitors'] ) ) {
 			$competitors = sanitize_textarea_field( wp_unslash( $_POST['competitors'] ) );
 			update_option( 'product_scraper_competitors', $competitors );
+		}
+
+		if (isset($_POST['product_scraper_openai_api_key'])) {
+			update_option('product_scraper_openai_api_key', sanitize_text_field($_POST['product_scraper_openai_api_key']));
+		}
+		if (isset($_POST['product_scraper_ai_content_tone'])) {
+			update_option('product_scraper_ai_content_tone', sanitize_text_field($_POST['product_scraper_ai_content_tone']));
+		}
+		if (isset($_POST['product_scraper_ai_max_tokens'])) {
+			update_option('product_scraper_ai_max_tokens', absint($_POST['product_scraper_ai_max_tokens']));
+		}
+		if (isset($_POST['product_scraper_ai_temperature'])) {
+			update_option('product_scraper_ai_temperature', floatval($_POST['product_scraper_ai_temperature']));
 		}
 
 		update_option( 'product_scraper_enable_debug', isset( $_POST['enable_debug'] ) ? 1 : 0 );

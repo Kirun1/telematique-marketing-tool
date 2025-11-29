@@ -58,7 +58,7 @@ class ProductScraperEngine {
 	/**
 	 * Fetch page content using WordPress HTTP API
 	 */
-	private function fetch_page( $url ) {
+	public function fetch_page( $url ) {
 		$response = wp_remote_get(
 			$url,
 			array(

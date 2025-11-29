@@ -142,6 +142,68 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // AI Content Generation
+    $('.generate-ai-content').on('click', function() {
+        const topic = $('#ai-topic').val();
+        const keywords = $('#ai-keywords').val().split(',').map(k => k.trim()).filter(k => k);
+        const tone = $('#ai-tone').val();
+        const contentType = $('#ai-content-type').val();
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'generate_ai_content',
+                nonce: productScraper.nonce,
+                topic: topic,
+                keywords: keywords,
+                tone: tone,
+                content_type: contentType
+            },
+            success: function(response) {
+                if (response.success) {
+                    displayAIContent(response.data);
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            }
+        });
+    });
+
+    // AI Title Optimization
+    $('.optimize-title-ai').on('click', function() {
+        const title = $('#current-title').val();
+        const keyword = $('#focus-keyword').val();
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'optimize_title_with_ai',
+                nonce: productScraper.nonce,
+                title: title,
+                keyword: keyword
+            },
+            success: function(response) {
+                if (response.success) {
+                    displayTitleVariations(response.data);
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            }
+        });
+    });
+
+    function displayAIContent(content) {
+        // Implementation to display generated content in your UI
+        console.log('AI Content:', content);
+    }
+
+    function displayTitleVariations(data) {
+        // Implementation to display title variations and analysis
+        console.log('Title Variations:', data);
+    }
 });
 
 jQuery(document).ready(function($) {

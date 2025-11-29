@@ -4,9 +4,31 @@ class ProductScraper_AI_Title_Optimizer {
 	private $power_words;
 	private $emotional_words;
 	private $curiosity_indicators;
+	private $openai_client;
+	private $api_key;
 
 	public function __construct() {
+		$this->api_key = get_option('product_scraper_openai_api_key', '');
 		$this->initialize_word_lists();
+		$this->initialize_openai_client();
+	}
+
+	/**
+	 * Initialize OpenAI client
+	 */
+	private function initialize_openai_client()
+	{
+		if (empty($this->api_key)) {
+			return;
+		}
+
+		try {
+			if (class_exists('OpenAI\Client')) {
+				$this->openai_client = new OpenAI\Client($this->api_key);
+			}
+		} catch (Exception $e) {
+			error_log('OpenAI Client initialization failed: ' . $e->getMessage());
+		}
 	}
 
 	/**
@@ -146,30 +168,104 @@ class ProductScraper_AI_Title_Optimizer {
 		);
 	}
 
-	public function generate_title_variations( $keyword, $current_title = '' ) {
-		// AI-powered title generation.
-		$variations = array(
-			$this->generate_how_to_title( $keyword ),
-			$this->generate_list_title( $keyword ),
-			$this->generate_question_title( $keyword ),
-			$this->generate_number_title( $keyword ),
-			$this->generate_ultimate_guide_title( $keyword ),
-			$this->generate_secret_title( $keyword ),
-			$this->generate_problem_solution_title( $keyword ),
-			$this->generate_comparison_title( $keyword ),
-			$this->generate_mistake_title( $keyword ),
-			$this->generate_myth_title( $keyword ),
-		);
+	/**
+	 * Generate title variations with OpenAI enhancement
+	 */
+	public function generate_title_variations($keyword, $current_title = '')
+	{
+		// Generate basic variations
+		$basic_variations = $this->generate_basic_variations($keyword, $current_title);
 
-		// Add current title analysis if provided.
-		if ( ! empty( $current_title ) ) {
-			$optimized_current = $this->optimize_existing_title( $current_title, $keyword );
-			if ( $optimized_current ) {
-				array_unshift( $variations, $optimized_current );
-			}
+		// Enhance with AI if available
+		if ($this->openai_client && $this->api_key) {
+			$ai_variations = $this->generate_ai_enhanced_variations($keyword, $current_title);
+			$all_variations = array_merge($ai_variations, $basic_variations);
+		} else {
+			$all_variations = $basic_variations;
 		}
 
-		return array_filter( $variations );
+		// Remove duplicates and limit
+		$unique_variations = array_unique($all_variations);
+		return array_slice($unique_variations, 0, 10);
+	}
+
+	/**
+	 * Generate AI-enhanced title variations
+	 */
+	private function generate_ai_enhanced_variations($keyword, $current_title = '')
+	{
+		$prompt = "Generate 10 compelling SEO-friendly title variations for the keyword '{$keyword}'";
+
+		if (!empty($current_title)) {
+			$prompt .= " and optimize this existing title: '{$current_title}'";
+		}
+
+		$prompt .= "\n\nRequirements:\n";
+		$prompt .= "- Include power words and emotional triggers\n";
+		$prompt .= "- Create curiosity gaps\n";
+		$prompt .= "- Optimize for click-through rates\n";
+		$prompt .= "- Keep titles under 60 characters\n";
+		$prompt .= "- Use different title structures (how-to, list, question, etc.)\n";
+		$prompt .= "- Return as a JSON array of title strings";
+
+		try {
+			if ($this->openai_client) {
+				$response = $this->openai_client->chat()->create([
+					'model' => 'gpt-4',
+					'messages' => [
+						['role' => 'system', 'content' => 'You are an expert SEO title optimizer and copywriter.'],
+						['role' => 'user', 'content' => $prompt]
+					],
+					'max_tokens' => 800,
+					'temperature' => 0.8,
+				]);
+
+				$content = $response->choices[0]->message->content;
+			} else {
+				$content = $this->call_openai_api($prompt);
+			}
+
+			$variations = json_decode($content, true);
+			return is_array($variations) ? $variations : [];
+		} catch (Exception $e) {
+			error_log('OpenAI Title Generation Error: ' . $e->getMessage());
+			return [];
+		}
+	}
+
+	/**
+	 * Call OpenAI API via HTTP
+	 */
+	private function call_openai_api($prompt)
+	{
+		$response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->api_key,
+				'Content-Type' => 'application/json',
+			],
+			'body' => json_encode([
+				'model' => 'gpt-4',
+				'messages' => [
+					['role' => 'system', 'content' => 'You are an expert SEO title optimizer and copywriter.'],
+					['role' => 'user', 'content' => $prompt]
+				],
+				'max_tokens' => 800,
+				'temperature' => 0.8,
+			]),
+			'timeout' => 20,
+		]);
+
+		if (is_wp_error($response)) {
+			throw new Exception('OpenAI API request failed: ' . $response->get_error_message());
+		}
+
+		$body = json_decode(wp_remote_retrieve_body($response), true);
+
+		if (isset($body['error'])) {
+			throw new Exception('OpenAI API error: ' . $body['error']['message']);
+		}
+
+		return $body['choices'][0]['message']['content'];
 	}
 
 	/**
@@ -408,15 +504,69 @@ class ProductScraper_AI_Title_Optimizer {
 	 * Analyze title emotional impact
 	 */
 	public function analyze_title_emotional_impact( $title ) {
+		$basic_analysis = $this->analyze_title_basic($title);
+
+		if ($this->openai_client && $this->api_key) {
+			$ai_insights = $this->get_ai_title_insights($title);
+			return array_merge($basic_analysis, $ai_insights);
+		}
+
+		return $basic_analysis;
+	}
+
+	/**
+	 * Get AI-powered title insights
+	 */
+	private function get_ai_title_insights($title)
+	{
+		$prompt = "Analyze this title for emotional impact and SEO effectiveness: '{$title}'\n\n";
+		$prompt .= "Provide a JSON response with:\n";
+		$prompt .= "- emotional_impact (0-100)\n";
+		$prompt .= "- curiosity_factor (0-100)\n";
+		$prompt .= "- clarity_score (0-100)\n";
+		$prompt .= "- ai_suggestions (array of improvement suggestions)\n";
+		$prompt .= "- predicted_ctr_improvement (percentage)\n";
+
+		try {
+			if ($this->openai_client) {
+				$response = $this->openai_client->chat()->create([
+					'model' => 'gpt-4',
+					'messages' => [
+						['role' => 'system', 'content' => 'You are an expert in copywriting and title optimization.'],
+						['role' => 'user', 'content' => $prompt]
+					],
+					'max_tokens' => 500,
+					'temperature' => 0.3,
+				]);
+
+				$content = $response->choices[0]->message->content;
+			} else {
+				$content = $this->call_openai_api($prompt);
+			}
+
+			$insights = json_decode($content, true);
+			return is_array($insights) ? $insights : [];
+		} catch (Exception $e) {
+			error_log('OpenAI Title Analysis Error: ' . $e->getMessage());
+			return [];
+		}
+	}
+
+	/**
+	 * Basic title analysis (fallback)
+	 */
+	private function analyze_title_basic($title)
+	{
+		// Your existing analysis implementation
 		return array(
-			'emotional_score'         => $this->calculate_emotional_score( $title ),
-			'curiosity_gap'           => $this->check_curiosity_gap( $title ),
-			'power_words'             => $this->count_power_words( $title ),
-			'click_through_rate'      => $this->predict_ctr( $title ),
-			'length_score'            => $this->analyze_title_length( $title ),
-			'keyword_placement'       => $this->analyze_keyword_placement( $title ),
-			'readability_score'       => $this->analyze_title_readability( $title ),
-			'improvement_suggestions' => $this->generate_improvement_suggestions( $title ),
+			'emotional_score'         => $this->calculate_emotional_score($title),
+			'curiosity_gap'           => $this->check_curiosity_gap($title),
+			'power_words'             => $this->count_power_words($title),
+			'click_through_rate'      => $this->predict_ctr($title),
+			'length_score'            => $this->analyze_title_length($title),
+			'keyword_placement'       => $this->analyze_keyword_placement($title),
+			'readability_score'       => $this->analyze_title_readability($title),
+			'improvement_suggestions' => $this->generate_improvement_suggestions($title),
 		);
 	}
 
@@ -762,5 +912,162 @@ class ProductScraper_AI_Title_Optimizer {
 		);
 
 		return $scored_titles;
+	}
+
+	/**
+	 * Generate basic title variations using the existing title generation system
+	 * This serves as the fallback when OpenAI is not available
+	 */
+	private function generate_basic_variations($keyword, $current_title = '')
+	{
+		$variations = array();
+
+		// If we have a current title, optimize it first
+		if (!empty($current_title)) {
+			$optimized_title = $this->optimize_existing_title($current_title, $keyword);
+			if ($optimized_title !== $current_title) {
+				$variations[] = $optimized_title;
+			}
+		}
+
+		// Generate variations using all available title types
+		$title_generators = array(
+			'generate_how_to_title',
+			'generate_list_title',
+			'generate_question_title',
+			'generate_number_title',
+			'generate_ultimate_guide_title',
+			'generate_secret_title',
+			'generate_problem_solution_title',
+			'generate_comparison_title',
+			'generate_mistake_title',
+			'generate_myth_title'
+		);
+
+		// Generate 2 variations from each generator type
+		foreach ($title_generators as $generator) {
+			try {
+				$variation = $this->$generator($keyword);
+				if (!empty($variation) && !in_array($variation, $variations)) {
+					$variations[] = $variation;
+				}
+
+				// Add a second variation if possible
+				$second_variation = $this->$generator($keyword);
+				if (!empty($second_variation) && !in_array($second_variation, $variations) && $second_variation !== $variation) {
+					$variations[] = $second_variation;
+				}
+			} catch (Exception $e) {
+				// Skip if generator fails
+				continue;
+			}
+		}
+
+		// If we have a current title, generate A/B test variations
+		if (!empty($current_title)) {
+			$ab_variations = $this->generate_ab_test_variations($current_title, $keyword, 3);
+			foreach ($ab_variations as $ab_variation) {
+				if (!in_array($ab_variation, $variations)) {
+					$variations[] = $ab_variation;
+				}
+			}
+		}
+
+		// Remove duplicates and ensure we have good variations
+		$unique_variations = array_unique($variations);
+
+		// Filter out variations that are too similar to each other
+		$filtered_variations = $this->filter_similar_titles($unique_variations);
+
+		// Ensure we have at least 5 variations
+		if (count($filtered_variations) < 5) {
+			$additional_variations = $this->generate_additional_variations($keyword, $filtered_variations);
+			$filtered_variations = array_merge($filtered_variations, $additional_variations);
+			$filtered_variations = array_slice(array_unique($filtered_variations), 0, 10);
+		}
+
+		return array_slice($filtered_variations, 0, 10);
+	}
+
+	/**
+	 * Filter out titles that are too similar to each other
+	 */
+	private function filter_similar_titles($titles)
+	{
+		$filtered = array();
+
+		foreach ($titles as $title) {
+			$is_similar = false;
+
+			foreach ($filtered as $existing_title) {
+				if ($this->calculate_title_similarity($title, $existing_title) > 0.7) {
+					$is_similar = true;
+					break;
+				}
+			}
+
+			if (!$is_similar) {
+				$filtered[] = $title;
+			}
+		}
+
+		return $filtered;
+	}
+
+	/**
+	 * Calculate similarity between two titles (0-1 scale)
+	 */
+	private function calculate_title_similarity($title1, $title2)
+	{
+		$words1 = array_map('strtolower', str_word_count($title1, 1));
+		$words2 = array_map('strtolower', str_word_count($title2, 1));
+
+		$common_words = array_intersect($words1, $words2);
+		$total_words = count(array_unique(array_merge($words1, $words2)));
+
+		if ($total_words === 0) {
+			return 0;
+		}
+
+		return count($common_words) / $total_words;
+	}
+
+	/**
+	 * Generate additional variations if we don't have enough
+	 */
+	private function generate_additional_variations($keyword, $existing_variations)
+	{
+		$additional = array();
+
+		// Mix and match patterns
+		$patterns = array(
+			'Why {keyword} Matters in [Year]',
+			'The Beginner\'s Guide to {keyword}',
+			'{keyword} Made Simple: [Number] Easy Steps',
+			'Transform Your {keyword} Strategy Today',
+			'The Science Behind Effective {keyword}',
+			'{keyword} Mastery: From Beginner to Expert',
+			'Revolutionize Your Approach to {keyword}',
+			'{keyword} Success Stories That Inspire',
+			'The Future of {keyword}: Trends to Watch',
+			'{keyword} Essentials You Can\'t Ignore'
+		);
+
+		$year = date('Y');
+		$numbers = array(3, 5, 7, 10, 21);
+
+		foreach ($patterns as $pattern) {
+			$variation = str_replace(
+				array('{keyword}', '[Year]', '[Number]'),
+				array($keyword, $year, $numbers[array_rand($numbers)]),
+				$pattern
+			);
+
+			if (!in_array($variation, $existing_variations) && !in_array($variation, $additional)) {
+				$additional[] = $variation;
+			}
+		}
+
+		return array_slice($additional, 0, 5);
 	}
 }
