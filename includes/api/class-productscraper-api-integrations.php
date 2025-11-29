@@ -47,31 +47,49 @@ class ProductScraper_API_Integrations {
 	 *
 	 * @return array
 	 */
-	public function get_seo_dashboard_data() {
-		$cache_key   = 'product_scraper_seo_data_' . md5( get_site_url() );
-		$cached_data = get_transient( $cache_key );
+	public function get_seo_dashboard_data()
+	{
+		$cache_key = 'product_scraper_seo_data_' . md5(get_site_url());
+		$cached_data = get_transient($cache_key);
 
-		if ( false !== $cached_data ) {
+		if (false !== $cached_data) {
 			return $cached_data;
 		}
 
+		// Initialize with empty data structure first
 		$data = array(
-			'organic_traffic'     => $this->get_organic_traffic(),
-			'referring_domains'   => $this->get_referring_domains(),
-			'top_keywords'        => $this->get_top_keywords(),
-			'digital_score'       => $this->calculate_digital_score(),
-			'engagement_metrics'  => $this->get_engagement_metrics(),
-			'competitor_analysis' => $this->get_competitor_analysis(),
-			'site_health'         => $this->get_site_health_metrics(),
-			'last_updated'        => current_time( 'mysql' ),
+			'organic_traffic' => $this->get_empty_traffic_data(),
+			'referring_domains' => $this->get_empty_referring_domains(),
+			'top_keywords' => $this->get_empty_keywords(),
+			'digital_score' => 0,
+			'engagement_metrics' => $this->get_empty_engagement_metrics(),
+			'competitor_analysis' => $this->get_empty_competitor_analysis(),
+			'site_health' => $this->get_empty_site_health(),
+			'last_updated' => current_time('mysql'),
 		);
 
-		// Debug logging - remove in production.
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'SEO Dashboard Data: ' . print_r( $data, true ) ); // phpcs:ignore
+		try {
+			// Try to get real data with proper error handling
+			$data['organic_traffic'] = $this->get_organic_traffic();
+			$data['referring_domains'] = $this->get_referring_domains();
+			$data['top_keywords'] = $this->get_top_keywords();
+			$data['engagement_metrics'] = $this->get_engagement_metrics();
+			$data['site_health'] = $this->get_site_health_metrics();
+			$data['competitor_analysis'] = $this->get_competitor_analysis();
+
+			// Calculate digital score only if we have some real data
+			$data['digital_score'] = $this->calculate_digital_score();
+		} catch (Exception $e) {
+			error_log('SEO Dashboard Data Error: ' . $e->getMessage());
+			// Keep the empty data structure but log the error
 		}
 
-		set_transient( $cache_key, $data, $this->cache_duration );
+		// Debug logging
+		if (defined('WP_DEBUG') && WP_DEBUG) {
+			error_log('SEO Dashboard Data Final: ' . print_r($data, true));
+		}
+
+		set_transient($cache_key, $data, $this->cache_duration);
 		return $data;
 	}
 
@@ -1480,46 +1498,87 @@ class ProductScraper_API_Integrations {
 	 *
 	 * @return array
 	 */
-	private function get_empty_competitor_analysis() {
+	/**
+	 * Get empty competitor analysis data structure
+	 */
+	private function get_empty_competitor_analysis()
+	{
 		$competitors = $this->get_configured_competitors();
 
-		if ( empty( $competitors ) ) {
-			// Return generic placeholder if no competitors configured
-			return array(
-				array(
-					'domain'      => 'competitor1.com',
-					'authority'   => 0,
-					'ref_domains' => 0,
-					'traffic'     => 0,
-					'keywords'    => 0,
-					'source'      => 'none',
-				),
-				array(
-					'domain'      => 'competitor2.com',
-					'authority'   => 0,
-					'ref_domains' => 0,
-					'traffic'     => 0,
-					'keywords'    => 0,
-					'source'      => 'none',
-				),
-				array(
-					'domain'      => 'competitor3.com',
-					'authority'   => 0,
-					'ref_domains' => 0,
-					'traffic'     => 0,
-					'keywords'    => 0,
-					'source'      => 'none',
-				),
+		// Use simple static data to avoid recursion
+		$own_data = array(
+			'domain' => wp_parse_url(get_site_url(), PHP_URL_HOST) ?: 'your-site.com',
+			'authority' => 0,
+			'traffic' => 0,
+			'ref_domains' => 0,
+			'keywords' => 0,
+			'traffic_value' => 0,
+			'is_primary' => true
+		);
+
+		$analysis_data = array(
+			'total_competitors' => count($competitors),
+			'your_authority' => $own_data['authority'],
+			'your_ref_domains' => $own_data['ref_domains'],
+			'your_traffic' => $own_data['traffic'],
+			'competitors' => array(),
+			'content_gaps' => array()
+		);
+
+		// Add own site
+		$analysis_data['competitors'][] = $own_data;
+
+		// Add configured competitors with empty data
+		foreach ($competitors as $domain) {
+			$analysis_data['competitors'][] = array(
+				'domain' => $domain,
+				'authority' => 0,
+				'ref_domains' => 0,
+				'traffic' => 0,
+				'keywords' => 0,
+				'source' => 'none',
+				'is_primary' => false,
+				'traffic_value' => 0,
+				'ref_domains_percentage' => 0
 			);
 		}
 
-		// Return empty data for configured competitors
-		$analysis = array();
-		foreach ( $competitors as $domain ) {
-			$analysis[] = $this->get_empty_competitor_profile( $domain );
-		}
+		return $analysis_data;
+	}
 
-		return $analysis;
+	/**
+	 * Get own site data for comparison in competitor analysis
+	 *
+	 * @return array
+	 */
+	private function get_own_site_data()
+	{
+		$site_url = get_site_url();
+		$domain = wp_parse_url($site_url, PHP_URL_HOST);
+
+		// Get basic site data without calling get_seo_dashboard_data() to avoid recursion
+		$traffic_data = $this->get_organic_traffic();
+		$referring_data = $this->get_referring_domains();
+		$keywords_data = $this->get_top_keywords();
+
+		return array(
+			'domain' => $domain ?: 'your-site.com',
+			'authority' => $referring_data['domain_rating'] ?? 0,
+			'traffic' => $traffic_data['current'] ?? 0,
+			'ref_domains' => $referring_data['count'] ?? 0,
+			'keywords' => count($keywords_data ?? array()),
+			'traffic_value' => $this->calculate_traffic_value($traffic_data['current'] ?? 0),
+			'is_primary' => true
+		);
+	}
+
+	/**
+	 * Calculate estimated traffic value for competitor analysis
+	 */
+	private function calculate_traffic_value($traffic)
+	{
+		// Basic estimation: $0.50 per organic visit
+		return round($traffic * 0.5);
 	}
 
 	/**

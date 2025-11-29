@@ -57,9 +57,12 @@ class ProductScraperAnalytics
 		add_action('wp_ajax_get_scraper_analytics', array($this, 'ajax_get_analytics'));
 		add_action('wp_ajax_get_keyword_data', array($this, 'ajax_get_keyword_data'));
 		add_action('wp_ajax_get_keyword_performance', array($this, 'ajax_get_keyword_performance'));
-		add_action('wp_ajax_research_keyword', array($this, 'ajax_research_keyword')); 
+		add_action('wp_ajax_research_keyword', array($this, 'ajax_research_keyword'));
 		add_action('wp_ajax_sync_seo_data', array($this, 'ajax_sync_seo_data'));
 		add_action('wp_ajax_research_keyword', array($this, 'ajax_research_keyword'));
+		add_action('wp_ajax_refresh_competitor_analysis', array($this, 'ajax_refresh_competitor_analysis'));
+		add_action('wp_ajax_add_competitor', array($this, 'ajax_add_competitor'));
+		add_action('wp_ajax_remove_competitor', array($this, 'ajax_remove_competitor'));
 
 		add_action('wp_ajax_test_api_connections', array($this, 'ajax_test_api_connections'));
 		add_action('wp_ajax_clear_seo_cache', array($this, 'ajax_clear_seo_cache'));
@@ -656,14 +659,14 @@ class ProductScraperAnalytics
 		<script>
 			function loadKeywordData() {
 				const period = document.getElementById('keyword-period').value;
-				
+
 				jQuery.ajax({
 					url: ajaxurl,
 					type: 'POST',
 					data: {
 						action: 'get_keyword_performance',
 						period: period,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'keyword_analysis_nonce' ) ); ?>'
+						nonce: '<?php echo esc_js(wp_create_nonce('keyword_analysis_nonce')); ?>'
 					},
 					success: function(response) {
 						if (response.success) {
@@ -675,7 +678,7 @@ class ProductScraperAnalytics
 
 			function researchKeyword() {
 				const keyword = document.getElementById('research_keyword').value.trim();
-				
+
 				if (!keyword) {
 					alert('Please enter a keyword to research');
 					return;
@@ -691,12 +694,12 @@ class ProductScraperAnalytics
 					data: {
 						action: 'research_keyword',
 						keyword: keyword,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'keyword_research_nonce' ) ); ?>'
+						nonce: '<?php echo esc_js(wp_create_nonce('keyword_research_nonce')); ?>'
 					},
 					success: function(response) {
 						researchButton.disabled = false;
 						researchButton.innerHTML = 'Research Keyword';
-						
+
 						if (response.success) {
 							displayResearchResults(response.data);
 						} else {
@@ -713,7 +716,7 @@ class ProductScraperAnalytics
 
 			function displayKeywordTable(keywords) {
 				let html = '';
-				
+
 				if (keywords && keywords.length > 0) {
 					keywords.forEach(function(keyword) {
 						html += `
@@ -734,17 +737,17 @@ class ProductScraperAnalytics
 				} else {
 					html = '<tr><td colspan="6" class="no-data">No keyword data available for this period</td></tr>';
 				}
-				
+
 				document.getElementById('keywords-performance-body').innerHTML = html;
 			}
 
 			function displayResearchResults(data) {
 				const resultsDiv = document.getElementById('research-results');
 				const researchDataDiv = document.getElementById('research-data');
-				
+
 				// Show the results section
 				resultsDiv.style.display = 'block';
-				
+
 				// Display the research data
 				researchDataDiv.innerHTML = `
 					<div class="research-metrics">
@@ -773,9 +776,11 @@ class ProductScraperAnalytics
 						</div>
 					` : ''}
 				`;
-				
+
 				// Scroll to results
-				resultsDiv.scrollIntoView({ behavior: 'smooth' });
+				resultsDiv.scrollIntoView({
+					behavior: 'smooth'
+				});
 			}
 
 			function refreshKeywordAnalysis() {
@@ -905,10 +910,47 @@ class ProductScraperAnalytics
 	}
 
 	/**
-	 * Competitor analysis page
+	 * Calculate competitor percentages for visualization
+	 */
+	private function calculate_competitor_percentages($competitors)
+	{
+		if (empty($competitors)) {
+			return $competitors;
+		}
+
+		// Find maximum values for each metric
+		$max_ref_domains = 0;
+		$max_traffic = 0;
+		$max_keywords = 0;
+
+		foreach ($competitors as $competitor) {
+			$max_ref_domains = max($max_ref_domains, $competitor['ref_domains']);
+			$max_traffic = max($max_traffic, $competitor['traffic']);
+			$max_keywords = max($max_keywords, $competitor['keywords']);
+		}
+
+		// Avoid division by zero
+		$max_ref_domains = $max_ref_domains > 0 ? $max_ref_domains : 1;
+		$max_traffic = $max_traffic > 0 ? $max_traffic : 1;
+		$max_keywords = $max_keywords > 0 ? $max_keywords : 1;
+
+		// Calculate percentages
+		foreach ($competitors as &$competitor) {
+			$competitor['ref_domains_percentage'] = ($competitor['ref_domains'] / $max_ref_domains) * 100;
+			$competitor['traffic_percentage'] = ($competitor['traffic'] / $max_traffic) * 100;
+			$competitor['keywords_percentage'] = ($competitor['keywords'] / $max_keywords) * 100;
+		}
+
+		return $competitors;
+	}
+
+	/**
+	 * Competitor analysis page with real data
 	 */
 	public function display_competitor_analysis()
 	{
+		$competitor_data = $this->get_competitor_analysis_data();
+		error_log('Competitor Data scraper analytics: ' . print_r($competitor_data, true));
 	?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
@@ -916,6 +958,16 @@ class ProductScraperAnalytics
 					<div class="sa-brand">
 						<h1><strong>Scraper Analytics</strong></h1>
 						<span class="sa-subtitle">Competitor Analysis</span>
+					</div>
+					<div class="sa-actions">
+						<button class="sa-btn sa-btn-primary" onclick="refreshCompetitorAnalysis()">
+							<span class="dashicons dashicons-update"></span>
+							Refresh Data
+						</button>
+						<button class="sa-btn sa-btn-secondary" onclick="showAddCompetitorModal()">
+							<span class="dashicons dashicons-plus"></span>
+							Add Competitor
+						</button>
 					</div>
 				</div>
 
@@ -925,17 +977,791 @@ class ProductScraperAnalytics
 
 					<div class="sa-main-content">
 						<div class="sa-section">
-							<h2>Competitor Analysis</h2>
-							<div class="sa-stat-card">
-								<h3>Competitor Performance</h3>
-								<p>Competitor analysis and comparison metrics will be displayed here.</p>
+							<!-- Competitor Overview Stats -->
+							<div class="sa-stats-grid">
+								<div class="sa-stat-card">
+									<h4>Tracked Competitors</h4>
+									<div class="stat-value"><?php echo esc_html($competitor_data['total_competitors'] ?? 0); ?></div>
+									<div class="stat-description">Currently monitoring</div>
+								</div>
+
+								<div class="sa-stat-card">
+									<h4>Your Domain Authority</h4>
+									<div class="stat-value"><?php echo esc_html($competitor_data['your_authority'] ?? 0); ?></div>
+									<div class="stat-description">vs competitors</div>
+								</div>
+
+								<div class="sa-stat-card">
+									<h4>Your Referring Domains</h4>
+									<div class="stat-value"><?php echo esc_html(number_format($competitor_data['your_ref_domains'] ?? 0)); ?></div>
+									<div class="stat-description">Backlink profile</div>
+								</div>
+
+								<div class="sa-stat-card">
+									<h4>Your Organic Traffic</h4>
+									<div class="stat-value"><?php echo esc_html($this->format_large_number($competitor_data['your_traffic'] ?? 0)); ?></div>
+									<div class="stat-description">Monthly estimate</div>
+								</div>
+							</div>
+
+							<!-- Competitor Comparison Chart -->
+							<div class="sa-chart-card">
+								<div class="chart-header">
+									<h3>Competitor Comparison</h3>
+									<div class="chart-actions">
+										<select id="comparison-metric" class="chart-period-selector" onchange="updateCompetitorChart()">
+											<option value="authority">Domain Authority</option>
+											<option value="traffic">Organic Traffic</option>
+											<option value="backlinks">Referring Domains</option>
+											<option value="keywords">Ranking Keywords</option>
+										</select>
+									</div>
+								</div>
+								<div class="chart-container">
+									<canvas id="competitorComparisonChart" height="300"></canvas>
+								</div>
+							</div>
+
+							<!-- Competitor Performance Table -->
+							<div class="sa-table-section">
+								<div class="table-header">
+									<h3>Competitor Performance</h3>
+									<div class="table-actions">
+										<select id="competitor-sort" class="sa-form-control" onchange="sortCompetitorTable()">
+											<option value="authority">Sort by Authority</option>
+											<option value="traffic">Sort by Traffic</option>
+											<option value="backlinks">Sort by Backlinks</option>
+											<option value="keywords">Sort by Keywords</option>
+										</select>
+									</div>
+								</div>
+								<table class="sa-table" id="competitor-table">
+									<thead>
+										<tr>
+											<th>Domain</th>
+											<th>Domain Authority</th>
+											<th>Organic Traffic</th>
+											<th>Referring Domains</th>
+											<th>Ranking Keywords</th>
+											<th>Traffic Value</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody id="competitor-table-body">
+										<?php if (!empty($competitor_data['competitors'])) : ?>
+											<?php foreach ($competitor_data['competitors'] as $competitor) : ?>
+												<tr data-domain="<?php echo esc_attr($competitor['domain']); ?>">
+													<td>
+														<div class="domain-info">
+															<strong><?php echo esc_html($competitor['domain']); ?></strong>
+															<?php if ($competitor['is_primary']) : ?>
+																<span class="badge badge-primary">You</span>
+															<?php endif; ?>
+														</div>
+													</td>
+													<td>
+														<div class="metric-with-trend">
+															<span class="metric-value"><?php echo esc_html($competitor['authority']); ?></span>
+															<?php if (isset($competitor['authority_change'])) : ?>
+																<span class="trend <?php echo esc_attr($competitor['authority_change'] >= 0 ? 'up' : 'down'); ?>">
+																	<?php echo $competitor['authority_change'] >= 0 ? '↗' : '↘'; ?>
+																	<?php echo esc_html(abs($competitor['authority_change'])); ?>
+																</span>
+															<?php endif; ?>
+														</div>
+													</td>
+													<td><?php echo esc_html($this->format_large_number($competitor['traffic'])); ?></td>
+													<td><?php echo esc_html(number_format($competitor['ref_domains'])); ?></td>
+													<td><?php echo esc_html(number_format($competitor['keywords'])); ?></td>
+													<td>$<?php echo esc_html(number_format($competitor['traffic_value'])); ?>/mo</td>
+													<td>
+														<div class="action-buttons">
+															<button class="sa-btn sa-btn-sm sa-btn-outline"
+																onclick="viewCompetitorDetails('<?php echo esc_js($competitor['domain']); ?>')"
+																title="View Details">
+																<span class="dashicons dashicons-visibility"></span>
+															</button>
+															<?php if (!$competitor['is_primary']) : ?>
+																<button class="sa-btn sa-btn-sm sa-btn-outline sa-btn-warning"
+																	onclick="removeCompetitor('<?php echo esc_js($competitor['domain']); ?>')"
+																	title="Remove Competitor">
+																	<span class="dashicons dashicons-trash"></span>
+																</button>
+															<?php endif; ?>
+														</div>
+													</td>
+												</tr>
+											<?php endforeach; ?>
+										<?php else : ?>
+											<tr>
+												<td colspan="7" class="no-data">
+													No competitors configured. <a href="#" onclick="showAddCompetitorModal()">Add your first competitor</a> to start tracking.
+												</td>
+											</tr>
+										<?php endif; ?>
+									</tbody>
+								</table>
+							</div>
+
+							<!-- Gap Analysis -->
+							<?php if (!empty($competitor_data['content_gaps'])) : ?>
+								<div class="sa-analysis-card">
+									<h3>Content Gap Analysis</h3>
+									<div class="gap-analysis">
+										<?php foreach ($competitor_data['content_gaps'] as $gap) : ?>
+											<div class="gap-item">
+												<div class="gap-header">
+													<h4><?php echo esc_html($gap['topic']); ?></h4>
+													<span class="opportunity-score <?php echo esc_attr($gap['opportunity_level']); ?>">
+														<?php echo esc_html($gap['opportunity_score']); ?>% Opportunity
+													</span>
+												</div>
+												<div class="gap-metrics">
+													<span class="metric">Competitor Keywords: <?php echo esc_html(number_format($gap['competitor_keywords'])); ?></span>
+													<span class="metric">Avg. Position: <?php echo esc_html($gap['avg_position']); ?></span>
+													<span class="metric">Traffic Potential: <?php echo esc_html($this->format_large_number($gap['traffic_potential'])); ?>/mo</span>
+												</div>
+												<div class="gap-actions">
+													<button class="sa-btn sa-btn-sm sa-btn-primary"
+														onclick="researchTopic('<?php echo esc_js($gap['topic']); ?>')">
+														Research Topic
+													</button>
+												</div>
+											</div>
+										<?php endforeach; ?>
+									</div>
+								</div>
+							<?php endif; ?>
+
+							<!-- Backlink Comparison -->
+							<div class="sa-analysis-card">
+								<h3>Backlink Profile Comparison</h3>
+								<div class="backlink-comparison">
+									<div class="comparison-metrics">
+										<div class="metric-comparison">
+											<span class="metric-label">Total Referring Domains</span>
+											<div class="metric-bars">
+												<?php
+												// Calculate percentages for visualization
+												$max_ref_domains = 0;
+												foreach ($competitor_data['competitors'] as $competitor) {
+													if ($competitor['ref_domains'] > $max_ref_domains) {
+														$max_ref_domains = $competitor['ref_domains'];
+													}
+												}
+
+												// Avoid division by zero
+												$max_ref_domains = $max_ref_domains > 0 ? $max_ref_domains : 1;
+
+												foreach ($competitor_data['competitors'] as $competitor) :
+													$percentage = $max_ref_domains > 0 ? ($competitor['ref_domains'] / $max_ref_domains) * 100 : 0;
+												?>
+													<div class="metric-bar-item">
+														<span class="domain-name"><?php echo esc_html($competitor['domain']); ?></span>
+														<div class="metric-bar-container">
+															<div class="metric-bar"
+																style="width: <?php echo esc_attr($percentage); ?>%; 
+                                        background: <?php echo $competitor['is_primary'] ? '#4CAF50' : '#2196F3'; ?>">
+															</div>
+															<span class="metric-value"><?php echo esc_html(number_format($competitor['ref_domains'])); ?></span>
+														</div>
+													</div>
+												<?php endforeach; ?>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<!-- Add Competitor Modal -->
+		<div id="add-competitor-modal" class="sa-modal" style="display: none;">
+			<div class="sa-modal-content">
+				<div class="sa-modal-header">
+					<h3>Add New Competitor</h3>
+					<button type="button" class="sa-modal-close" onclick="hideAddCompetitorModal()">&times;</button>
+				</div>
+				<div class="sa-modal-body">
+					<form id="add-competitor-form">
+						<div class="form-group">
+							<label for="competitor-domain">Competitor Domain</label>
+							<input type="text" id="competitor-domain" class="sa-form-control"
+								placeholder="example.com" required />
+							<p class="description">Enter the domain name without http:// or https://</p>
+						</div>
+					</form>
+				</div>
+				<div class="sa-modal-footer">
+					<button type="button" class="sa-btn sa-btn-secondary" onclick="hideAddCompetitorModal()">Cancel</button>
+					<button type="button" class="sa-btn sa-btn-primary" onclick="addCompetitor()">Add Competitor</button>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			let competitorChart = null;
+			let competitorData = <?php echo wp_json_encode($competitor_data); ?>;
+
+			function refreshCompetitorAnalysis() {
+				jQuery.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'refresh_competitor_analysis',
+						nonce: '<?php echo esc_js(wp_create_nonce('competitor_analysis_nonce')); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							competitorData = response.data;
+							updateCompetitorChart();
+							updateCompetitorTable();
+							location.reload(); // Simple refresh for now
+						}
+					}
+				});
+
+				document.querySelector('.sa-btn-primary').classList.add('loading');
+				setTimeout(() => {
+					document.querySelector('.sa-btn-primary').classList.remove('loading');
+				}, 2000);
+			}
+
+			function updateCompetitorChart() {
+				const metric = document.getElementById('comparison-metric').value;
+				const ctx = document.getElementById('competitorComparisonChart').getContext('2d');
+
+				if (competitorChart) {
+					competitorChart.destroy();
+				}
+
+				const labels = competitorData.competitors.map(c => c.domain);
+				const data = competitorData.competitors.map(c => c[metric === 'backlinks' ? 'ref_domains' : metric]);
+				const colors = competitorData.competitors.map(c => c.is_primary ? '#4CAF50' : '#2196F3');
+
+				competitorChart = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: labels,
+						datasets: [{
+							label: getMetricLabel(metric),
+							data: data,
+							backgroundColor: colors,
+							borderColor: colors.map(color => color.replace('0.8', '1')),
+							borderWidth: 1
+						}]
+					},
+					options: {
+						responsive: true,
+						plugins: {
+							legend: {
+								display: false
+							},
+							tooltip: {
+								callbacks: {
+									label: function(context) {
+										const value = context.raw;
+										const competitor = competitorData.competitors[context.dataIndex];
+										let label = getMetricLabel(metric) + ': ';
+
+										if (metric === 'traffic') {
+											label += formatLargeNumber(value) + ' monthly';
+										} else if (metric === 'backlinks') {
+											label += value.toLocaleString() + ' domains';
+										} else if (metric === 'keywords') {
+											label += value.toLocaleString() + ' keywords';
+										} else {
+											label += value;
+										}
+
+										return label;
+									}
+								}
+							}
+						},
+						scales: {
+							y: {
+								beginAtZero: true
+							}
+						}
+					}
+				});
+			}
+
+			function getMetricLabel(metric) {
+				const labels = {
+					'authority': 'Domain Authority',
+					'traffic': 'Organic Traffic',
+					'backlinks': 'Referring Domains',
+					'keywords': 'Ranking Keywords'
+				};
+				return labels[metric] || metric;
+			}
+
+			function formatLargeNumber(num) {
+				if (num >= 1000000) {
+					return (num / 1000000).toFixed(1) + 'M';
+				}
+				if (num >= 1000) {
+					return (num / 1000).toFixed(1) + 'K';
+				}
+				return num.toString();
+			}
+
+			function sortCompetitorTable() {
+				const sortBy = document.getElementById('competitor-sort').value;
+				const tbody = document.getElementById('competitor-table-body');
+				const rows = Array.from(tbody.querySelectorAll('tr'));
+
+				rows.sort((a, b) => {
+					const aValue = getCellValue(a, sortBy);
+					const bValue = getCellValue(b, sortBy);
+					return bValue - aValue; // Descending order
+				});
+
+				// Clear and re-append sorted rows
+				rows.forEach(row => tbody.appendChild(row));
+			}
+
+			function getCellValue(row, metric) {
+				const cellIndex = {
+					'authority': 1,
+					'traffic': 2,
+					'backlinks': 3,
+					'keywords': 4
+				} [metric];
+
+				if (cellIndex !== undefined) {
+					const cell = row.cells[cellIndex];
+					const valueText = cell.querySelector('.metric-value')?.textContent || cell.textContent;
+					return parseFloat(valueText.replace(/[^\d.]/g, '')) || 0;
+				}
+				return 0;
+			}
+
+			function showAddCompetitorModal() {
+				document.getElementById('add-competitor-modal').style.display = 'block';
+			}
+
+			function hideAddCompetitorModal() {
+				document.getElementById('add-competitor-modal').style.display = 'none';
+				document.getElementById('competitor-domain').value = '';
+			}
+
+			function addCompetitor() {
+				const domain = document.getElementById('competitor-domain').value.trim();
+
+				if (!domain) {
+					alert('Please enter a domain name');
+					return;
+				}
+
+				// Basic domain validation
+				if (!isValidDomain(domain)) {
+					alert('Please enter a valid domain name (e.g., example.com)');
+					return;
+				}
+
+				jQuery.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'add_competitor',
+						domain: domain,
+						nonce: '<?php echo esc_js(wp_create_nonce('add_competitor_nonce')); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							hideAddCompetitorModal();
+							refreshCompetitorAnalysis();
+						} else {
+							alert('Error adding competitor: ' + response.data);
+						}
+					},
+					error: function() {
+						alert('Error adding competitor. Please try again.');
+					}
+				});
+			}
+
+			function isValidDomain(domain) {
+				const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+				return domainRegex.test(domain);
+			}
+
+			function removeCompetitor(domain) {
+				if (!confirm(`Are you sure you want to remove ${domain} from competitor tracking?`)) {
+					return;
+				}
+
+				jQuery.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'remove_competitor',
+						domain: domain,
+						nonce: '<?php echo esc_js(wp_create_nonce('remove_competitor_nonce')); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							refreshCompetitorAnalysis();
+						} else {
+							alert('Error removing competitor: ' + response.data);
+						}
+					}
+				});
+			}
+
+			function viewCompetitorDetails(domain) {
+				//todo: This would open a detailed competitor analysis view
+				alert(`Detailed analysis for ${domain} would open here.`);
+				//todo: In a full implementation, this would show a modal with detailed metrics
+			}
+
+			function researchTopic(topic) {
+				// Redirect to keyword analysis with the topic pre-filled
+				window.location.href = '<?php echo esc_js(admin_url('admin.php?page=scraper-keywords')); ?>&research=' + encodeURIComponent(topic);
+			}
+
+			// Initialize chart on page load
+			jQuery(document).ready(function($) {
+				updateCompetitorChart();
+			});
+
+			// Close modal when clicking outside
+			window.onclick = function(event) {
+				const modal = document.getElementById('add-competitor-modal');
+				if (event.target === modal) {
+					hideAddCompetitorModal();
+				}
+			}
+		</script>
 	<?php
+	}
+
+	/**
+	 * Get competitor analysis data from real APIs
+	 */
+	private function get_competitor_analysis_data()
+	{
+		$cache_key = 'product_scraper_competitor_analysis_' . md5(get_site_url());
+		$cached_data = get_transient($cache_key);
+
+		if (false !== $cached_data) {
+			return $cached_data;
+		}
+
+		try {
+			$seo_data = $this->api->get_seo_dashboard_data();
+			$competitors = $seo_data['competitor_analysis'] ?? array();
+			$own_data = $this->get_own_site_data();
+
+			// Ensure we have a valid array structure with proper defaults
+			$analysis_data = array(
+				'total_competitors' => is_array($competitors) ? max(0, count($competitors) - 1) : 0, // Exclude own site
+				'your_authority' => $own_data['authority'] ?? 0,
+				'your_ref_domains' => $own_data['ref_domains'] ?? 0,
+				'your_traffic' => $own_data['traffic'] ?? 0,
+				'competitors' => array(),
+				'content_gaps' => array()
+			);
+
+			// Add own site as primary competitor for comparison
+			if (!empty($own_data)) {
+				$analysis_data['competitors'][] = array_merge($own_data, array('is_primary' => true));
+			}
+
+			// Add actual competitors with validation
+			if (is_array($competitors) && !empty($competitors)) {
+				foreach ($competitors as $competitor) {
+					if ($this->is_valid_competitor_data($competitor) && !($competitor['is_primary'] ?? false)) {
+						$analysis_data['competitors'][] = array_merge($competitor, array(
+							'is_primary' => false,
+							'traffic_value' => $this->calculate_traffic_value($competitor['traffic'] ?? 0)
+						));
+					}
+				}
+			}
+
+			// Calculate percentages for visualization
+			$analysis_data['competitors'] = $this->calculate_competitor_percentages($analysis_data['competitors']);
+
+			// Calculate content gaps only if we have competitors
+			if (count($analysis_data['competitors']) > 1) {
+				$analysis_data['content_gaps'] = $this->identify_content_gaps($analysis_data['competitors']);
+			}
+
+			set_transient($cache_key, $analysis_data, $this->cache_duration);
+			return $analysis_data;
+		} catch (Exception $e) {
+			// Return safe default data structure if API fails
+			error_log('Competitor analysis error: ' . $e->getMessage());
+			return $this->get_default_competitor_data();
+		}
+	}
+
+	/**
+	 * Get default competitor data structure when API fails
+	 */
+	private function get_default_competitor_data()
+	{
+		$own_data = $this->get_own_site_data();
+
+		return array(
+			'total_competitors' => 0,
+			'your_authority' => $own_data['authority'] ?? 0,
+			'your_ref_domains' => $own_data['ref_domains'] ?? 0,
+			'your_traffic' => $own_data['traffic'] ?? 0,
+			'competitors' => array(
+				array_merge($own_data, array('is_primary' => true))
+			),
+			'content_gaps' => array()
+		);
+	}
+
+	/**
+	 * Get own site data for comparison
+	 */
+	private function get_own_site_data()
+	{
+		try {
+			$seo_data = $this->api->get_seo_dashboard_data();
+			$site_url = get_site_url();
+			$domain = wp_parse_url($site_url, PHP_URL_HOST);
+
+			return array(
+				'domain' => $domain ?: 'your-site.com',
+				'authority' => $seo_data['referring_domains']['domain_rating'] ?? 0,
+				'traffic' => $seo_data['organic_traffic']['current'] ?? 0,
+				'ref_domains' => $seo_data['referring_domains']['count'] ?? 0,
+				'keywords' => count($seo_data['top_keywords'] ?? array()),
+				'traffic_value' => $this->calculate_traffic_value($seo_data['organic_traffic']['current'] ?? 0),
+				'is_primary' => true
+			);
+		} catch (Exception $e) {
+			error_log('Own site data error: ' . $e->getMessage());
+			$site_url = get_site_url();
+			$domain = wp_parse_url($site_url, PHP_URL_HOST);
+
+			return array(
+				'domain' => $domain ?: 'your-site.com',
+				'authority' => 0,
+				'traffic' => 0,
+				'ref_domains' => 0,
+				'keywords' => 0,
+				'traffic_value' => 0,
+				'is_primary' => true
+			);
+		}
+	}
+
+	/**
+	 * Calculate estimated traffic value
+	 */
+	private function calculate_traffic_value($traffic)
+	{
+		// Basic estimation: $0.50 per organic visit
+		return round($traffic * 0.5);
+	}
+
+	/**
+	 * Calculate percentage for comparison
+	 */
+	private function calculate_percentage($value, $max_value)
+	{
+		if ($max_value <= 0) {
+			return 0;
+		}
+		return min(100, round(($value / $max_value) * 100));
+	}
+
+	/**
+	 * Identify content gaps between us and competitors
+	 */
+	private function identify_content_gaps($competitors)
+	{
+		$gaps = array();
+
+		if (!is_array($competitors) || count($competitors) < 2) {
+			return $gaps;
+		}
+
+		$own_site = null;
+
+		// Find our site data
+		foreach ($competitors as $competitor) {
+			if (($competitor['is_primary'] ?? false) && is_array($competitor)) {
+				$own_site = $competitor;
+				break;
+			}
+		}
+
+		if (!$own_site) {
+			return $gaps;
+		}
+
+		// Simple gap analysis based on authority and keyword differences
+		foreach ($competitors as $competitor) {
+			if (!($competitor['is_primary'] ?? false) && is_array($competitor)) {
+				$competitor_authority = $competitor['authority'] ?? 0;
+				$own_authority = $own_site['authority'] ?? 0;
+				$competitor_keywords = $competitor['keywords'] ?? 0;
+				$own_keywords = $own_site['keywords'] ?? 0;
+
+				if ($competitor_authority > $own_authority) {
+					$authority_gap = $competitor_authority - $own_authority;
+					$keyword_gap = $competitor_keywords - $own_keywords;
+
+					if ($authority_gap > 10 || $keyword_gap > 100) {
+						$gaps[] = array(
+							'topic' => $this->identify_topic_from_domain($competitor['domain'] ?? 'unknown'),
+							'competitor_keywords' => $competitor_keywords,
+							'avg_position' => 'Top 20',
+							'traffic_potential' => round(($competitor['traffic'] ?? 0) * 0.1),
+							'opportunity_score' => min(100, $authority_gap * 2 + $keyword_gap / 10),
+							'opportunity_level' => $this->get_opportunity_level(min(100, $authority_gap * 2 + $keyword_gap / 10))
+						);
+					}
+				}
+			}
+		}
+
+		return array_slice($gaps, 0, 5); // Limit to top 5 gaps
+	}
+
+	/**
+	 * Identify topic from domain name
+	 */
+	private function identify_topic_from_domain($domain)
+	{
+		if (empty($domain)) {
+			return 'Unknown Topic';
+		}
+
+		$domain_parts = explode('.', $domain);
+		$name = $domain_parts[0] ?? 'unknown';
+
+		// Convert domain name to readable topic
+		$topic = str_replace(array('-', '_'), ' ', $name);
+		$topic = ucwords($topic);
+
+		return $topic . ' Related Topics';
+	}
+
+	/**
+	 * Get opportunity level based on score
+	 */
+	private function get_opportunity_level($score)
+	{
+		if ($score >= 70) return 'high';
+		if ($score >= 40) return 'medium';
+		return 'low';
+	}
+
+	/**
+	 * Validate competitor data
+	 */
+	private function is_valid_competitor_data($competitor)
+	{
+		if (!is_array($competitor)) {
+			return false;
+		}
+
+		$domain = $competitor['domain'] ?? '';
+		$own_domain = wp_parse_url(get_site_url(), PHP_URL_HOST);
+
+		return !empty($domain)
+			&& $domain !== $own_domain
+			&& filter_var('http://' . $domain, FILTER_VALIDATE_URL) !== false;
+	}
+
+	/**
+	 * AJAX handler for refreshing competitor analysis
+	 */
+	public function ajax_refresh_competitor_analysis()
+	{
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'competitor_analysis_nonce')) {
+			wp_send_json_error('Security check failed');
+		}
+
+		try {
+			// Clear cache to force refresh
+			$cache_key = 'product_scraper_competitor_analysis_' . md5(get_site_url());
+			delete_transient($cache_key);
+
+			$new_data = $this->get_competitor_analysis_data();
+			wp_send_json_success($new_data);
+		} catch (Exception $e) {
+			error_log('AJAX competitor refresh error: ' . $e->getMessage());
+			wp_send_json_error('Failed to refresh competitor data: ' . $e->getMessage());
+		}
+	}
+
+	/**
+	 * AJAX handler for adding competitors
+	 */
+	public function ajax_add_competitor()
+	{
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'add_competitor_nonce')) {
+			wp_send_json_error('Security check failed');
+		}
+
+		$domain = sanitize_text_field($_POST['domain'] ?? '');
+
+		if (empty($domain)) {
+			wp_send_json_error('No domain provided');
+		}
+
+		// Get current competitors
+		$current_competitors = get_option('product_scraper_competitors', '');
+		$competitors_array = array_filter(array_map('trim', explode(',', $current_competitors)));
+
+		// Add new competitor
+		if (!in_array($domain, $competitors_array)) {
+			$competitors_array[] = $domain;
+			update_option('product_scraper_competitors', implode(',', $competitors_array));
+
+			// Clear cache to force refresh
+			$cache_key = 'product_scraper_competitor_analysis_' . md5(get_site_url());
+			delete_transient($cache_key);
+
+			wp_send_json_success('Competitor added successfully');
+		} else {
+			wp_send_json_error('Competitor already exists');
+		}
+	}
+
+	/**
+	 * AJAX handler for removing competitors
+	 */
+	public function ajax_remove_competitor()
+	{
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'remove_competitor_nonce')) {
+			wp_send_json_error('Security check failed');
+		}
+
+		$domain = sanitize_text_field($_POST['domain'] ?? '');
+
+		if (empty($domain)) {
+			wp_send_json_error('No domain provided');
+		}
+
+		// Get current competitors
+		$current_competitors = get_option('product_scraper_competitors', '');
+		$competitors_array = array_filter(array_map('trim', explode(',', $current_competitors)));
+
+		// Remove competitor
+		$updated_competitors = array_diff($competitors_array, array($domain));
+		update_option('product_scraper_competitors', implode(',', $updated_competitors));
+
+		// Clear cache to force refresh
+		$cache_key = 'product_scraper_competitor_analysis_' . md5(get_site_url());
+		delete_transient($cache_key);
+
+		wp_send_json_success('Competitor removed successfully');
 	}
 
 	/**
