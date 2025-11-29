@@ -47,49 +47,48 @@ class ProductScraper_API_Integrations {
 	 *
 	 * @return array
 	 */
-	public function get_seo_dashboard_data()
-	{
-		$cache_key = 'product_scraper_seo_data_' . md5(get_site_url());
-		$cached_data = get_transient($cache_key);
+	public function get_seo_dashboard_data() {
+		$cache_key   = 'product_scraper_seo_data_' . md5( get_site_url() );
+		$cached_data = get_transient( $cache_key );
 
-		if (false !== $cached_data) {
+		if ( false !== $cached_data ) {
 			return $cached_data;
 		}
 
 		// Initialize with empty data structure first
 		$data = array(
-			'organic_traffic' => $this->get_empty_traffic_data(),
-			'referring_domains' => $this->get_empty_referring_domains(),
-			'top_keywords' => $this->get_empty_keywords(),
-			'digital_score' => 0,
-			'engagement_metrics' => $this->get_empty_engagement_metrics(),
+			'organic_traffic'     => $this->get_empty_traffic_data(),
+			'referring_domains'   => $this->get_empty_referring_domains(),
+			'top_keywords'        => $this->get_empty_keywords(),
+			'digital_score'       => 0,
+			'engagement_metrics'  => $this->get_empty_engagement_metrics(),
 			'competitor_analysis' => $this->get_empty_competitor_analysis(),
-			'site_health' => $this->get_empty_site_health(),
-			'last_updated' => current_time('mysql'),
+			'site_health'         => $this->get_empty_site_health(),
+			'last_updated'        => current_time( 'mysql' ),
 		);
 
 		try {
 			// Try to get real data with proper error handling
-			$data['organic_traffic'] = $this->get_organic_traffic();
-			$data['referring_domains'] = $this->get_referring_domains();
-			$data['top_keywords'] = $this->get_top_keywords();
-			$data['engagement_metrics'] = $this->get_engagement_metrics();
-			$data['site_health'] = $this->get_site_health_metrics();
+			$data['organic_traffic']     = $this->get_organic_traffic();
+			$data['referring_domains']   = $this->get_referring_domains();
+			$data['top_keywords']        = $this->get_top_keywords();
+			$data['engagement_metrics']  = $this->get_engagement_metrics();
+			$data['site_health']         = $this->get_site_health_metrics();
 			$data['competitor_analysis'] = $this->get_competitor_analysis();
 
 			// Calculate digital score only if we have some real data
 			$data['digital_score'] = $this->calculate_digital_score();
-		} catch (Exception $e) {
-			error_log('SEO Dashboard Data Error: ' . $e->getMessage());
+		} catch ( Exception $e ) {
+			error_log( 'SEO Dashboard Data Error: ' . $e->getMessage() );
 			// Keep the empty data structure but log the error
 		}
 
 		// Debug logging
-		if (defined('WP_DEBUG') && WP_DEBUG) {
-			error_log('SEO Dashboard Data Final: ' . print_r($data, true));
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'SEO Dashboard Data Final: ' . print_r( $data, true ) );
 		}
 
-		set_transient($cache_key, $data, $this->cache_duration);
+		set_transient( $cache_key, $data, $this->cache_duration );
 		return $data;
 	}
 
@@ -1501,45 +1500,44 @@ class ProductScraper_API_Integrations {
 	/**
 	 * Get empty competitor analysis data structure
 	 */
-	private function get_empty_competitor_analysis()
-	{
+	private function get_empty_competitor_analysis() {
 		$competitors = $this->get_configured_competitors();
 
 		// Use simple static data to avoid recursion
 		$own_data = array(
-			'domain' => wp_parse_url(get_site_url(), PHP_URL_HOST) ?: 'your-site.com',
-			'authority' => 0,
-			'traffic' => 0,
-			'ref_domains' => 0,
-			'keywords' => 0,
+			'domain'        => wp_parse_url( get_site_url(), PHP_URL_HOST ) ?: 'your-site.com',
+			'authority'     => 0,
+			'traffic'       => 0,
+			'ref_domains'   => 0,
+			'keywords'      => 0,
 			'traffic_value' => 0,
-			'is_primary' => true
+			'is_primary'    => true,
 		);
 
 		$analysis_data = array(
-			'total_competitors' => count($competitors),
-			'your_authority' => $own_data['authority'],
-			'your_ref_domains' => $own_data['ref_domains'],
-			'your_traffic' => $own_data['traffic'],
-			'competitors' => array(),
-			'content_gaps' => array()
+			'total_competitors' => count( $competitors ),
+			'your_authority'    => $own_data['authority'],
+			'your_ref_domains'  => $own_data['ref_domains'],
+			'your_traffic'      => $own_data['traffic'],
+			'competitors'       => array(),
+			'content_gaps'      => array(),
 		);
 
 		// Add own site
 		$analysis_data['competitors'][] = $own_data;
 
 		// Add configured competitors with empty data
-		foreach ($competitors as $domain) {
+		foreach ( $competitors as $domain ) {
 			$analysis_data['competitors'][] = array(
-				'domain' => $domain,
-				'authority' => 0,
-				'ref_domains' => 0,
-				'traffic' => 0,
-				'keywords' => 0,
-				'source' => 'none',
-				'is_primary' => false,
-				'traffic_value' => 0,
-				'ref_domains_percentage' => 0
+				'domain'                 => $domain,
+				'authority'              => 0,
+				'ref_domains'            => 0,
+				'traffic'                => 0,
+				'keywords'               => 0,
+				'source'                 => 'none',
+				'is_primary'             => false,
+				'traffic_value'          => 0,
+				'ref_domains_percentage' => 0,
 			);
 		}
 
@@ -1551,34 +1549,32 @@ class ProductScraper_API_Integrations {
 	 *
 	 * @return array
 	 */
-	private function get_own_site_data()
-	{
+	private function get_own_site_data() {
 		$site_url = get_site_url();
-		$domain = wp_parse_url($site_url, PHP_URL_HOST);
+		$domain   = wp_parse_url( $site_url, PHP_URL_HOST );
 
 		// Get basic site data without calling get_seo_dashboard_data() to avoid recursion
-		$traffic_data = $this->get_organic_traffic();
+		$traffic_data   = $this->get_organic_traffic();
 		$referring_data = $this->get_referring_domains();
-		$keywords_data = $this->get_top_keywords();
+		$keywords_data  = $this->get_top_keywords();
 
 		return array(
-			'domain' => $domain ?: 'your-site.com',
-			'authority' => $referring_data['domain_rating'] ?? 0,
-			'traffic' => $traffic_data['current'] ?? 0,
-			'ref_domains' => $referring_data['count'] ?? 0,
-			'keywords' => count($keywords_data ?? array()),
-			'traffic_value' => $this->calculate_traffic_value($traffic_data['current'] ?? 0),
-			'is_primary' => true
+			'domain'        => $domain ?: 'your-site.com',
+			'authority'     => $referring_data['domain_rating'] ?? 0,
+			'traffic'       => $traffic_data['current'] ?? 0,
+			'ref_domains'   => $referring_data['count'] ?? 0,
+			'keywords'      => count( $keywords_data ?? array() ),
+			'traffic_value' => $this->calculate_traffic_value( $traffic_data['current'] ?? 0 ),
+			'is_primary'    => true,
 		);
 	}
 
 	/**
 	 * Calculate estimated traffic value for competitor analysis
 	 */
-	private function calculate_traffic_value($traffic)
-	{
+	private function calculate_traffic_value( $traffic ) {
 		// Basic estimation: $0.50 per organic visit
-		return round($traffic * 0.5);
+		return round( $traffic * 0.5 );
 	}
 
 	/**
@@ -1838,111 +1834,111 @@ class ProductScraper_API_Integrations {
 	}
 
 	/**
- * Research keyword using available APIs
- */
-public function research_keyword($keyword) {
-    // Try SEMrush first if available
-    if ($this->can_use_semrush()) {
-        return $this->research_keyword_semrush($keyword);
-    }
-    
-    // Try Ahrefs if available
-    if ($this->can_use_ahrefs()) {
-        return $this->research_keyword_ahrefs($keyword);
-    }
-    
-    // No APIs available
-    throw new Exception('No keyword research APIs configured. Please set up SEMrush or Ahrefs in settings.');
-}
+	 * Research keyword using available APIs
+	 */
+	public function research_keyword( $keyword ) {
+		// Try SEMrush first if available
+		if ( $this->can_use_semrush() ) {
+			return $this->research_keyword_semrush( $keyword );
+		}
 
-/**
- * Research keyword using SEMrush API
- */
-private function research_keyword_semrush($keyword) {
-    $api_key = get_option('product_scraper_semrush_api');
-    
-    if (!$api_key) {
-        throw new Exception('SEMrush API not configured');
-    }
-    
-    $url = add_query_arg(
-        array(
-            'key' => $api_key,
-            'type' => 'phrase_all',
-            'phrase' => $keyword,
-            'database' => 'us',
-            'export_columns' => 'Ph,Nq,Cp,Co'
-        ),
-        'https://api.semrush.com'
-    );
-    
-    $response = wp_remote_get($url, array('timeout' => 15));
-    
-    if (is_wp_error($response)) {
-        throw new Exception('SEMrush API error: ' . $response->get_error_message());
-    }
-    
-    $data = wp_remote_retrieve_body($response);
-    $lines = explode("\n", $data);
-    
-    if (count($lines) > 1) {
-        $keyword_data = str_getcsv($lines[1]);
-        
-        return array(
-            'volume' => isset($keyword_data[1]) ? intval($keyword_data[1]) : null,
-            'cpc' => isset($keyword_data[2]) ? floatval($keyword_data[2]) : null,
-            'competition' => isset($keyword_data[3]) ? floatval($keyword_data[3]) : null,
-            'source' => 'semrush'
-        );
-    }
-    
-    throw new Exception('No data returned from SEMrush');
-}
+		// Try Ahrefs if available
+		if ( $this->can_use_ahrefs() ) {
+			return $this->research_keyword_ahrefs( $keyword );
+		}
 
-/**
- * Research keyword using Ahrefs API
- */
-private function research_keyword_ahrefs($keyword) {
-	$api_key = get_option('product_scraper_ahrefs_api');
-	
-	if (!$api_key) {
-		throw new Exception('Ahrefs API not configured');
+		// No APIs available
+		throw new Exception( 'No keyword research APIs configured. Please set up SEMrush or Ahrefs in settings.' );
 	}
-	
-	$url = add_query_arg(
-		array(
-			'token' => $api_key,
-			'target' => $keyword,
-			'from' => 'keywords_for_site',
-			'mode' => 'phrase',
-			'limit' => 1
-		),
-		'https://apiv2.ahrefs.com'
-	);
-	
-	$response = wp_remote_get($url, array('timeout' => 15));
-	
-	if (is_wp_error($response)) {
-		throw new Exception('Ahrefs API error: ' . $response->get_error_message());
-	}
-	
-	$data = json_decode(wp_remote_retrieve_body($response), true);
-	
-	if (isset($data['error'])) {
-		throw new Exception('Ahrefs API error: ' . $data['error']);
-	}
-	
-	if (isset($data['keywords']) && count($data['keywords']) > 0) {
-		$keyword_data = $data['keywords'][0];
-		
-		return array(
-			'volume' => $keyword_data['search_volume'] ?? null,
-			'cpc' => $keyword_data['cpc'] ?? null,
-			'competition' => $keyword_data['competition'] ?? null,
-			'source' => 'ahrefs'
+
+	/**
+	 * Research keyword using SEMrush API
+	 */
+	private function research_keyword_semrush( $keyword ) {
+		$api_key = get_option( 'product_scraper_semrush_api' );
+
+		if ( ! $api_key ) {
+			throw new Exception( 'SEMrush API not configured' );
+		}
+
+		$url = add_query_arg(
+			array(
+				'key'            => $api_key,
+				'type'           => 'phrase_all',
+				'phrase'         => $keyword,
+				'database'       => 'us',
+				'export_columns' => 'Ph,Nq,Cp,Co',
+			),
+			'https://api.semrush.com'
 		);
+
+		$response = wp_remote_get( $url, array( 'timeout' => 15 ) );
+
+		if ( is_wp_error( $response ) ) {
+			throw new Exception( 'SEMrush API error: ' . $response->get_error_message() );
+		}
+
+		$data  = wp_remote_retrieve_body( $response );
+		$lines = explode( "\n", $data );
+
+		if ( count( $lines ) > 1 ) {
+			$keyword_data = str_getcsv( $lines[1] );
+
+			return array(
+				'volume'      => isset( $keyword_data[1] ) ? intval( $keyword_data[1] ) : null,
+				'cpc'         => isset( $keyword_data[2] ) ? floatval( $keyword_data[2] ) : null,
+				'competition' => isset( $keyword_data[3] ) ? floatval( $keyword_data[3] ) : null,
+				'source'      => 'semrush',
+			);
+		}
+
+		throw new Exception( 'No data returned from SEMrush' );
 	}
-	
-	throw new Exception('No data returned from Ahrefs');
-}
+
+	/**
+	 * Research keyword using Ahrefs API
+	 */
+	private function research_keyword_ahrefs( $keyword ) {
+		$api_key = get_option( 'product_scraper_ahrefs_api' );
+
+		if ( ! $api_key ) {
+			throw new Exception( 'Ahrefs API not configured' );
+		}
+
+		$url = add_query_arg(
+			array(
+				'token'  => $api_key,
+				'target' => $keyword,
+				'from'   => 'keywords_for_site',
+				'mode'   => 'phrase',
+				'limit'  => 1,
+			),
+			'https://apiv2.ahrefs.com'
+		);
+
+		$response = wp_remote_get( $url, array( 'timeout' => 15 ) );
+
+		if ( is_wp_error( $response ) ) {
+			throw new Exception( 'Ahrefs API error: ' . $response->get_error_message() );
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( isset( $data['error'] ) ) {
+			throw new Exception( 'Ahrefs API error: ' . $data['error'] );
+		}
+
+		if ( isset( $data['keywords'] ) && count( $data['keywords'] ) > 0 ) {
+			$keyword_data = $data['keywords'][0];
+
+			return array(
+				'volume'      => $keyword_data['search_volume'] ?? null,
+				'cpc'         => $keyword_data['cpc'] ?? null,
+				'competition' => $keyword_data['competition'] ?? null,
+				'source'      => 'ahrefs',
+			);
+		}
+
+		throw new Exception( 'No data returned from Ahrefs' );
+	}
 }

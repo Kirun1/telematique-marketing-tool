@@ -84,24 +84,23 @@ class ProductScraper_Chart_Manager {
 		);
 	}
 
-	public function get_competitor_analysis_data()
-	{
-		$domain = wp_parse_url(get_site_url(), PHP_URL_HOST);
-		$data = $this->api_integrations->get_seo_dashboard_data();
+	public function get_competitor_analysis_data() {
+		$domain          = wp_parse_url( get_site_url(), PHP_URL_HOST );
+		$data            = $this->api_integrations->get_seo_dashboard_data();
 		$competitor_data = $data['competitor_analysis'];
 
-		error_log('Competitor Data: ' . print_r($competitor_data, true));
+		error_log( 'Competitor Data: ' . print_r( $competitor_data, true ) );
 
-		$metrics = array('Domain Authority', 'Referring Domains', 'Organic Traffic', 'Content Score', 'Social Score');
+		$metrics  = array( 'Domain Authority', 'Referring Domains', 'Organic Traffic', 'Content Score', 'Social Score' );
 		$datasets = array();
 
 		// Site data (using actual data where available)
 		$site_data = array(
-			floatval($data['referring_domains']['domain_rating']) * 10, // Convert to 0-100 scale
-			$this->normalize_value(intval($data['referring_domains']['count']), 1000), // Normalize
-			$this->normalize_value(intval($data['organic_traffic']['current']), 10000), // Normalize
-			intval($data['digital_score']), // Your actual digital score
-			$this->calculate_social_score($data), // Calculate from available data
+			floatval( $data['referring_domains']['domain_rating'] ) * 10, // Convert to 0-100 scale
+			$this->normalize_value( intval( $data['referring_domains']['count'] ), 1000 ), // Normalize
+			$this->normalize_value( intval( $data['organic_traffic']['current'] ), 10000 ), // Normalize
+			intval( $data['digital_score'] ), // Your actual digital score
+			$this->calculate_social_score( $data ), // Calculate from available data
 		);
 
 		$datasets[] = array(
@@ -113,41 +112,41 @@ class ProductScraper_Chart_Manager {
 		);
 
 		// Get actual competitors array - FIXED: Access the correct nested array
-		$competitors = isset($competitor_data['competitors']) ? $competitor_data['competitors'] : array();
+		$competitors = isset( $competitor_data['competitors'] ) ? $competitor_data['competitors'] : array();
 
 		// Competitor data with proper validation
-		if (is_array($competitors) && !empty($competitors)) {
-			$colors = array('#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF');
+		if ( is_array( $competitors ) && ! empty( $competitors ) ) {
+			$colors = array( '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF' );
 
-			foreach ($competitors as $index => $competitor) {
+			foreach ( $competitors as $index => $competitor ) {
 				// Skip if competitor is not an array or is the primary site
-				if (!is_array($competitor) || (isset($competitor['is_primary']) && $competitor['is_primary'])) {
+				if ( ! is_array( $competitor ) || ( isset( $competitor['is_primary'] ) && $competitor['is_primary'] ) ) {
 					continue;
 				}
 
 				// Validate and sanitize competitor data with proper fallbacks
-				$comp_domain = isset($competitor['domain']) ? sanitize_text_field($competitor['domain']) : 'Unknown Domain';
-				$authority = isset($competitor['authority']) ? floatval($competitor['authority']) : 0;
-				$ref_domains = isset($competitor['ref_domains']) ? intval($competitor['ref_domains']) : 0;
-				$traffic = isset($competitor['traffic']) ? intval($competitor['traffic']) : 0;
-				$keywords = isset($competitor['keywords']) ? intval($competitor['keywords']) : 0;
+				$comp_domain = isset( $competitor['domain'] ) ? sanitize_text_field( $competitor['domain'] ) : 'Unknown Domain';
+				$authority   = isset( $competitor['authority'] ) ? floatval( $competitor['authority'] ) : 0;
+				$ref_domains = isset( $competitor['ref_domains'] ) ? intval( $competitor['ref_domains'] ) : 0;
+				$traffic     = isset( $competitor['traffic'] ) ? intval( $competitor['traffic'] ) : 0;
+				$keywords    = isset( $competitor['keywords'] ) ? intval( $competitor['keywords'] ) : 0;
 
 				// Only add competitors with actual data (not all zeros)
-				if ($authority > 0 || $ref_domains > 0 || $traffic > 0) {
-					$int_index = intval($index);
-					$color_index = $int_index % count($colors);
-					$color = $colors[$color_index] ?? '#CCCCCC';
+				if ( $authority > 0 || $ref_domains > 0 || $traffic > 0 ) {
+					$int_index   = intval( $index );
+					$color_index = $int_index % count( $colors );
+					$color       = $colors[ $color_index ] ?? '#CCCCCC';
 
 					$datasets[] = array(
 						'label'                => $comp_domain,
 						'data'                 => array(
 							$authority * 10,
-							$this->normalize_value($ref_domains, 1000),
-							$this->normalize_value($traffic, 10000),
-							$this->calculate_content_score_from_competitor($competitor),
-							$this->calculate_social_score_from_competitor($competitor),
+							$this->normalize_value( $ref_domains, 1000 ),
+							$this->normalize_value( $traffic, 10000 ),
+							$this->calculate_content_score_from_competitor( $competitor ),
+							$this->calculate_social_score_from_competitor( $competitor ),
 						),
-						'backgroundColor'      => $this->hexToRgba($color, 0.2),
+						'backgroundColor'      => $this->hexToRgba( $color, 0.2 ),
 						'borderColor'          => $color,
 						'pointBackgroundColor' => $color,
 					);
@@ -156,8 +155,8 @@ class ProductScraper_Chart_Manager {
 		}
 
 		// If no competitors found, return empty structure to avoid chart errors
-		if (count($datasets) <= 1) {
-			return $this->get_empty_competitor_data($metrics);
+		if ( count( $datasets ) <= 1 ) {
+			return $this->get_empty_competitor_data( $metrics );
 		}
 
 		return array(
@@ -166,34 +165,32 @@ class ProductScraper_Chart_Manager {
 		);
 	}
 
-	private function get_empty_competitor_data($metrics)
-	{
-		$domain = wp_parse_url(get_site_url(), PHP_URL_HOST);
+	private function get_empty_competitor_data( $metrics ) {
+		$domain = wp_parse_url( get_site_url(), PHP_URL_HOST );
 
 		return array(
 			'labels'   => $metrics,
 			'datasets' => array(
 				array(
 					'label'                => $domain,
-					'data'                 => array(0, 0, 0, 0, 0),
+					'data'                 => array( 0, 0, 0, 0, 0 ),
 					'backgroundColor'      => 'rgba(75, 192, 192, 0.2)',
 					'borderColor'          => 'rgba(75, 192, 192, 1)',
 					'pointBackgroundColor' => 'rgba(75, 192, 192, 1)',
-				)
+				),
 			),
 		);
 	}
 
-	private function calculate_content_score_from_competitor($competitor)
-	{
+	private function calculate_content_score_from_competitor( $competitor ) {
 		// Only calculate if we have real data
-		$keywords = isset($competitor['keywords']) ? intval($competitor['keywords']) : 0;
-		$traffic = isset($competitor['traffic']) ? intval($competitor['traffic']) : 0;
+		$keywords = isset( $competitor['keywords'] ) ? intval( $competitor['keywords'] ) : 0;
+		$traffic  = isset( $competitor['traffic'] ) ? intval( $competitor['traffic'] ) : 0;
 
-		if ($keywords > 0 || $traffic > 0) {
-			$keywords_score = $this->normalize_value($keywords, 1000);
-			$traffic_score = $this->normalize_value($traffic, 10000);
-			return round(($keywords_score + $traffic_score) / 2);
+		if ( $keywords > 0 || $traffic > 0 ) {
+			$keywords_score = $this->normalize_value( $keywords, 1000 );
+			$traffic_score  = $this->normalize_value( $traffic, 10000 );
+			return round( ( $keywords_score + $traffic_score ) / 2 );
 		}
 
 		return 0; // Return 0 instead of estimating
@@ -393,16 +390,15 @@ class ProductScraper_Chart_Manager {
 		return 0; // Return 0 instead of estimating
 	}
 
-	private function calculate_social_score_from_competitor($competitor)
-	{
+	private function calculate_social_score_from_competitor( $competitor ) {
 		// Only calculate if we have real data
-		$authority = isset($competitor['authority']) ? floatval($competitor['authority']) : 0;
-		$traffic = isset($competitor['traffic']) ? intval($competitor['traffic']) : 0;
+		$authority = isset( $competitor['authority'] ) ? floatval( $competitor['authority'] ) : 0;
+		$traffic   = isset( $competitor['traffic'] ) ? intval( $competitor['traffic'] ) : 0;
 
-		if ($authority > 0 || $traffic > 0) {
+		if ( $authority > 0 || $traffic > 0 ) {
 			$authority_score = $authority * 10;
-			$traffic_score = $this->normalize_value($traffic, 10000);
-			return round(($authority_score + $traffic_score) / 2);
+			$traffic_score   = $this->normalize_value( $traffic, 10000 );
+			return round( ( $authority_score + $traffic_score ) / 2 );
 		}
 
 		return 0; // Return 0 instead of estimating
