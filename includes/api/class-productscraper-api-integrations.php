@@ -1353,43 +1353,42 @@ class ProductScraper_API_Integrations {
 	/**
 	 * Estimate domain authority based on actual domain analysis
 	 */
-	private function estimate_domain_authority($domain)
-	{
+	private function estimate_domain_authority( $domain ) {
 		// Start with base authority
 		$authority = 20;
 
 		// Check if we have actual data for this domain
-		$cached_authority = get_transient('domain_auth_' . md5($domain));
-		if (false !== $cached_authority) {
+		$cached_authority = get_transient( 'domain_auth_' . md5( $domain ) );
+		if ( false !== $cached_authority ) {
 			return $cached_authority;
 		}
 
 		// Analyze domain characteristics
-		$tld = strtolower(pathinfo($domain, PATHINFO_EXTENSION));
+		$tld = strtolower( pathinfo( $domain, PATHINFO_EXTENSION ) );
 
 		// Premium TLDs often have higher authority
-		$premium_tlds = array('com', 'org', 'net', 'edu', 'gov');
-		if (in_array($tld, $premium_tlds, true)) {
+		$premium_tlds = array( 'com', 'org', 'net', 'edu', 'gov' );
+		if ( in_array( $tld, $premium_tlds, true ) ) {
 			$authority += 15;
 		}
 
 		// Domain age estimation (in a real implementation, use WHOIS data)
-		$domain_length = strlen(pathinfo($domain, PATHINFO_FILENAME));
-		if ($domain_length <= 8) {
+		$domain_length = strlen( pathinfo( $domain, PATHINFO_FILENAME ) );
+		if ( $domain_length <= 8 ) {
 			$authority += 10; // Short domains are often more established
-		} elseif ($domain_length >= 20) {
+		} elseif ( $domain_length >= 20 ) {
 			$authority -= 5; // Very long domains might be newer
 		}
 
 		// Hyphens in domain often indicate newer sites
-		if (strpos($domain, '-') !== false) {
+		if ( strpos( $domain, '-' ) !== false ) {
 			$authority -= 5;
 		}
 
-		$final_authority = max(1, min(100, $authority));
+		$final_authority = max( 1, min( 100, $authority ) );
 
 		// Cache for 1 day
-		set_transient('domain_auth_' . md5($domain), $final_authority, DAY_IN_SECONDS);
+		set_transient( 'domain_auth_' . md5( $domain ), $final_authority, DAY_IN_SECONDS );
 
 		return $final_authority;
 	}
@@ -1397,18 +1396,17 @@ class ProductScraper_API_Integrations {
 	/**
 	 * Estimate traffic based on domain authority and other factors
 	 */
-	private function estimate_traffic($authority)
-	{
+	private function estimate_traffic( $authority ) {
 		// Traffic generally follows a power law distribution
 		// Higher authority domains get exponentially more traffic
-		if ($authority >= 80) {
-			return intval($authority * 5000); // High authority sites
-		} elseif ($authority >= 60) {
-			return intval($authority * 1000); // Medium authority sites
-		} elseif ($authority >= 40) {
-			return intval($authority * 200); // Low authority sites
+		if ( $authority >= 80 ) {
+			return intval( $authority * 5000 ); // High authority sites
+		} elseif ( $authority >= 60 ) {
+			return intval( $authority * 1000 ); // Medium authority sites
+		} elseif ( $authority >= 40 ) {
+			return intval( $authority * 200 ); // Low authority sites
 		} else {
-			return intval($authority * 50); // New sites
+			return intval( $authority * 50 ); // New sites
 		}
 	}
 
@@ -1418,10 +1416,9 @@ class ProductScraper_API_Integrations {
 	 * @param float $authority Domain authority.
 	 * @return int
 	 */
-	private function estimate_keywords($authority)
-	{
+	private function estimate_keywords( $authority ) {
 		// Keyword count generally correlates with traffic and authority
-		return intval($authority * 75);
+		return intval( $authority * 75 );
 	}
 
 	/**

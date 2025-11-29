@@ -1188,8 +1188,7 @@ class ProductScraper {
 	/**
 	 * Get initial chart data to prevent empty charts
 	 */
-	private function get_chart_initial_data()
-	{
+	private function get_chart_initial_data() {
 		$analytics = new ProductScraperAnalytics();
 		$stats     = $analytics->get_dashboard_stats();
 
