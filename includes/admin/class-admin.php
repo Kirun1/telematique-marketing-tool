@@ -1,41 +1,48 @@
 <?php
 
-class ProductScraperAdmin {
+class ProductScraperAdmin
+{
 
+	private $firecrawl;
 
-	public function __construct() {
-		add_action( 'admin_init', array( $this, 'admin_init' ) );
-		add_action( 'wp_ajax_scrape_products', array( $this, 'ajax_scrape_products' ) );
-		add_action( 'wp_ajax_test_selectors', array( $this, 'ajax_test_selectors' ) );
-		add_action( 'wp_ajax_get_stored_products', array( $this, 'ajax_get_stored_products' ) );
-		add_action( 'wp_ajax_export_products_csv', array( $this, 'ajax_export_products_csv' ) );
-		add_action( 'wp_ajax_export_products_excel', array( $this, 'ajax_export_products_excel' ) );
-		add_action( 'wp_ajax_delete_stored_products', array( $this, 'ajax_delete_stored_products' ) );
+	public function __construct()
+	{
+		add_action('admin_init', array($this, 'admin_init'));
+		add_action('wp_ajax_scrape_products', array($this, 'ajax_scrape_products'));
+		add_action('wp_ajax_test_selectors', array($this, 'ajax_test_selectors'));
+		add_action('wp_ajax_get_stored_products', array($this, 'ajax_get_stored_products'));
+		add_action('wp_ajax_export_products_csv', array($this, 'ajax_export_products_csv'));
+		add_action('wp_ajax_export_products_excel', array($this, 'ajax_export_products_excel'));
+		add_action('wp_ajax_delete_stored_products', array($this, 'ajax_delete_stored_products'));
+		add_action('wp_ajax_test_firecrawl_connection', array($this, 'ajax_test_firecrawl_connection'));
+
+		// Initialize Firecrawl integration
+		$this->firecrawl = new ProductScraper_Firecrawl_Integration();
 
 		// Handle direct export requests.
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'product-scraper' && isset( $_GET['export'] ) ) {
-			add_action( 'admin_init', array( $this, 'handle_export' ) );
+		if (isset($_GET['page']) && $_GET['page'] === 'product-scraper' && isset($_GET['export'])) {
+			add_action('admin_init', array($this, 'handle_export'));
 		}
 	}
 
-	public function add_admin_menu() {
-		add_options_page(
-			'Product Scraper',
-			'Product Scraper',
-			'manage_options',
-			'product-scraper',
-			array( $this, 'admin_page' )
-		);
+	public function admin_init()
+	{
+		register_setting('product_scraper_settings', 'product_scraper_options');
+		register_setting('product_scraper_firecrawl_settings', 'product_scraper_firecrawl_api_key');
+		register_setting('product_scraper_firecrawl_settings', 'product_scraper_firecrawl_base_url');
+		register_setting('product_scraper_firecrawl_settings', 'product_scraper_firecrawl_timeout');
 	}
 
-	public function admin_init() {
-		register_setting( 'product_scraper_settings', 'product_scraper_options' );
-	}
-
-	public function admin_page() {
+	public function admin_page()
+	{
 		// Get stored products stats.
 		$plugin = new ProductScraper();
 		$stats  = $plugin->storage->get_stats();
+
+		// Get Firecrawl settings
+        $firecrawl_api_key = get_option('product_scraper_firecrawl_api_key', '');
+        $firecrawl_base_url = get_option('product_scraper_firecrawl_base_url', 'https://api.firecrawl.dev');
+        $firecrawl_timeout = get_option('product_scraper_firecrawl_timeout', 30);
 		?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
@@ -53,7 +60,7 @@ class ProductScraperAdmin {
 				</div>
 				<div class="sa-container">
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'product-scraper' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('product-scraper'); ?>
 
 					<div class="sa-main-content">
 						<div class="sa-section">
@@ -64,99 +71,138 @@ class ProductScraperAdmin {
 									<span class="dashicons dashicons-info"></span>
 								</div>
 								<div class="info-content">
-									<p>Configure the settings below to start scraping products from the any shop. Make sure to respect the website's terms of service and robots.txt file when scraping data.</p>
+									<p>Configure the settings below to start scraping products from any shop using Firecrawl API.</p>
 								</div>
 							</div>
 						</div>
 						<div id="scraper-app">
 							<form method="post" action="options.php">
-								<?php
-								settings_fields( 'product_scraper_settings' );
-								$options = get_option( 'product_scraper_options', array() );
-								?>
+								<?php settings_fields( 'product_scraper_firecrawl_settings' ); ?>
 
 								<table class="form-table">
 									<tr>
-										<th scope="row">Shop URL</th>
+										<th scope="row">Firecrawl API Key</th>
 										<td>
-											<input type="url" name="product_scraper_options[target_url]"
-												value="<?php echo esc_attr( $options['target_url'] ?? 'https://www.example.com/de/lebensmittel/saucen' ); ?>"
+											<input type="password" name="product_scraper_firecrawl_api_key"
+												value="<?php echo esc_attr($firecrawl_api_key); ?>"
 												class="regular-text">
-											<p class="description">e.g., https://www.example.com/de/lebensmittel/saucen</p>
+											<p class="description">Your Firecrawl API key. Get it from <a href="https://firecrawl.dev" target="_blank">firecrawl.dev</a></p>
 										</td>
 									</tr>
 									<tr>
-										<th scope="row">Maximum Pages to Scrape</th>
+										<th scope="row">API Base URL</th>
 										<td>
-											<input type="number" name="product_scraper_options[max_pages]"
-												value="<?php echo esc_attr( $options['max_pages'] ?? 10 ); ?>"
-												min="1" max="50">
+											<input type="url" name="product_scraper_firecrawl_base_url"
+												value="<?php echo esc_attr($firecrawl_base_url); ?>"
+												class="regular-text">
+											<p class="description">Firecrawl API endpoint (default: https://api.firecrawl.dev)</p>
 										</td>
 									</tr>
 									<tr>
-										<th scope="row">Scrape Product Details</th>
+										<th scope="row">Request Timeout</th>
 										<td>
-											<input type="checkbox" name="product_scraper_options[scrape_details]"
-												value="1" <?php checked( $options['scrape_details'] ?? 1 ); ?>>
-											<span class="description">Visit each product page for detailed information (slower)</span>
+											<input type="number" name="product_scraper_firecrawl_timeout"
+												value="<?php echo esc_attr($firecrawl_timeout); ?>"
+												min="10" max="120" class="small-text">
+											<span class="description">seconds</span>
 										</td>
-									</tr>
-									<tr>
-										<th scope="row">Delay Between Requests</th>
-										<td>
-											<input type="number" name="product_scraper_options[request_delay]"
-												value="<?php echo esc_attr( $options['request_delay'] ?? 2 ); ?>"
-												min="1" max="10" step="0.5">
-											<span class="description">seconds (be respectful to the server)</span>
-										</td>
-									</tr>
+									</tr>									
 								</table>
 
-								<?php submit_button( 'Save Settings' ); ?>
+								<?php submit_button('Save Firecrawl Settings'); ?>
+								<button type="button" id="test-firecrawl" class="button button-secondary">Test Firecrawl Connection</button>
 							</form>
 
 							<hr>
 
+							<!-- Original Scraper Settings -->
+                            <form method="post" action="options.php">
+                                <?php
+                                settings_fields( 'product_scraper_settings' );
+                                $options = get_option( 'product_scraper_options', array() );
+                                ?>
+
+                                <table class="form-table">
+                                    <tr>
+                                        <th scope="row">Shop URL</th>
+                                        <td>
+                                            <input type="url" name="product_scraper_options[target_url]"
+                                                value="<?php echo esc_attr( $options['target_url'] ?? 'https://www.example.com/de/lebensmittel/saucen' ); ?>"
+                                                class="regular-text">
+                                            <p class="description">e.g., https://www.example.com/de/lebensmittel/saucen</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Maximum Pages to Scrape</th>
+                                        <td>
+                                            <input type="number" name="product_scraper_options[max_pages]"
+                                                value="<?php echo esc_attr( $options['max_pages'] ?? 10 ); ?>"
+                                                min="1" max="50">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Use Firecrawl API</th>
+                                        <td>
+                                            <input type="checkbox" name="product_scraper_options[use_firecrawl]"
+                                                value="1" <?php checked( $options['use_firecrawl'] ?? 1 ); ?>>
+                                            <span class="description">Use Firecrawl API for scraping (recommended)</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Scrape Product Details</th>
+                                        <td>
+                                            <input type="checkbox" name="product_scraper_options[scrape_details]"
+                                                value="1" <?php checked( $options['scrape_details'] ?? 1 ); ?>>
+                                            <span class="description">Visit each product page for detailed information</span>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <?php submit_button( 'Save Settings' ); ?>
+                            </form>
+
+							<hr>
+
 							<!-- Storage Statistics -->
-							<div class="storage-stats">
-								<h3>Storage Statistics</h3>
-								<div class="stats-grid">
-									<div class="stat-item">
-										<span class="stat-number"><?php echo $stats['total_products'] ?? 0; ?></span>
-										<span class="stat-label">Total Products</span>
-									</div>
-									<div class="stat-item">
-										<span class="stat-number"><?php echo $stats['imported_products'] ?? 0; ?></span>
-										<span class="stat-label">Imported</span>
-									</div>
-									<div class="stat-item">
-										<span class="stat-number"><?php echo $stats['total_sources'] ?? 0; ?></span>
-										<span class="stat-label">Sources</span>
-									</div>
-									<div class="stat-item">
-										<span class="stat-date">
-										<?php
-										if ( ! empty( $stats['last_scraped'] ) && $stats['last_scraped'] !== '0000-00-00 00:00:00' ) {
-											echo date( 'M j, Y g:i A', strtotime( $stats['last_scraped'] ) );
-										} else {
-											echo 'Never';
-										}
-										?>
-										</span>
-										<span class="stat-label">Last Scraped</span>
-									</div>
-								</div>
-							</div>
+                            <div class="storage-stats">
+                                <h3>Storage Statistics</h3>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-number"><?php echo $stats['total_products'] ?? 0; ?></span>
+                                        <span class="stat-label">Total Products</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number"><?php echo $stats['imported_products'] ?? 0; ?></span>
+                                        <span class="stat-label">Imported</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number"><?php echo $stats['total_sources'] ?? 0; ?></span>
+                                        <span class="stat-label">Sources</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-date">
+                                        <?php
+                                        if ( ! empty( $stats['last_scraped'] ) && $stats['last_scraped'] !== '0000-00-00 00:00:00' ) {
+                                            echo date( 'M j, Y g:i A', strtotime( $stats['last_scraped'] ) );
+                                        } else {
+                                            echo 'Never';
+                                        }
+                                        ?>
+                                        </span>
+                                        <span class="stat-label">Last Scraped</span>
+                                    </div>
+                                </div>
+                            </div>
 
 							<hr>
 
 							<div class="scraper-controls">
-								<h2>Scrape Products</h2>
-								<button id="start-scraping" class="button button-primary">Start Scraping Nahrin Products</button>
-								<button id="test-selectors" class="button button-secondary">Test Selectors</button>
-								<button id="refresh-stored" class="button">Refresh Stored Products</button>
-								<button id="import-woocommerce" class="button button-secondary" disabled>Import to WooCommerce</button>
-							</div>
+                                <h2>Scrape Products</h2>
+                                <button id="start-scraping" class="button button-primary">Start Scraping with Firecrawl</button>
+                                <button id="test-selectors" class="button button-secondary">Test Selectors</button>
+                                <button id="refresh-stored" class="button">Refresh Stored Products</button>
+                                <button id="import-woocommerce" class="button button-secondary" disabled>Import to WooCommerce</button>
+                            </div>
 
 							<div id="scraping-progress" style="display: none;">
 								<h3>Scraping Progress</h3>
@@ -227,111 +273,268 @@ class ProductScraperAdmin {
 
 			</div>
 		</div>
+
+		<script>
+        jQuery(document).ready(function($) {
+            // Test Firecrawl connection
+            $('#test-firecrawl').on('click', function() {
+                var $button = $(this);
+                var originalText = $button.text();
+                
+                $button.text('Testing...').prop('disabled', true);
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'test_firecrawl_connection',
+                        nonce: '<?php echo wp_create_nonce('test_firecrawl_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Firecrawl API connection successful!');
+                        } else {
+                            alert('Firecrawl API connection failed: ' + response.data);
+                        }
+                    },
+                    error: function() {
+                        alert('Error testing Firecrawl connection.');
+                    },
+                    complete: function() {
+                        $button.text(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Update scraping button text based on Firecrawl setting
+            $('input[name="product_scraper_options[use_firecrawl]"]').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#start-scraping').text('Start Scraping with Firecrawl');
+                } else {
+                    $('#start-scraping').text('Start Scraping (Legacy)');
+                }
+            });
+        });
+        </script>
 		<?php
 	}
 
-	public function ajax_scrape_products() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'scrape_products_nonce' ) ) {
-			wp_die( 'Security check failed' );
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions' );
-		}
-
-		$page           = intval( $_POST['page'] );
-		$max_pages      = intval( $_POST['max_pages'] );
-		$target_url     = esc_url_raw( $_POST['target_url'] );
-		$scrape_details = isset( $_POST['scrape_details'] ) ? boolval( $_POST['scrape_details'] ) : false;
-		$save_only      = isset( $_POST['save_only'] ) ? boolval( $_POST['save_only'] ) : false;
-
-		// Add debug info.
-		$debug_info = array();
-
-		// If we're just saving existing data.
-		if ( $save_only && isset( $_POST['products_data'] ) ) {
-			$products    = json_decode( stripslashes( $_POST['products_data'] ), true );
-			$saved_count = $this->save_scraped_products( $products, $target_url );
-
-			// Add debug info.
-			$debug_info['save_only']         = true;
-			$debug_info['products_received'] = count( $products );
-			$debug_info['database_debug']    = $this->debug_database();
-
-			wp_send_json_success(
-				array(
-					'products'    => $products,
-					'saved_count' => $saved_count,
-					'has_more'    => false,
-					'errors'      => 0,
-					'debug'       => $debug_info,
-				)
-			);
-		}
-
-		$scraper = new ProductScraperEngine();
-		$scraper->set_base_url( $target_url );
-
-		$products = $scraper->scrape_products( $page, 1 );
-
-		// If detailed scraping is enabled, visit each product page.
-		$errors = 0;
-		if ( $scrape_details && ! empty( $products ) ) {
-			foreach ( $products as &$product ) {
-				if ( ! empty( $product['url'] ) ) {
-					$details = $scraper->scrape_product_details( $product['url'] );
-					if ( $details ) {
-						$product = array_merge( $product, $details );
-					} else {
-						++$errors;
-					}
-					sleep( 1 );
-				}
-			}
-		}
-
-		// SAVE TO DATABASE.
-		$saved_count = 0;
-		if ( ! empty( $products ) ) {
-			$saved_count = $this->save_scraped_products( $products, $target_url );
-		}
-
-		// Add debug info.
-		$debug_info['products_scraped'] = count( $products );
-		$debug_info['database_debug']   = $this->debug_database();
-
-		// Check if there are more pages.
-		$has_more = $page < $max_pages && ! empty( $products );
-
-		wp_send_json_success(
-			array(
-				'products'    => $products,
-				'has_more'    => $has_more,
-				'errors'      => $errors,
-				'saved_count' => $saved_count,
-				'debug'       => $debug_info,
-			)
+	public function add_admin_menu()
+	{
+		add_options_page(
+			'Product Scraper',
+			'Product Scraper',
+			'manage_options',
+			'product-scraper',
+			array($this, 'admin_page')
 		);
 	}
 
 	/**
+     * AJAX handler for scraping products with Firecrawl
+     */
+    public function ajax_scrape_products() {
+        // Verify nonce.
+        if ( ! wp_verify_nonce( $_POST['nonce'], 'scrape_products_nonce' ) ) {
+            wp_die( 'Security check failed' );
+        }
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( 'Insufficient permissions' );
+        }
+
+        $page = intval( $_POST['page'] );
+        $max_pages = intval( $_POST['max_pages'] );
+        $target_url = esc_url_raw( $_POST['target_url'] );
+        $scrape_details = isset( $_POST['scrape_details'] ) ? boolval( $_POST['scrape_details'] ) : false;
+        $use_firecrawl = isset( $_POST['use_firecrawl'] ) ? boolval( $_POST['use_firecrawl'] ) : true;
+        $save_only = isset( $_POST['save_only'] ) ? boolval( $_POST['save_only'] ) : false;
+
+        // Add debug info.
+        $debug_info = array();
+
+        // If we're just saving existing data.
+        if ( $save_only && isset( $_POST['products_data'] ) ) {
+            $products = json_decode( stripslashes( $_POST['products_data'] ), true );
+            $saved_count = $this->save_scraped_products( $products, $target_url );
+
+            wp_send_json_success(
+                array(
+                    'products' => $products,
+                    'saved_count' => $saved_count,
+                    'has_more' => false,
+                    'errors' => 0,
+                    'debug' => $debug_info,
+                )
+            );
+        }
+
+        $products = array();
+        $errors = 0;
+
+        try {
+            if ($use_firecrawl) {
+                // Use Firecrawl API for scraping
+                $scraped_data = $this->firecrawl->scrape_url($target_url);
+                $products = $this->firecrawl->extract_products($scraped_data);
+                
+                $debug_info['scraping_method'] = 'firecrawl';
+                $debug_info['firecrawl_data'] = $scraped_data;
+            } else {
+                // Use legacy scraping method
+                $scraper = new ProductScraperEngine();
+                $scraper->set_base_url($target_url);
+                $products = $scraper->scrape_products($page, 1);
+                $debug_info['scraping_method'] = 'legacy';
+            }
+
+            // If detailed scraping is enabled, visit each product page
+            if ($scrape_details && !empty($products)) {
+                foreach ($products as &$product) {
+                    if (!empty($product['url'])) {
+                        try {
+                            if ($use_firecrawl) {
+                                $details_data = $this->firecrawl->scrape_url($product['url']);
+                                $details = $this->extract_product_details($details_data);
+                            } else {
+                                $details = $scraper->scrape_product_details($product['url']);
+                            }
+                            
+                            if ($details) {
+                                $product = array_merge($product, $details);
+                            } else {
+                                $errors++;
+                            }
+                            
+                            // Respectful delay
+                            sleep(1);
+                        } catch (Exception $e) {
+                            $errors++;
+                            error_log('Error scraping product details: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
+            // Save to database
+            $saved_count = 0;
+            if (!empty($products)) {
+                $saved_count = $this->save_scraped_products($products, $target_url);
+            }
+
+            $debug_info['products_scraped'] = count($products);
+            $debug_info['database_debug'] = $this->debug_database();
+
+            // Check if there are more pages (for legacy scraping)
+            $has_more = !$use_firecrawl && $page < $max_pages && !empty($products);
+
+            wp_send_json_success(
+                array(
+                    'products' => $products,
+                    'has_more' => $has_more,
+                    'errors' => $errors,
+                    'saved_count' => $saved_count,
+                    'debug' => $debug_info,
+                )
+            );
+
+        } catch (Exception $e) {
+            wp_send_json_error('Scraping failed: ' . $e->getMessage());
+        }
+    }
+
+	/**
+     * Extract product details from Firecrawl data
+     */
+    private function extract_product_details($scraped_data) {
+        $details = array();
+        
+        if (isset($scraped_data['data'])) {
+            $data = $scraped_data['data'];
+            
+            // Extract from markdown
+            if (isset($data['markdown'])) {
+                $markdown = $data['markdown'];
+                
+                // Extract price
+                if (preg_match('/(?:\$|€|£|CHF)\s*([0-9]+[.,][0-9]+|[0-9]+)/', $markdown, $matches)) {
+                    $details['price'] = $matches[0];
+                }
+                
+                // Extract description (first paragraph)
+                $lines = explode("\n", $markdown);
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (!empty($line) && !preg_match('/^[#\-*!]/', $line)) {
+                        $details['description'] = $line;
+                        break;
+                    }
+                }
+            }
+            
+            // Extract from LLM extraction if available
+            if (isset($data['llm_extraction'])) {
+                $llm_data = is_string($data['llm_extraction']) ? 
+                           json_decode($data['llm_extraction'], true) : 
+                           $data['llm_extraction'];
+                
+                if (isset($llm_data['price'])) {
+                    $details['price'] = $llm_data['price'];
+                }
+                if (isset($llm_data['description'])) {
+                    $details['description'] = $llm_data['description'];
+                }
+                if (isset($llm_data['sku'])) {
+                    $details['sku'] = $llm_data['sku'];
+                }
+            }
+        }
+        
+        return $details;
+    }
+
+	/**
+     * AJAX handler for testing Firecrawl connection
+     */
+    public function ajax_test_firecrawl_connection() {
+        if (!wp_verify_nonce($_POST['nonce'], 'test_firecrawl_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
+        }
+
+        try {
+            $result = $this->firecrawl->test_connection();
+            if ($result['success']) {
+                wp_send_json_success('Firecrawl API connection successful');
+            } else {
+                wp_send_json_error($result['message']);
+            }
+        } catch (Exception $e) {
+            wp_send_json_error($e->getMessage());
+        }
+    }
+
+	/**
 	 * Save products to database with debug information
 	 */
-	private function save_scraped_products( $products, $source_url ) {
+	private function save_scraped_products($products, $source_url)
+	{
 		// Get the storage instance from the main plugin class.
 		$plugin = new ProductScraper();
 
 		// Debug: Check if storage object is created properly.
-		if ( ! $plugin->storage ) {
+		if (! $plugin->storage) {
 			return 0;
 		}
 
 		try {
-			$saved_count = $plugin->storage->save_products( $products, $source_url );
+			$saved_count = $plugin->storage->save_products($products, $source_url);
 			return $saved_count;
-		} catch ( Exception $e ) {
-			error_log( 'ProductScraper: Error saving products: ' . $e->getMessage() );
+		} catch (Exception $e) {
+			error_log('ProductScraper: Error saving products: ' . $e->getMessage());
 			return 0;
 		}
 	}
@@ -339,20 +542,21 @@ class ProductScraperAdmin {
 	/**
 	 * Get stored products
 	 */
-	public function ajax_get_stored_products() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'get_products_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	public function ajax_get_stored_products()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'get_products_nonce')) {
+			wp_die('Security check failed');
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions' );
+		if (! current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
 		}
 
-		$source_url = isset( $_POST['source_url'] ) ? esc_url_raw( $_POST['source_url'] ) : '';
-		$imported   = isset( $_POST['imported'] ) ? intval( $_POST['imported'] ) : null;
+		$source_url = isset($_POST['source_url']) ? esc_url_raw($_POST['source_url']) : '';
+		$imported   = isset($_POST['imported']) ? intval($_POST['imported']) : null;
 
 		$plugin   = new ProductScraper();
-		$products = $plugin->storage->get_products( $source_url, $imported );
+		$products = $plugin->storage->get_products($source_url, $imported);
 		$stats    = $plugin->storage->get_stats();
 
 		wp_send_json_success(
@@ -366,59 +570,62 @@ class ProductScraperAdmin {
 	/**
 	 * Export products as CSV
 	 */
-	public function ajax_export_products_csv() {
-		$this->export_products( 'csv' );
+	public function ajax_export_products_csv()
+	{
+		$this->export_products('csv');
 	}
 
 	/**
 	 * Export products as Excel
 	 */
-	public function ajax_export_products_excel() {
-		$this->export_products( 'excel' );
+	public function ajax_export_products_excel()
+	{
+		$this->export_products('excel');
 	}
 
 	/**
 	 * Handle export functionality
 	 */
-	private function export_products( $format ) {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'export_products_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	private function export_products($format)
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'export_products_nonce')) {
+			wp_die('Security check failed');
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions' );
+		if (! current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
 		}
 
 		// Get products data.
 		$products = array();
-		if ( isset( $_POST['export_all'] ) && $_POST['export_all'] ) {
+		if (isset($_POST['export_all']) && $_POST['export_all']) {
 			$plugin   = new ProductScraper();
 			$products = $plugin->storage->get_products();
-		} elseif ( isset( $_POST['products_data'] ) ) {
-			$products = json_decode( stripslashes( $_POST['products_data'] ), true );
+		} elseif (isset($_POST['products_data'])) {
+			$products = json_decode(stripslashes($_POST['products_data']), true);
 		}
 
-		if ( empty( $products ) ) {
-			wp_die( 'No products to export' );
+		if (empty($products)) {
+			wp_die('No products to export');
 		}
 
 		// Prepare CSV data.
-		$filename = 'nahrin-products-' . date( 'Y-m-d-H-i-s' ) . '.' . ( $format === 'csv' ? 'csv' : 'xlsx' );
+		$filename = 'nahrin-products-' . date('Y-m-d-H-i-s') . '.' . ($format === 'csv' ? 'csv' : 'xlsx');
 
 		// Set headers.
-		if ( $format === 'csv' ) {
-			header( 'Content-Type: text/csv; charset=utf-8' );
-			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		if ($format === 'csv') {
+			header('Content-Type: text/csv; charset=utf-8');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
 		} else {
-			header( 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' );
-			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
 		}
 
 		// Create output stream.
-		$output = fopen( 'php://output', 'w' );
+		$output = fopen('php://output', 'w');
 
 		// Add BOM for UTF-8.
-		fwrite( $output, "\xEF\xBB\xBF" );
+		fwrite($output, "\xEF\xBB\xBF");
 
 		// Headers.
 		$headers = array(
@@ -437,11 +644,11 @@ class ProductScraperAdmin {
 			'Scraped Date',
 		);
 
-		fputcsv( $output, $headers );
+		fputcsv($output, $headers);
 
 		// Data rows.
-		foreach ( $products as $product ) {
-			$product_data = isset( $product['product_data'] ) ? $product['product_data'] : $product;
+		foreach ($products as $product) {
+			$product_data = isset($product['product_data']) ? $product['product_data'] : $product;
 
 			$row = array(
 				$product['id'] ?? '',
@@ -451,148 +658,152 @@ class ProductScraperAdmin {
 				$product['price_display'] ?? $product_data['price'] ?? '',
 				$product['rating_stars'] ?? $product_data['rating_stars'] ?? '',
 				$product['review_count'] ?? $product_data['review_count'] ?? '',
-				is_array( $product['badges'] ?? $product_data['badges'] ?? '' ) ?
-					implode( ', ', $product['badges'] ?? $product_data['badges'] ?? array() ) : '',
+				is_array($product['badges'] ?? $product_data['badges'] ?? '') ?
+					implode(', ', $product['badges'] ?? $product_data['badges'] ?? array()) : '',
 				$product['image_url'] ?? $product_data['image'] ?? '',
-				is_array( $product_data['categories'] ?? '' ) ?
-					implode( ', ', $product_data['categories'] ?? array() ) : '',
+				is_array($product_data['categories'] ?? '') ?
+					implode(', ', $product_data['categories'] ?? array()) : '',
 				$product_data['sku'] ?? '',
 				$product_data['full_description'] ?? $product_data['description'] ?? '',
 				$product['scraped_at'] ?? '',
 			);
 
-			fputcsv( $output, $row );
+			fputcsv($output, $row);
 		}
 
-		fclose( $output );
+		fclose($output);
 		exit;
 	}
 
 	/**
 	 * Delete stored products
 	 */
-	public function ajax_delete_stored_products() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'delete_products_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	public function ajax_delete_stored_products()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'delete_products_nonce')) {
+			wp_die('Security check failed');
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions' );
+		if (! current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
 		}
 
 		$plugin = new ProductScraper();
 
-		if ( isset( $_POST['delete_all'] ) && $_POST['delete_all'] ) {
+		if (isset($_POST['delete_all']) && $_POST['delete_all']) {
 			// Delete all products.
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'scraped_products';
-			$result     = $wpdb->query( "TRUNCATE TABLE $table_name" );
+			$result     = $wpdb->query("TRUNCATE TABLE $table_name");
 
-			if ( $result !== false ) {
-				wp_send_json_success( 'All products deleted successfully' );
+			if ($result !== false) {
+				wp_send_json_success('All products deleted successfully');
 			} else {
-				wp_send_json_error( 'Error deleting products' );
+				wp_send_json_error('Error deleting products');
 			}
-		} elseif ( isset( $_POST['product_ids'] ) ) {
+		} elseif (isset($_POST['product_ids'])) {
 			// Delete specific products.
-			$product_ids = array_map( 'intval', $_POST['product_ids'] );
-			$result      = $plugin->storage->delete_products( $product_ids );
+			$product_ids = array_map('intval', $_POST['product_ids']);
+			$result      = $plugin->storage->delete_products($product_ids);
 
-			if ( $result !== false ) {
-				wp_send_json_success( 'Products deleted successfully' );
+			if ($result !== false) {
+				wp_send_json_success('Products deleted successfully');
 			} else {
-				wp_send_json_error( 'Error deleting products' );
+				wp_send_json_error('Error deleting products');
 			}
 		} else {
-			wp_send_json_error( 'No products specified for deletion' );
+			wp_send_json_error('No products specified for deletion');
 		}
 	}
 
-	public function ajax_test_selectors() {
+	public function ajax_test_selectors()
+	{
 		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'test_selectors_nonce' ) ) {
-			wp_die( 'Security check failed' );
+		if (! wp_verify_nonce($_POST['nonce'], 'test_selectors_nonce')) {
+			wp_die('Security check failed');
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions' );
+		if (! current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
 		}
 
-		$target_url = esc_url_raw( $_POST['target_url'] );
+		$target_url = esc_url_raw($_POST['target_url']);
 
 		$scraper = new ProductScraperEngine();
-		$scraper->set_base_url( $target_url );
+		$scraper->set_base_url($target_url);
 
-		$html = $scraper->fetch_page( $target_url );
+		$html = $scraper->fetch_page($target_url);
 
-		if ( ! $html ) {
-			wp_send_json_error( 'Failed to fetch page' );
+		if (! $html) {
+			wp_send_json_error('Failed to fetch page');
 		}
 
 		$dom = new DOMDocument();
-		libxml_use_internal_errors( true );
-		$dom->loadHTML( $html );
+		libxml_use_internal_errors(true);
+		$dom->loadHTML($html);
 		libxml_clear_errors();
 
-		$xpath = new DOMXPath( $dom );
+		$xpath = new DOMXPath($dom);
 
 		$test_results = array(
-			'product_count'  => $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]' )->length,
+			'product_count'  => $xpath->query('//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]')->length,
 			'product_names'  => array(),
 			'product_prices' => array(),
 			'product_images' => array(),
 		);
 
 		// Test name selection.
-		$name_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//p[contains(@class, "product-item-link")]' );
-		foreach ( $name_nodes as $node ) {
-			$test_results['product_names'][] = trim( $node->textContent );
+		$name_nodes = $xpath->query('//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//p[contains(@class, "product-item-link")]');
+		foreach ($name_nodes as $node) {
+			$test_results['product_names'][] = trim($node->textContent);
 		}
 
 		// Test price selection.
-		$price_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//span[@class="price"]' );
-		foreach ( $price_nodes as $node ) {
-			$test_results['product_prices'][] = trim( $node->textContent );
+		$price_nodes = $xpath->query('//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//span[@class="price"]');
+		foreach ($price_nodes as $node) {
+			$test_results['product_prices'][] = trim($node->textContent);
 		}
 
 		// Test image selection.
-		$img_nodes = $xpath->query( '//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//img' );
-		foreach ( $img_nodes as $node ) {
-			$test_results['product_images'][] = $node->getAttribute( 'src' );
+		$img_nodes = $xpath->query('//ol[contains(@class, "grid")]//li[contains(@class, "product-item")]//img');
+		foreach ($img_nodes as $node) {
+			$test_results['product_images'][] = $node->getAttribute('src');
 		}
 
-		wp_send_json_success( $test_results );
+		wp_send_json_success($test_results);
 	}
 
 	/**
 	 * Handle direct export requests
 	 */
-	public function handle_export() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+	public function handle_export()
+	{
+		if (! current_user_can('manage_options')) {
 			return;
 		}
 
 		$format = $_GET['export'] ?? '';
-		if ( in_array( $format, array( 'csv', 'excel' ) ) ) {
-			$this->export_products( $format );
+		if (in_array($format, array('csv', 'excel'))) {
+			$this->export_products($format);
 		}
 	}
 
 	/**
 	 * Debug database connection and table
 	 */
-	public function debug_database() {
+	public function debug_database()
+	{
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'scraped_products';
 
 		// Check if table exists.
-		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
+		$table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name;
 
 		// Check table structure.
-		$table_structure = $wpdb->get_results( "DESCRIBE $table_name" );
+		$table_structure = $wpdb->get_results("DESCRIBE $table_name");
 
 		// Count existing records.
-		$record_count = $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+		$record_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
 
 		return array(
 			'table_exists'    => $table_exists,
@@ -602,17 +813,18 @@ class ProductScraperAdmin {
 		);
 	}
 
-	public function ajax_debug_database() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'debug_nonce' ) ) {
-			wp_die( 'Security check failed' );
+	public function ajax_debug_database()
+	{
+		if (! wp_verify_nonce($_POST['nonce'], 'debug_nonce')) {
+			wp_die('Security check failed');
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions' );
+		if (! current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
 		}
 
 		$debug_info = $this->debug_database();
-		wp_send_json_success( $debug_info );
+		wp_send_json_success($debug_info);
 	}
 }
 ?>

@@ -2154,9 +2154,22 @@ class ProductScraperAnalytics {
 	 * Display settings page for API configurations
 	 */
 	public function display_settings_page() {
-		// Handle form submissions.
-		if ( isset( $_POST['submit_settings'] ) && check_admin_referer( 'product_scraper_settings_nonce' ) ) {
+		// Handle form submissions for BOTH forms
+		if (isset($_POST['submit_settings'])) {
+			// Check for the main settings nonce
+			if (!check_admin_referer('product_scraper_settings_nonce')) {
+				wp_die('Security check failed.');
+			}
 			$this->save_settings();
+		}
+		
+		// Handle AI settings form submission
+		if (isset($_POST['submit_ai_settings'])) {
+			// Check for the AI settings nonce
+			if (!check_admin_referer('product_scraper_ai_settings_nonce')) {
+				wp_die('Security check failed.');
+			}
+			$this->save_ai_settings();
 		}
 
 		// Get current settings.
@@ -2173,7 +2186,7 @@ class ProductScraperAnalytics {
 
 				<div class="sa-container">
 					<!-- Sidebar -->
-					<?php ProductScraper::product_scraper_render_sidebar( 'scraper-settings' ); ?>
+					<?php ProductScraper::product_scraper_render_sidebar('scraper-settings'); ?>
 
 					<!-- Main Content -->
 					<div class="sa-main-content">
@@ -2181,8 +2194,9 @@ class ProductScraperAnalytics {
 							<h2>API Configuration</h2>
 							<p class="sa-description">Configure your API keys to enable real data collection from various SEO platforms.</p>
 
+							<!-- Main SEO Settings Form -->
 							<form method="post" class="sa-settings-form">
-								<?php wp_nonce_field( 'product_scraper_settings_nonce' ); ?>
+								<?php wp_nonce_field('product_scraper_settings_nonce'); ?>
 
 								<!-- Google Services -->
 								<div class="sa-settings-group">
@@ -2191,7 +2205,7 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="ga4_property_id">Google Analytics 4 Property ID</label>
 										<input type="text" id="ga4_property_id" name="ga4_property_id"
-											value="<?php echo esc_attr( $settings['ga4_property_id'] ); ?>"
+											value="<?php echo esc_attr($settings['ga4_property_id']); ?>"
 											class="sa-form-control"
 											placeholder="123456789">
 										<p class="description">Enter your <strong>numeric GA4 Property ID</strong> (e.g., 123456789), NOT the Measurement ID that starts with "G-". Find it in Google Analytics under Admin → Property Settings.</p>
@@ -2201,14 +2215,14 @@ class ProductScraperAnalytics {
 										<label for="google_service_account">Google Service Account JSON</label>
 										<textarea id="google_service_account" name="google_service_account"
 											class="sa-form-control" rows="6"
-											placeholder='Paste your service account JSON credentials'><?php echo esc_textarea( $settings['google_service_account'] ); ?></textarea>
+											placeholder='Paste your service account JSON credentials'><?php echo esc_textarea($settings['google_service_account']); ?></textarea>
 										<p class="description">Service account credentials for Google Analytics API access</p>
 									</div>
 
 									<div class="sa-setting-row">
 										<label for="pagespeed_api">Google PageSpeed Insights API Key</label>
 										<input type="password" id="pagespeed_api" name="pagespeed_api"
-											value="<?php echo esc_attr( $settings['pagespeed_api'] ); ?>"
+											value="<?php echo esc_attr($settings['pagespeed_api']); ?>"
 											class="sa-form-control"
 											placeholder="AIza...">
 										<p class="description">API key for PageSpeed Insights performance data</p>
@@ -2222,7 +2236,7 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="ahrefs_api">Ahrefs API Key</label>
 										<input type="password" id="ahrefs_api" name="ahrefs_api"
-											value="<?php echo esc_attr( $settings['ahrefs_api'] ); ?>"
+											value="<?php echo esc_attr($settings['ahrefs_api']); ?>"
 											class="sa-form-control"
 											placeholder="Ahrefs API key">
 										<p class="description">For backlink data and competitor analysis</p>
@@ -2231,7 +2245,7 @@ class ProductScraperAnalytics {
 									<div class="sa-setting-row">
 										<label for="semrush_api">SEMrush API Key</label>
 										<input type="password" id="semrush_api" name="semrush_api"
-											value="<?php echo esc_attr( $settings['semrush_api'] ); ?>"
+											value="<?php echo esc_attr($settings['semrush_api']); ?>"
 											class="sa-form-control"
 											placeholder="SEMrush API key">
 										<p class="description">For keyword research and ranking data</p>
@@ -2246,12 +2260,58 @@ class ProductScraperAnalytics {
 										<label for="competitors">Competitor Domains</label>
 										<textarea id="competitors" name="competitors"
 											class="sa-form-control" rows="3"
-											placeholder="competitor1.com, competitor2.com, competitor3.com"><?php echo esc_textarea( $settings['competitors'] ); ?></textarea>
+											placeholder="competitor1.com, competitor2.com, competitor3.com"><?php echo esc_textarea($settings['competitors']); ?></textarea>
 										<p class="description">Enter competitor domains (comma-separated). Maximum 5 competitors.</p>
 									</div>
 								</div>
 
-								<!-- AI Settings -->
+								<!-- Advanced Settings -->
+								<div class="sa-settings-group">
+									<h3><span class="dashicons dashicons-admin-tools"></span> Advanced Settings</h3>
+
+									<div class="sa-setting-row">
+										<label for="cache_duration">Data Cache Duration</label>
+										<select id="cache_duration" name="cache_duration" class="sa-form-control">
+											<option value="900" <?php selected($settings['cache_duration'], '900'); ?>>15 minutes</option>
+											<option value="1800" <?php selected($settings['cache_duration'], '1800'); ?>>30 minutes</option>
+											<option value="3600" <?php selected($settings['cache_duration'], '3600'); ?>>1 hour</option>
+											<option value="7200" <?php selected($settings['cache_duration'], '7200'); ?>>2 hours</option>
+											<option value="14400" <?php selected($settings['cache_duration'], '14400'); ?>>4 hours</option>
+										</select>
+										<p class="description">How long to cache API data before refreshing</p>
+									</div>
+
+									<div class="sa-setting-row">
+										<label>
+											<input type="checkbox" name="enable_debug" value="1" <?php checked($settings['enable_debug'], 1); ?>>
+											Enable Debug Mode
+										</label>
+										<p class="description">Log API requests and errors for troubleshooting</p>
+									</div>
+
+									<div class="sa-setting-row">
+										<label>
+											<input type="checkbox" name="auto_sync" value="1" <?php checked($settings['auto_sync'], 1); ?>>
+											Auto-sync Data
+										</label>
+										<p class="description">Automatically refresh data when visiting dashboard</p>
+									</div>
+								</div>
+
+								<div class="sa-settings-actions">
+									<button type="submit" name="submit_settings" class="sa-btn sa-btn-primary">
+										<span class="dashicons dashicons-yes-alt"></span>
+										Save SEO Settings
+									</button>
+								</div>
+							</form>
+
+							<hr>
+
+							<!-- AI Settings Form - SEPARATE FORM -->
+							<form method="post" class="sa-settings-form">
+								<?php wp_nonce_field('product_scraper_ai_settings_nonce'); ?>
+								
 								<div class="sa-settings-group">
 									<h3><span class="dashicons dashicons-ai"></span> AI Content Generation</h3>
 
@@ -2270,6 +2330,8 @@ class ProductScraperAnalytics {
 											<option value="professional" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'professional'); ?>>Professional</option>
 											<option value="casual" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'casual'); ?>>Casual</option>
 											<option value="enthusiastic" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'enthusiastic'); ?>>Enthusiastic</option>
+											<option value="formal" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'formal'); ?>>Formal</option>
+											<option value="friendly" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'friendly'); ?>>Friendly</option>
 										</select>
 									</div>
 
@@ -2290,56 +2352,26 @@ class ProductScraperAnalytics {
 									</div>
 								</div>
 
-								<!-- Advanced Settings -->
-								<div class="sa-settings-group">
-									<h3><span class="dashicons dashicons-admin-tools"></span> Advanced Settings</h3>
-
-									<div class="sa-setting-row">
-										<label for="cache_duration">Data Cache Duration</label>
-										<select id="cache_duration" name="cache_duration" class="sa-form-control">
-											<option value="900" <?php selected( $settings['cache_duration'], '900' ); ?>>15 minutes</option>
-											<option value="1800" <?php selected( $settings['cache_duration'], '1800' ); ?>>30 minutes</option>
-											<option value="3600" <?php selected( $settings['cache_duration'], '3600' ); ?>>1 hour</option>
-											<option value="7200" <?php selected( $settings['cache_duration'], '7200' ); ?>>2 hours</option>
-											<option value="14400" <?php selected( $settings['cache_duration'], '14400' ); ?>>4 hours</option>
-										</select>
-										<p class="description">How long to cache API data before refreshing</p>
-									</div>
-
-									<div class="sa-setting-row">
-										<label>
-											<input type="checkbox" name="enable_debug" value="1" <?php checked( $settings['enable_debug'], 1 ); ?>>
-											Enable Debug Mode
-										</label>
-										<p class="description">Log API requests and errors for troubleshooting</p>
-									</div>
-
-									<div class="sa-setting-row">
-										<label>
-											<input type="checkbox" name="auto_sync" value="1" <?php checked( $settings['auto_sync'], 1 ); ?>>
-											Auto-sync Data
-										</label>
-										<p class="description">Automatically refresh data when visiting dashboard</p>
-									</div>
-								</div>
-
 								<div class="sa-settings-actions">
-									<button type="submit" name="submit_settings" class="sa-btn sa-btn-primary">
+									<button type="submit" name="submit_ai_settings" class="sa-btn sa-btn-primary">
 										<span class="dashicons dashicons-yes-alt"></span>
-										Save Settings
-									</button>
-
-									<button type="button" id="test_apis" class="sa-btn sa-btn-secondary">
-										<span class="dashicons dashicons-admin-tools"></span>
-										Test API Connections
-									</button>
-
-									<button type="button" id="clear_cache" class="sa-btn sa-btn-warning">
-										<span class="dashicons dashicons-trash"></span>
-										Clear Cache
+										Save AI Settings
 									</button>
 								</div>
 							</form>
+
+							<!-- Common action buttons -->
+							<div class="sa-settings-actions" style="margin-top: 20px;">
+								<button type="button" id="test_apis" class="sa-btn sa-btn-secondary">
+									<span class="dashicons dashicons-admin-tools"></span>
+									Test API Connections
+								</button>
+
+								<button type="button" id="clear_cache" class="sa-btn sa-btn-warning">
+									<span class="dashicons dashicons-trash"></span>
+									Clear Cache
+								</button>
+							</div>
 
 							<!-- API Status -->
 							<div class="sa-api-status">
@@ -2393,7 +2425,7 @@ class ProductScraperAnalytics {
 						type: 'POST',
 						data: {
 							action: 'test_api_connections',
-							nonce: '<?php echo esc_js( wp_create_nonce( 'test_apis_nonce' ) ); ?>'
+							nonce: '<?php echo esc_js(wp_create_nonce('test_apis_nonce')); ?>'
 						},
 						success: function(response) {
 							if (response.success) {
@@ -2431,7 +2463,7 @@ class ProductScraperAnalytics {
 						type: 'POST',
 						data: {
 							action: 'clear_seo_cache',
-							nonce: '<?php echo esc_js( wp_create_nonce( 'clear_cache_nonce' ) ); ?>'
+							nonce: '<?php echo esc_js(wp_create_nonce('clear_cache_nonce')); ?>'
 						},
 						success: function(response) {
 							if (response.success) {
@@ -2448,6 +2480,32 @@ class ProductScraperAnalytics {
 			});
 		</script>
 		<?php
+	}
+
+	/**
+	 * Save AI settings separately
+	 */
+	private function save_ai_settings() {
+		// Check user capabilities.
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions.');
+		}
+
+		// Save AI settings
+		if (isset($_POST['product_scraper_openai_api_key'])) {
+			update_option('product_scraper_openai_api_key', sanitize_text_field($_POST['product_scraper_openai_api_key']));
+		}
+		if (isset($_POST['product_scraper_ai_content_tone'])) {
+			update_option('product_scraper_ai_content_tone', sanitize_text_field($_POST['product_scraper_ai_content_tone']));
+		}
+		if (isset($_POST['product_scraper_ai_max_tokens'])) {
+			update_option('product_scraper_ai_max_tokens', absint($_POST['product_scraper_ai_max_tokens']));
+		}
+		if (isset($_POST['product_scraper_ai_temperature'])) {
+			update_option('product_scraper_ai_temperature', floatval($_POST['product_scraper_ai_temperature']));
+		}
+
+		echo '<div class="notice notice-success is-dismissible"><p>AI Settings saved successfully!</p></div>';
 	}
 
 	/**
@@ -2471,75 +2529,54 @@ class ProductScraperAnalytics {
 	 * Save settings with proper security validation.
 	 */
 	private function save_settings() {
-		// Verify nonce first - this should already be done by check_admin_referer() but we'll double-check.
-		if (
-			! isset( $_POST['product_scraper_settings_nonce'] ) ||
-			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['product_scraper_settings_nonce'] ) ), 'product_scraper_settings_nonce' )
-		) {
-			wp_die( 'Security check failed.' );
-		}
-
 		// Check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Insufficient permissions.' );
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions.');
 		}
 
 		// Google Services - with proper sanitization.
-		if ( isset( $_POST['ga4_property_id'] ) ) {
-			$ga4_property_id = sanitize_text_field( wp_unslash( $_POST['ga4_property_id'] ) );
-			update_option( 'product_scraper_ga4_property_id', $ga4_property_id );
+		if (isset($_POST['ga4_property_id'])) {
+			$ga4_property_id = sanitize_text_field(wp_unslash($_POST['ga4_property_id']));
+			update_option('product_scraper_ga4_property_id', $ga4_property_id);
 		}
 
-		if ( isset( $_POST['pagespeed_api'] ) ) {
-			$pagespeed_api = sanitize_text_field( wp_unslash( $_POST['pagespeed_api'] ) );
-			update_option( 'product_scraper_pagespeed_api', $pagespeed_api );
+		if (isset($_POST['pagespeed_api'])) {
+			$pagespeed_api = sanitize_text_field(wp_unslash($_POST['pagespeed_api']));
+			update_option('product_scraper_pagespeed_api', $pagespeed_api);
 		}
 
-		if ( isset( $_POST['google_service_account'] ) ) {
-			$json = sanitize_textarea_field( wp_unslash( $_POST['google_service_account'] ) );
-			update_option( 'product_scraper_google_service_account', $json );
+		if (isset($_POST['google_service_account'])) {
+			$json = sanitize_textarea_field(wp_unslash($_POST['google_service_account']));
+			update_option('product_scraper_google_service_account', $json);
 		}
 
 		// SEO Platforms - with proper sanitization.
-		if ( isset( $_POST['ahrefs_api'] ) ) {
-			$ahrefs_api = sanitize_text_field( wp_unslash( $_POST['ahrefs_api'] ) );
-			update_option( 'product_scraper_ahrefs_api', $ahrefs_api );
+		if (isset($_POST['ahrefs_api'])) {
+			$ahrefs_api = sanitize_text_field(wp_unslash($_POST['ahrefs_api']));
+			update_option('product_scraper_ahrefs_api', $ahrefs_api);
 		}
 
-		if ( isset( $_POST['semrush_api'] ) ) {
-			$semrush_api = sanitize_text_field( wp_unslash( $_POST['semrush_api'] ) );
-			update_option( 'product_scraper_semrush_api', $semrush_api );
+		if (isset($_POST['semrush_api'])) {
+			$semrush_api = sanitize_text_field(wp_unslash($_POST['semrush_api']));
+			update_option('product_scraper_semrush_api', $semrush_api);
 		}
 
 		// Advanced Settings - with proper sanitization.
-		if ( isset( $_POST['cache_duration'] ) ) {
-			$cache_duration = absint( $_POST['cache_duration'] );
-			update_option( 'product_scraper_cache_duration', $cache_duration );
+		if (isset($_POST['cache_duration'])) {
+			$cache_duration = absint($_POST['cache_duration']);
+			update_option('product_scraper_cache_duration', $cache_duration);
 		}
 
 		// Competitor settings
-		if ( isset( $_POST['competitors'] ) ) {
-			$competitors = sanitize_textarea_field( wp_unslash( $_POST['competitors'] ) );
-			update_option( 'product_scraper_competitors', $competitors );
+		if (isset($_POST['competitors'])) {
+			$competitors = sanitize_textarea_field(wp_unslash($_POST['competitors']));
+			update_option('product_scraper_competitors', $competitors);
 		}
 
-		if (isset($_POST['product_scraper_openai_api_key'])) {
-			update_option('product_scraper_openai_api_key', sanitize_text_field($_POST['product_scraper_openai_api_key']));
-		}
-		if (isset($_POST['product_scraper_ai_content_tone'])) {
-			update_option('product_scraper_ai_content_tone', sanitize_text_field($_POST['product_scraper_ai_content_tone']));
-		}
-		if (isset($_POST['product_scraper_ai_max_tokens'])) {
-			update_option('product_scraper_ai_max_tokens', absint($_POST['product_scraper_ai_max_tokens']));
-		}
-		if (isset($_POST['product_scraper_ai_temperature'])) {
-			update_option('product_scraper_ai_temperature', floatval($_POST['product_scraper_ai_temperature']));
-		}
+		update_option('product_scraper_enable_debug', isset($_POST['enable_debug']) ? 1 : 0);
+		update_option('product_scraper_auto_sync', isset($_POST['auto_sync']) ? 1 : 0);
 
-		update_option( 'product_scraper_enable_debug', isset( $_POST['enable_debug'] ) ? 1 : 0 );
-		update_option( 'product_scraper_auto_sync', isset( $_POST['auto_sync'] ) ? 1 : 0 );
-
-		echo '<div class="notice notice-success is-dismissible"><p>Settings saved successfully!</p></div>';
+		echo '<div class="notice notice-success is-dismissible"><p>SEO Settings saved successfully!</p></div>';
 	}
 
 	/**

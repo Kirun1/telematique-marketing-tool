@@ -54,6 +54,7 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-analysis.php'
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/helpers/class-link-manager.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-robots-txt.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-chart-manager.php';
+require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-firecrawl-integration.php';
 
 /**
  * Main plugin controller for Product Scraper.
@@ -164,6 +165,9 @@ class ProductScraper {
 		// Initialize AI services
 		$this->ai_content_writer = new ProductScraper_AI_Content_Writer();
 		$this->ai_title_optimizer = new ProductScraper_AI_Title_Optimizer();
+
+		// Initialize Firecrawl integration
+		$this->firecrawl = new ProductScraper_Firecrawl_Integration();
 
 		// Core SEO hooks.
 		add_action( 'init', array( $this, 'init' ) );
@@ -878,6 +882,11 @@ class ProductScraper {
 		register_setting('product_scraper_ai_settings', 'product_scraper_ai_content_tone');
 		register_setting('product_scraper_ai_settings', 'product_scraper_ai_max_tokens');
 		register_setting('product_scraper_ai_settings', 'product_scraper_ai_temperature');
+
+		// Firecrawl API Settings
+		register_setting('product_scraper_firecrawl_settings', 'product_scraper_firecrawl_api_key');
+		register_setting('product_scraper_firecrawl_settings', 'product_scraper_firecrawl_base_url');
+		register_setting('product_scraper_firecrawl_settings', 'product_scraper_firecrawl_timeout');
 	}
 
 	/**
