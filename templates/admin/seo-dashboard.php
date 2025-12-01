@@ -1,11 +1,12 @@
 <?php
+
 /**
  * SEO Dashboard template.
  *
  * @package ProductScraper
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
 	exit;
 }
 ?>
@@ -21,91 +22,98 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="sa-container">
 			<!-- Sidebar -->
-			<?php ProductScraper::product_scraper_render_sidebar( 'seo-assistant' ); ?>
+			<?php ProductScraper::product_scraper_render_sidebar('seo-assistant'); ?>
 
 			<div class="sa-main-content">
 				<div class="sa-section">
-					<h2>SEO Overview</h2>
 
 					<!-- SEO Stats Grid -->
-					<div class="sa-stats-grid">
-						<div class="sa-stat-card">
-							<div class="stat-header">
-								<h3>Optimized Posts</h3>
-							</div>
-							<div class="stat-main">
-								<span class="stat-number"><?php echo esc_html( absint( $stats['optimized_posts'] ) ); ?></span>
-								<span class="stat-percentage"><?php echo esc_html( absint( $stats['optimization_rate'] ) ) . '%'; ?></span>
-							</div>
-							<div class="stat-target">
-								Total Posts: <?php echo esc_html( absint( $stats['total_posts'] ) ); ?>
-							</div>
-						</div>
-
-						<div class="sa-stat-card">
-							<div class="stat-header">
-								<h3>Readability Score</h3>
-							</div>
-							<div class="stat-main">
-								<span class="stat-number"><?php echo esc_html( absint( $stats['avg_readability'] ) ) . '%'; ?></span>
-							</div>
-							<div class="score-status">
-								<?php
-								$readability_score = $stats['avg_readability'];
-								if ( $readability_score >= 70 ) {
-									echo '<span class="status-text status-good">Good</span>';
-								} elseif ( $readability_score >= 50 ) {
-									echo '<span class="status-text status-warning">Fair</span>';
-								} else {
-									echo '<span class="status-text status-bad">Poor</span>';
-								}
-								?>
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+						<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+							<div class="flex items-start justify-between">
+								<div class="flex-1">
+									<div class="text-sm font-medium text-gray-500 mb-1">Optimized Posts</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['optimized_posts'])); ?></div>
+									<span class="text-xs font-medium text-slate-600"><?php echo esc_html(absint($stats['optimization_rate'])) . '%'; ?></span>
+									Total Posts: <?php echo esc_html(absint($stats['total_posts'])); ?>
+								</div>
+								<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
+									<i data-lucide="zap" class="lucide-icon"></i>
+								</div>
 							</div>
 						</div>
 
-						<div class="sa-stat-card">
-							<div class="stat-header">
-								<h3>SEO Issues</h3>
+						<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+							<div class="flex items-start justify-between">
+								<div class="flex-1">
+									<div class="text-sm font-medium text-gray-500 mb-1">Readability Score</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['avg_readability'])) . '%'; ?></div>
+									<?php
+									$readability_score = $stats['avg_readability'];
+									if ($readability_score >= 70) {
+										echo '<span class="status-text status-good">Good</span>';
+									} elseif ($readability_score >= 50) {
+										echo '<span class="status-text status-warning">Fair</span>';
+									} else {
+										echo '<span class="status-text status-bad">Poor</span>';
+									}
+									?>
+								</div>
+								<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
+									<i data-lucide="file-text" class="lucide-icon"></i>
+								</div>
 							</div>
-							<div class="stat-main">
-								<span class="stat-number"><?php echo esc_html( absint( $stats['posts_without_meta'] ) + absint( $stats['low_content_posts'] ) ); ?></span>
-							</div>
-							<div class="stat-target">
-								<?php echo esc_html( absint( $stats['posts_without_meta'] ) ); ?> without meta,
-								<?php echo esc_html( absint( $stats['low_content_posts'] ) ); ?> low content
+						</div>
+
+						<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+							<div class="flex items-start justify-between">
+								<div class="flex-1">
+									<div class="text-sm font-medium text-gray-500 mb-1">SEO Issues</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['posts_without_meta']) + absint($stats['low_content_posts'])); ?></div>
+									<div class="text-sm font-medium text-slate-600">
+										<?php echo esc_html(absint($stats['posts_without_meta'])); ?> without meta,
+										<?php echo esc_html(absint($stats['low_content_posts'])); ?> low content
+									</div>
+								</div>
+								<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
+									<i data-lucide="gauge" class="lucide-icon"></i>
+								</div>
 							</div>
 						</div>
 
 						<!-- Additional stat card for keyword optimization -->
-						<div class="sa-stat-card">
-							<div class="stat-header">
-								<h3>Keyword Usage</h3>
-							</div>
-							<div class="stat-main">
-								<span class="stat-number"><?php echo esc_html( absint( $stats['posts_with_focus_keyword'] ) ); ?></span>
-								<span class="stat-percentage">
-									<?php
-									$keyword_percentage = 0;
-									if ( $stats['total_posts'] > 0 ) {
-										$keyword_percentage = round(
-											( absint( $stats['posts_with_focus_keyword'] ) / absint( $stats['total_posts'] ) ) * 100
-										);
-									}
-									echo esc_html( $keyword_percentage ) . '%';
-									?>
-								</span>
-							</div>
-							<div class="stat-target">
-								Posts with focus keywords
+						<div class=" rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+							<div class="flex items-start justify-between">
+								<div class="flex-1">
+									<div class="text-sm font-medium text-gray-500 mb-1">Keyword Usage</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['posts_with_focus_keyword'])); ?></div>
+									<div class="text-sm font-medium text-slate-600">
+										<?php
+										$keyword_percentage = 0;
+										if ($stats['total_posts'] > 0) {
+											$keyword_percentage = round(
+												(absint($stats['posts_with_focus_keyword']) / absint($stats['total_posts'])) * 100
+											);
+										}
+										echo esc_html($keyword_percentage) . '%';
+										?>
+									</div>
+									<div class="text-sm font-medium text-slate-600">
+										Posts with focus keywords
+									</div>
+								</div>
+								<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
+									<i data-lucide="zap" class="lucide-icon"></i>
+								</div>
 							</div>
 						</div>
 					</div>
 
 					<!-- Content Analysis Tool -->
-					<div class="sa-chart-section">
-						<h3>Content Analysis</h3>
+					<div class="sa-chart-section mt-6">
+						<div class="text-sm font-medium text-gray-500 mb-1">Content Analysis</div>
 						<div class="content-analysis-tool">
-							<textarea id="content-to-analyze" placeholder="Paste your content here to analyze..." rows="10" style="width: 100%; padding: 15px;"></textarea>
+							<textarea id="content-to-analyze" class="mb-4" placeholder="Paste your content here to analyze..." rows="10" style="width: 100%; padding: 15px;"></textarea>
 							<div class="analysis-controls">
 								<input type="text" id="focus-keyword" placeholder="Focus keyword (optional)" style="padding: 10px; margin-right: 10px;">
 								<button id="analyze-content" class="sa-btn sa-btn-primary">Analyze Content</button>
@@ -115,52 +123,52 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</div>
 
 					<!-- Recent Analysis Section -->
-					<?php if ( ! empty( $recent_analysis ) ) : ?>
-					<div class="sa-table-section">
-						<h3>Recent Content Analysis</h3>
-						<div class="sa-table-container">
-							<table class="sa-table">
-								<thead>
-									<tr>
-										<th>Post Title</th>
-										<th>SEO Score</th>
-										<th>Readability</th>
-										<th>Word Count</th>
-										<th>Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php foreach ( $recent_analysis as $analysis ) : ?>
-									<tr>
-										<td>
-											<strong><?php echo esc_html( $analysis['title'] ); ?></strong>
-										</td>
-										<td>
-											<div class="score-circle" data-score="<?php echo esc_attr( $analysis['analysis']['score'] ?? 0 ); ?>">
-												<?php echo esc_html( ( $analysis['analysis']['score'] ?? 0 ) . '%' ); ?>
-											</div>
-										</td>
-										<td>
-											<?php
-											$readability = $analysis['analysis']['readability']['flesch_score'] ?? 0;
-											echo $readability > 0 ? esc_html( $readability ) . '%' : esc_html__( 'N/A', 'productscraper' );
-											?>
-										</td>
-										<td>
-											<?php
-											$word_count = $analysis['analysis']['word_count'] ?? 0;
-											echo $word_count > 0 ? esc_html( $word_count ) : esc_html__( 'N/A', 'productscraper' );
-											?>
-										</td>
-										<td>
-											<a href="<?php echo esc_url( $analysis['edit_url'] ); ?>" class="sa-btn sa-btn-small">Edit</a>
-										</td>
-									</tr>
-									<?php endforeach; ?>
-								</tbody>
-							</table>
+					<?php if (! empty($recent_analysis)) : ?>
+						<div class="sa-table-section">
+							<h3>Recent Content Analysis</h3>
+							<div class="sa-table-container">
+								<table class="sa-table">
+									<thead>
+										<tr>
+											<th>Post Title</th>
+											<th>SEO Score</th>
+											<th>Readability</th>
+											<th>Word Count</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php foreach ($recent_analysis as $analysis) : ?>
+											<tr>
+												<td>
+													<strong><?php echo esc_html($analysis['title']); ?></strong>
+												</td>
+												<td>
+													<div class="score-circle" data-score="<?php echo esc_attr($analysis['analysis']['score'] ?? 0); ?>">
+														<?php echo esc_html(($analysis['analysis']['score'] ?? 0) . '%'); ?>
+													</div>
+												</td>
+												<td>
+													<?php
+													$readability = $analysis['analysis']['readability']['flesch_score'] ?? 0;
+													echo $readability > 0 ? esc_html($readability) . '%' : esc_html__('N/A', 'productscraper');
+													?>
+												</td>
+												<td>
+													<?php
+													$word_count = $analysis['analysis']['word_count'] ?? 0;
+													echo $word_count > 0 ? esc_html($word_count) : esc_html__('N/A', 'productscraper');
+													?>
+												</td>
+												<td>
+													<a href="<?php echo esc_url($analysis['edit_url']); ?>" class="sa-btn sa-btn-small">Edit</a>
+												</td>
+											</tr>
+										<?php endforeach; ?>
+									</tbody>
+								</table>
+							</div>
 						</div>
-					</div>
 					<?php endif; ?>
 
 					<!-- Quick Actions -->
@@ -184,7 +192,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							</div>
 							<div class="quick-action-card">
 								<h4>Fix SEO Issues</h4>
-								<p>Address <?php echo esc_html( absint( $stats['posts_without_meta'] ) ); ?> posts without meta descriptions</p>
+								<p>Address <?php echo esc_html(absint($stats['posts_without_meta'])); ?> posts without meta descriptions</p>
 								<button class="sa-btn sa-btn-secondary">Fix Issues</button>
 							</div>
 						</div>
@@ -250,7 +258,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	}
 
 	.score-circle[data-score] {
-		background-color: #28a745; /* Default green */
+		background-color: #28a745;
+		/* Default green */
 	}
 
 	.score-circle[data-score="0"] {
@@ -261,19 +270,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	.score-circle[data-score^="2"],
 	.score-circle[data-score^="3"],
 	.score-circle[data-score^="4"] {
-		background-color: #dc3545; /* Red for 0-49 */
+		background-color: #dc3545;
+		/* Red for 0-49 */
 	}
 
 	.score-circle[data-score^="5"],
 	.score-circle[data-score^="6"] {
-		background-color: #ffc107; /* Yellow for 50-69 */
+		background-color: #ffc107;
+		/* Yellow for 50-69 */
 		color: #000;
 	}
 
 	.score-circle[data-score^="7"],
 	.score-circle[data-score^="8"],
 	.score-circle[data-score^="9"] {
-		background-color: #28a745; /* Green for 70-100 */
+		background-color: #28a745;
+		/* Green for 70-100 */
 	}
 
 	/* Table styles */
@@ -313,104 +325,104 @@ if ( ! defined( 'ABSPATH' ) ) {
 </style>
 
 <script>
-jQuery(document).ready(function($) {
-	// Content analysis functionality.
-	$('#analyze-content').on('click', function() {
-		var content = $('#content-to-analyze').val();
-		var keyword = $('#focus-keyword').val();
-		
-		if (!content.trim()) {
-			alert('Please enter some content to analyze.');
-			return;
-		}
+	jQuery(document).ready(function($) {
+		// Content analysis functionality.
+		$('#analyze-content').on('click', function() {
+			var content = $('#content-to-analyze').val();
+			var keyword = $('#focus-keyword').val();
 
-		var button = $(this);
-		var originalText = button.text();
-		button.text('Analyzing...').prop('disabled', true);
-
-		$.ajax({
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'analyze_content',
-				content: content,
-				keyword: keyword,
-				nonce: '<?php echo esc_js( wp_create_nonce( 'product_scraper_nonce' ) ); ?>'
-			},
-			success: function(response) {
-				button.text(originalText).prop('disabled', false);
-				
-				if (response.success) {
-					displayAnalysisResults(response.data);
-				} else {
-					alert('Error analyzing content: ' + response.data);
-				}
-			},
-			error: function() {
-				button.text(originalText).prop('disabled', false);
-				alert('Error analyzing content. Please try again.');
+			if (!content.trim()) {
+				alert('Please enter some content to analyze.');
+				return;
 			}
+
+			var button = $(this);
+			var originalText = button.text();
+			button.text('Analyzing...').prop('disabled', true);
+
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'analyze_content',
+					content: content,
+					keyword: keyword,
+					nonce: '<?php echo esc_js(wp_create_nonce('product_scraper_nonce')); ?>'
+				},
+				success: function(response) {
+					button.text(originalText).prop('disabled', false);
+
+					if (response.success) {
+						displayAnalysisResults(response.data);
+					} else {
+						alert('Error analyzing content: ' + response.data);
+					}
+				},
+				error: function() {
+					button.text(originalText).prop('disabled', false);
+					alert('Error analyzing content. Please try again.');
+				}
+			});
 		});
+
+		function displayAnalysisResults(analysis) {
+			var results = $('#analysis-results');
+			var html = '<div class="analysis-results">';
+
+			html += '<div class="overall-score">';
+			html += '<h4>Overall SEO Score: <span class="score-' + getScoreClass(analysis.score) + '">' + analysis.score + '%</span></h4>';
+			html += '</div>';
+
+			if (analysis.issues.length > 0) {
+				html += '<div class="analysis-section issues">';
+				html += '<h5>Issues to Fix:</h5>';
+				html += '<ul>';
+				analysis.issues.forEach(function(issue) {
+					html += '<li class="severity-' + issue.severity + '">' + issue.message + '</li>';
+				});
+				html += '</ul>';
+				html += '</div>';
+			}
+
+			if (analysis.improvements.length > 0) {
+				html += '<div class="analysis-section improvements">';
+				html += '<h5>Suggested Improvements:</h5>';
+				html += '<ul>';
+				analysis.improvements.forEach(function(improvement) {
+					html += '<li class="severity-' + improvement.severity + '">' + improvement.message + '</li>';
+				});
+				html += '</ul>';
+				html += '</div>';
+			}
+
+			if (analysis.good.length > 0) {
+				html += '<div class="analysis-section good">';
+				html += '<h5>Good Practices:</h5>';
+				html += '<ul>';
+				analysis.good.forEach(function(good) {
+					html += '<li class="severity-' + good.severity + '">' + good.message + '</li>';
+				});
+				html += '</ul>';
+				html += '</div>';
+			}
+
+			if (analysis.readability) {
+				html += '<div class="analysis-section readability">';
+				html += '<h5>Readability: ' + analysis.readability.description + '</h5>';
+				html += '<p>Flesch Score: ' + analysis.readability.flesch_score + ' (' + analysis.readability.grade_level + ' level)</p>';
+				html += '</div>';
+			}
+
+			html += '</div>';
+
+			results.html(html).show();
+		}
+
+		function getScoreClass(score) {
+			if (score >= 80) return 'excellent';
+			if (score >= 60) return 'good';
+			if (score >= 40) return 'fair';
+			return 'poor';
+		}
 	});
-
-	function displayAnalysisResults(analysis) {
-		var results = $('#analysis-results');
-		var html = '<div class="analysis-results">';
-		
-		html += '<div class="overall-score">';
-		html += '<h4>Overall SEO Score: <span class="score-' + getScoreClass(analysis.score) + '">' + analysis.score + '%</span></h4>';
-		html += '</div>';
-		
-		if (analysis.issues.length > 0) {
-			html += '<div class="analysis-section issues">';
-			html += '<h5>Issues to Fix:</h5>';
-			html += '<ul>';
-			analysis.issues.forEach(function(issue) {
-				html += '<li class="severity-' + issue.severity + '">' + issue.message + '</li>';
-			});
-			html += '</ul>';
-			html += '</div>';
-		}
-		
-		if (analysis.improvements.length > 0) {
-			html += '<div class="analysis-section improvements">';
-			html += '<h5>Suggested Improvements:</h5>';
-			html += '<ul>';
-			analysis.improvements.forEach(function(improvement) {
-				html += '<li class="severity-' + improvement.severity + '">' + improvement.message + '</li>';
-			});
-			html += '</ul>';
-			html += '</div>';
-		}
-		
-		if (analysis.good.length > 0) {
-			html += '<div class="analysis-section good">';
-			html += '<h5>Good Practices:</h5>';
-			html += '<ul>';
-			analysis.good.forEach(function(good) {
-				html += '<li class="severity-' + good.severity + '">' + good.message + '</li>';
-			});
-			html += '</ul>';
-			html += '</div>';
-		}
-		
-		if (analysis.readability) {
-			html += '<div class="analysis-section readability">';
-			html += '<h5>Readability: ' + analysis.readability.description + '</h5>';
-			html += '<p>Flesch Score: ' + analysis.readability.flesch_score + ' (' + analysis.readability.grade_level + ' level)</p>';
-			html += '</div>';
-		}
-		
-		html += '</div>';
-		
-		results.html(html).show();
-	}
-
-	function getScoreClass(score) {
-		if (score >= 80) return 'excellent';
-		if (score >= 60) return 'good';
-		if (score >= 40) return 'fair';
-		return 'poor';
-	}
-});
 </script>

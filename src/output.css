@@ -24,6 +24,7 @@
     --color-blue-700: oklch(48.8% 0.243 264.376);
     --color-violet-500: oklch(60.6% 0.25 292.717);
     --color-slate-100: oklch(96.8% 0.007 247.896);
+    --color-slate-600: oklch(44.6% 0.043 257.281);
     --color-slate-900: oklch(20.8% 0.042 265.755);
     --color-gray-50: oklch(98.5% 0.002 247.839);
     --color-gray-200: oklch(92.8% 0.006 264.531);
@@ -486,6 +487,9 @@
   }
   .text-red-600 {
     color: var(--color-red-600);
+  }
+  .text-slate-600 {
+    color: var(--color-slate-600);
   }
   .text-slate-900 {
     color: var(--color-slate-900);
