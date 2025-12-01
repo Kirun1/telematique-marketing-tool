@@ -314,6 +314,247 @@ class ProductScraperAdmin
                     $('#start-scraping').text('Start Scraping (Legacy)');
                 }
             });
+
+			// Start scraping products
+			$('#start-scraping').on('click', function() {
+				startScraping();
+			});
+
+			// Refresh stored products
+			$('#refresh-stored').on('click', function() {
+				refreshStoredProducts();
+			});
+
+			// Test selectors
+			$('#test-selectors').on('click', function() {
+				testSelectors();
+			});
+
+			function startScraping() {
+				var $button = $('#start-scraping');
+				var originalText = $button.text();
+				
+				// Get settings from the form
+				var target_url = $('input[name="product_scraper_options[target_url]"]').val();
+				var max_pages = $('input[name="product_scraper_options[max_pages]"]').val();
+				var use_firecrawl = $('input[name="product_scraper_options[use_firecrawl]"]').is(':checked') ? 1 : 0;
+				var scrape_details = $('input[name="product_scraper_options[scrape_details]"]').is(':checked') ? 1 : 0;
+
+				if (!target_url) {
+					alert('Please enter a target URL');
+					return;
+				}
+
+				$button.text('Scraping...').prop('disabled', true);
+				$('#scraping-progress').show();
+				$('#progress-text').text('Starting scraping process...');
+
+				// Start the scraping process
+				scrapePage(1, max_pages, target_url, use_firecrawl, scrape_details, []);
+			}
+
+			function scrapePage(page, max_pages, target_url, use_firecrawl, scrape_details, all_products) {
+				$('#progress-text').text('Scraping page ' + page + ' of ' + max_pages + '...');
+				$('#progress-bar-inner').css('width', ((page / max_pages) * 100) + '%');
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'scrape_products',
+						page: page,
+						max_pages: max_pages,
+						target_url: target_url,
+						use_firecrawl: use_firecrawl,
+						scrape_details: scrape_details,
+						nonce: '<?php echo wp_create_nonce('scrape_products_nonce'); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							// Add scraped products to our collection
+							if (response.data.products && response.data.products.length > 0) {
+								all_products = all_products.concat(response.data.products);
+								
+								// Update progress
+								$('#scraping-stats').html(
+									'Scraped ' + response.data.products.length + ' products on page ' + page + 
+									' (Total: ' + all_products.length + ' products)'
+								);
+
+								// Check if there are more pages to scrape
+								if (response.data.has_more && page < max_pages) {
+									setTimeout(function() {
+										scrapePage(page + 1, max_pages, target_url, use_firecrawl, scrape_details, all_products);
+									}, 1000); // Delay between pages
+								} else {
+									// Finished scraping
+									finishScraping(all_products, target_url, response.data.saved_count);
+								}
+							} else {
+								$('#progress-text').text('No products found on page ' + page);
+								finishScraping(all_products, target_url, response.data.saved_count);
+							}
+						} else {
+							console.log('Error: ' + response.data);
+							$('#progress-text').text('Error: ' + response.data);
+							$('#start-scraping').text(originalText).prop('disabled', false);
+						}
+					},
+					error: function(xhr, status, error) {
+						$('#progress-text').text('AJAX Error: ' + error);
+						$('#start-scraping').text(originalText).prop('disabled', false);
+					}
+				});
+			}
+
+			function finishScraping(products, target_url, saved_count) {
+				$('#progress-text').text('Scraping completed! Found ' + products.length + ' products. Saved ' + saved_count + ' to database.');
+				$('#progress-bar-inner').css('width', '100%');
+				$('#start-scraping').text('Start Scraping with Firecrawl').prop('disabled', false);
+
+				// Show scraped products
+				if (products.length > 0) {
+					displayScrapedProducts(products, target_url);
+				}
+			}
+
+			function displayScrapedProducts(products, target_url) {
+				$('#products-count').text('(' + products.length + ')');
+				var $productsList = $('#products-list');
+				$productsList.empty();
+
+				products.forEach(function(product, index) {
+					var productHtml = `
+						<div class="product-item">
+							<h4>${product.name || 'Unnamed Product'}</h4>
+							<p><strong>Price:</strong> ${product.price || 'N/A'}</p>
+							<p><strong>URL:</strong> <a href="${product.url || '#'}" target="_blank">${product.url || 'N/A'}</a></p>
+							${product.description ? '<p><strong>Description:</strong> ' + product.description + '</p>' : ''}
+							${product.image ? '<img src="' + product.image + '" style="max-width: 100px; max-height: 100px;" />' : ''}
+							<hr>
+						</div>
+					`;
+					$productsList.append(productHtml);
+				});
+
+				$('#scraped-products').show();
+
+				// Store products data for saving/exporting
+				$('#scraped-products').data('products', products);
+				$('#scraped-products').data('source_url', target_url);
+			}
+
+			function refreshStoredProducts() {
+				var $button = $('#refresh-stored');
+				var originalText = $button.text();
+				
+				$button.text('Loading...').prop('disabled', true);
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'get_stored_products',
+						nonce: '<?php echo wp_create_nonce('get_products_nonce'); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							updateStoredProductsTable(response.data.products);
+							updateStorageStats(response.data.stats);
+						} else {
+							alert('Error loading stored products');
+						}
+					},
+					error: function() {
+						alert('Error loading stored products');
+					},
+					complete: function() {
+						$button.text(originalText).prop('disabled', false);
+					}
+				});
+			}
+
+			function testSelectors() {
+				var $button = $('#test-selectors');
+				var originalText = $button.text();
+				var target_url = $('input[name="product_scraper_options[target_url]"]').val();
+
+				if (!target_url) {
+					alert('Please enter a target URL');
+					return;
+				}
+
+				$button.text('Testing...').prop('disabled', true);
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'test_selectors',
+						target_url: target_url,
+						nonce: '<?php echo wp_create_nonce('test_selectors_nonce'); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							var results = response.data;
+							alert(
+								'Selector Test Results:\n\n' +
+								'Products Found: ' + results.product_count + '\n' +
+								'Product Names: ' + results.product_names.join(', ') + '\n' +
+								'Product Prices: ' + results.product_prices.join(', ') + '\n' +
+								'Product Images: ' + results.product_images.length + ' found'
+							);
+						} else {
+							alert('Error testing selectors: ' + response.data);
+						}
+					},
+					error: function() {
+						alert('Error testing selectors');
+					},
+					complete: function() {
+						$button.text(originalText).prop('disabled', false);
+					}
+				});
+			}
+
+			function updateStoredProductsTable(products) {
+				var $tbody = $('#stored-products-list');
+				$tbody.empty();
+
+				if (products && products.length > 0) {
+					products.forEach(function(product, index) {
+						var rowHtml = `
+							<tr>
+								<th scope="row" class="check-column">
+									<input type="checkbox" name="product_ids[]" value="${product.id}">
+								</th>
+								<td>${product.id}</td>
+								<td>${product.product_name || 'N/A'}</td>
+								<td>${product.price || 'N/A'}</td>
+								<td>${product.rating_stars || 'N/A'}</td>
+								<td>${product.review_count || '0'}</td>
+								<td>${product.scraped_at || 'N/A'}</td>
+								<td>${product.imported ? 'Imported' : 'Not Imported'}</td>
+								<td>
+									<button class="button button-small" onclick="viewProduct(${product.id})">View</button>
+									<button class="button button-small button-danger" onclick="deleteProduct(${product.id})">Delete</button>
+								</td>
+							</tr>
+						`;
+						$tbody.append(rowHtml);
+					});
+				} else {
+					$tbody.append('<tr><td colspan="9">No products stored yet.</td></tr>');
+				}
+			}
+
+			function updateStorageStats(stats) {
+				// Update the storage statistics display if needed
+				console.log('Storage stats updated:', stats);
+			}
+
+			// Load stored products on page load
+			refreshStoredProducts();
         });
         </script>
 		<?php

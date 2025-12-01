@@ -403,7 +403,7 @@ class ProductScraperAnalytics {
 						</script>
 
 						<!-- Keywords Table -->
-						<div class="sa-table-section">
+						<div class="sa-table-section mt-6">
 							<div class="table-header">
 								<h3>Top Performing Keywords</h3>
 								<button class="sa-btn sa-btn-secondary">Export CSV</button>
@@ -582,7 +582,7 @@ class ProductScraperAnalytics {
 							</div>
 
 							<!-- Keyword Performance Table -->
-							<div class="sa-table-section">
+							<div class="sa-table-section mt-6">
 								<div class="table-header">
 									<h3>Keyword Performance</h3>
 									<div class="table-actions">
@@ -1008,7 +1008,7 @@ class ProductScraperAnalytics {
 							</div>
 
 							<!-- Competitor Performance Table -->
-							<div class="sa-table-section">
+							<div class="sa-table-section mt-6">
 								<div class="table-header">
 									<h3>Competitor Performance</h3>
 									<div class="table-actions">
