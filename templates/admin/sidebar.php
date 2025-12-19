@@ -53,7 +53,7 @@ $current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET[
 			</li>
 			<li class="<?php echo 'link-manager' === $current_page ? 'active' : ''; ?>">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=link-manager' ) ); ?>">
-					<span class="dashicons dashicons-admin-links"></span> &nbsp; Link Manager
+					<i data-lucide="link" class="lucide-icon"></i>&nbsp; Link Manager
 				</a>
 			</li>
 		</ul>

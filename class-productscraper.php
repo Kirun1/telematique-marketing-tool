@@ -867,8 +867,6 @@ class ProductScraper {
 		// Analytics settings.
 		register_setting( 'product_scraper_settings', 'product_scraper_google_analytics_id' );
 		register_setting( 'product_scraper_settings', 'product_scraper_google_search_console' );
-		register_setting( 'product_scraper_settings', 'product_scraper_semrush_api' );
-		register_setting( 'product_scraper_settings', 'product_scraper_ahrefs_api' );
 		register_setting( 'product_scraper_settings', 'product_scraper_ga4_property_id' );
 		register_setting( 'product_scraper_settings', 'product_scraper_pagespeed_api' );
 

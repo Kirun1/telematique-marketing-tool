@@ -67,6 +67,7 @@ class ProductScraperAnalytics
 
 		add_action('wp_ajax_test_api_connections', array($this, 'ajax_test_api_connections'));
 		add_action('wp_ajax_clear_seo_cache', array($this, 'ajax_clear_seo_cache'));
+		add_action('wp_ajax_check_api_key_status', array($this, 'ajax_check_api_key_status'));
 
 		// Initialize historical data if needed
 		add_action('init', array($this, 'initialize_historical_data'));
@@ -209,7 +210,7 @@ class ProductScraperAnalytics
 					</div>
 					<div class="sa-actions">
 						<button class="sa-btn sa-btn-primary" onclick="refreshAnalytics()">
-							<span class="dashicons dashicons-update"></span>
+							<i data-lucide="refresh-cw" class="lucide-icon"></i>
 							Refresh Data
 						</button>
 					</div>
@@ -535,7 +536,7 @@ class ProductScraperAnalytics
 					</div>
 					<div class="sa-actions">
 						<button class="sa-btn sa-btn-primary" onclick="refreshKeywordAnalysis()">
-							<span class="dashicons dashicons-update"></span>
+							<i data-lucide="refresh-cw" class="lucide-icon"></i>
 							Refresh Data
 						</button>
 					</div>
@@ -990,11 +991,11 @@ class ProductScraperAnalytics
 					</div>
 					<div class="sa-actions">
 						<button class="sa-btn sa-btn-primary" onclick="refreshCompetitorAnalysis()">
-							<span class="dashicons dashicons-update"></span>
+							<i data-lucide="refresh-cw" class="lucide-icon"></i>
 							Refresh Data
 						</button>
 						<button class="sa-btn sa-btn-secondary" onclick="showAddCompetitorModal()">
-							<span class="dashicons dashicons-plus"></span>
+							<i data-lucide="refresh-cw" class="lucide-icon"></i>
 							Add Competitor
 						</button>
 					</div>
@@ -1136,13 +1137,13 @@ class ProductScraperAnalytics
 															<button class="sa-btn sa-btn-sm sa-btn-outline"
 																onclick="viewCompetitorDetails('<?php echo esc_js($competitor['domain']); ?>')"
 																title="View Details">
-																<span class="dashicons dashicons-visibility"></span>
+																<span data-lucide="view" class="lucide-icon"></span>
 															</button>
 															<?php if (! $competitor['is_primary']) : ?>
 																<button class="sa-btn sa-btn-sm sa-btn-outline sa-btn-warning"
 																	onclick="removeCompetitor('<?php echo esc_js($competitor['domain']); ?>')"
 																	title="Remove Competitor">
-																	<span class="dashicons dashicons-trash"></span>
+																	<span data-lucide="trash" class="lucide-icon"></span>
 																</button>
 															<?php endif; ?>
 														</div>
@@ -2341,29 +2342,6 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<!-- SEO Platforms -->
-								<div class="sa-settings-group">
-									<h3><span class="dashicons dashicons-chart-area"></span> SEO Platforms</h3>
-
-									<div class="sa-setting-row">
-										<label for="ahrefs_api">Ahrefs API Key</label>
-										<input type="password" id="ahrefs_api" name="ahrefs_api"
-											value="<?php echo esc_attr($settings['ahrefs_api']); ?>"
-											class="sa-form-control"
-											placeholder="Ahrefs API key">
-										<p class="description">For backlink data and competitor analysis</p>
-									</div>
-
-									<div class="sa-setting-row">
-										<label for="semrush_api">SEMrush API Key</label>
-										<input type="password" id="semrush_api" name="semrush_api"
-											value="<?php echo esc_attr($settings['semrush_api']); ?>"
-											class="sa-form-control"
-											placeholder="SEMrush API key">
-										<p class="description">For keyword research and ranking data</p>
-									</div>
-								</div>
-
 								<!-- Competitor Analysis -->
 								<div class="sa-settings-group">
 									<h3><span class="dashicons dashicons-groups"></span> Competitor Analysis</h3>
@@ -2499,16 +2477,6 @@ class ProductScraperAnalytics
 										<span class="status-label">PageSpeed Insights</span>
 										<span class="status-message">Not tested</span>
 									</div>
-									<div class="sa-status-item" data-api="ahrefs">
-										<span class="status-icon"></span>
-										<span class="status-label">Ahrefs</span>
-										<span class="status-message">Not tested</span>
-									</div>
-									<div class="sa-status-item" data-api="semrush">
-										<span class="status-icon"></span>
-										<span class="status-label">SEMrush</span>
-										<span class="status-message">Not tested</span>
-									</div>
 								</div>
 							</div>
 						</div>
@@ -2519,6 +2487,9 @@ class ProductScraperAnalytics
 
 		<script>
 			jQuery(document).ready(function($) {
+				// Check API key status on page load
+				checkApiKeyStatus();
+
 				// Test API connections.
 				$('#test_apis').on('click', function() {
 					var $button = $(this);
@@ -2528,7 +2499,7 @@ class ProductScraperAnalytics
 
 					$('.sa-status-item').each(function() {
 						var $item = $(this);
-						$item.find('.status-icon').removeClass('success error').addClass('loading');
+						$item.find('.status-icon').removeClass('success error warning').addClass('loading');
 						$item.find('.status-message').text('Testing...');
 					});
 
@@ -2547,7 +2518,11 @@ class ProductScraperAnalytics
 									var $message = $item.find('.status-message');
 
 									$icon.removeClass('loading');
-									if (result.connected) {
+									
+									if (!result.configured) {
+										$icon.addClass('warning').html('⚠');
+										$message.text('Not configured').css('color', '#FF9800');
+									} else if (result.connected) {
 										$icon.addClass('success').html('✓');
 										$message.text('Connected').css('color', '#00a32a');
 									} else {
@@ -2562,6 +2537,35 @@ class ProductScraperAnalytics
 						}
 					});
 				});
+
+				// Function to check API key status
+				function checkApiKeyStatus() {
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'check_api_key_status',
+							nonce: '<?php echo esc_js(wp_create_nonce('check_api_status_nonce')); ?>'
+						},
+						success: function(response) {
+							if (response.success) {
+								$.each(response.data, function(api, status) {
+									var $item = $('.sa-status-item[data-api="' + api + '"]');
+									var $icon = $item.find('.status-icon');
+									var $message = $item.find('.status-message');
+
+									if (!status.configured) {
+										$icon.addClass('warning').html('⚠');
+										$message.text('Not configured').css('color', '#FF9800');
+									} else {
+										$icon.addClass('').html('');
+										$message.text('Ready to test').css('color', '#646970');
+									}
+								});
+							}
+						}
+					});
+				}
 
 				// Clear cache.
 				$('#clear_cache').on('click', function() {
@@ -2630,8 +2634,6 @@ class ProductScraperAnalytics
 			'ga4_property_id'        => get_option('product_scraper_ga4_property_id', ''),
 			'google_service_account' => get_option('product_scraper_google_service_account', ''),
 			'pagespeed_api'          => get_option('product_scraper_pagespeed_api', ''),
-			'ahrefs_api'             => get_option('product_scraper_ahrefs_api', ''),
-			'semrush_api'            => get_option('product_scraper_semrush_api', ''),
 			'competitors'            => get_option('product_scraper_competitors', ''),
 			'cache_duration'         => get_option('product_scraper_cache_duration', '3600'),
 			'enable_debug'           => get_option('product_scraper_enable_debug', 0),
@@ -2663,17 +2665,6 @@ class ProductScraperAnalytics
 		if (isset($_POST['google_service_account'])) {
 			$json = sanitize_textarea_field(wp_unslash($_POST['google_service_account']));
 			update_option('product_scraper_google_service_account', $json);
-		}
-
-		// SEO Platforms - with proper sanitization.
-		if (isset($_POST['ahrefs_api'])) {
-			$ahrefs_api = sanitize_text_field(wp_unslash($_POST['ahrefs_api']));
-			update_option('product_scraper_ahrefs_api', $ahrefs_api);
-		}
-
-		if (isset($_POST['semrush_api'])) {
-			$semrush_api = sanitize_text_field(wp_unslash($_POST['semrush_api']));
-			update_option('product_scraper_semrush_api', $semrush_api);
 		}
 
 		// Advanced Settings - with proper sanitization.
@@ -2758,38 +2749,35 @@ class ProductScraperAnalytics
 							<h2>SEO Performance Overview</h2>
 
 							<!-- Key Metrics -->
-							<div class="sa-metrics-grid">
-								<div class="sa-metric-card large">
-									<div class="metric-header">
-										<h3>Overall SEO Score</h3>
-										<span class="metric-trend positive">+5%</span>
+							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="text-sm font-medium text-gray-500 mb-1">
+										<div>Overall SEO Score</div>
 									</div>
-									<div class="metric-value"><?php echo esc_html($reports['overall_score']); ?>%</div>
-									<div class="metric-progress">
-										<div class="progress-bar">
-											<div class="progress-fill" style="width: <?php echo esc_attr($reports['overall_score']); ?>%"></div>
-										</div>
-									</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($reports['overall_score']); ?>%</div>
+									<div class="text-xs font-medium text-green-600">+5%</div>
 								</div>
 
-								<div class="sa-metric-card">
-									<h3>Organic Traffic</h3>
-									<div class="metric-value"><?php echo esc_html(number_format($reports['organic_traffic'])); ?></div>
-									<div class="metric-change <?php echo esc_attr($reports['traffic_change'] >= 0 ? 'positive' : 'negative'); ?>">
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="text-sm font-medium text-gray-500 mb-1">
+										Organic Traffic
+									</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($reports['organic_traffic'])); ?></div>
+									<div class="text-xs font-medium text-green-600 <?php echo esc_attr($reports['traffic_change'] >= 0 ? 'positive' : 'negative'); ?>">
 										<?php echo esc_html($reports['traffic_change'] >= 0 ? '+' : ''); ?><?php echo esc_html($reports['traffic_change']); ?>%
 									</div>
 								</div>
 
-								<div class="sa-metric-card">
-									<h3>Keyword Rankings</h3>
-									<div class="metric-value"><?php echo esc_html(number_format($reports['keyword_rankings'])); ?></div>
-									<div class="metric-change positive">+12%</div>
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="text-sm font-medium text-gray-500 mb-1">Keyword Rankings</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($reports['keyword_rankings'])); ?></div>
+									<div class="text-xs font-medium text-green-600 positive">+12%</div>
 								</div>
 
-								<div class="sa-metric-card">
-									<h3>Backlinks</h3>
-									<div class="metric-value"><?php echo esc_html(number_format($reports['backlinks'])); ?></div>
-									<div class="metric-change positive">+8%</div>
+								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+									<div class="text-sm font-medium text-gray-500 mb-1">Backlinks</div>
+									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($reports['backlinks'])); ?></div>
+									<div class="text-xs font-medium text-green-600 positive">+8%</div>
 								</div>
 							</div>
 
@@ -2804,7 +2792,7 @@ class ProductScraperAnalytics
 										$score  = isset($metric['score']) ? intval($metric['score']) : 0;
 										$status = isset($metric['status']) ? esc_attr($metric['status']) : 'neutral';
 										?>
-										<div class="health-metric">
+										<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200c">
 											<span class="metric-label"><?php echo esc_html($label); ?></span>
 											<div class="metric-score">
 												<span class="score"><?php echo esc_html($score); ?>%</span>
@@ -2818,7 +2806,7 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Top Performing Content -->
-							<div class="sa-report-card">
+							<div class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
 								<h3>Top Performing Content</h3>
 								<div class="content-list">
 									<?php foreach ($reports['top_content'] as $content) : ?>
@@ -2847,7 +2835,7 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Competitor Comparison -->
-							<div class="sa-report-card">
+							<div class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
 								<h3>Competitor Comparison</h3>
 								<div class="competitor-table">
 									<table class="sa-table">
@@ -2884,7 +2872,7 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Recommendations -->
-							<div class="sa-report-card">
+							<div class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
 								<h3>SEO Recommendations</h3>
 								<div class="recommendations-list">
 									<?php foreach ($reports['recommendations'] as $rec) : ?>
@@ -3395,7 +3383,7 @@ class ProductScraperAnalytics
 			return 'needs-improvement';
 		}
 	}
-
+	
 	/**
 	 * AJAX handler for testing API connections.
 	 *
@@ -3404,64 +3392,77 @@ class ProductScraperAnalytics
 	public function ajax_test_api_connections()
 	{
 		// Check if nonce exists first.
-		if (! isset($_POST['nonce'])) {
+		if (!isset($_POST['nonce'])) {
 			wp_send_json_error('Missing security token.');
 		}
 
 		// Sanitize and verify nonce.
 		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
-		if (! wp_verify_nonce($nonce, 'test_apis_nonce')) {
+		if (!wp_verify_nonce($nonce, 'test_apis_nonce')) {
 			wp_send_json_error('Security check failed.');
 		}
 
 		// Check user capabilities.
-		if (! current_user_can('manage_options')) {
+		if (!current_user_can('manage_options')) {
 			wp_send_json_error('Insufficient permissions.');
 		}
 
-		$results          = array();
+		$results = array();
 		$api_integrations = new ProductScraper_API_Integrations();
 
-		// Test Google Analytics.
-		try {
-			$ga_data                     = $api_integrations->get_organic_traffic();
-			$results['google_analytics'] = array(
-				'connected' => 'google_analytics' === $ga_data['source'],
-				'message'   => 'google_analytics' === $ga_data['source'] ? 'Connected successfully' : 'No data received',
-			);
-		} catch (Exception $e) {
+		// First check if API keys are even configured
+		$key_status = $api_integrations->check_api_key_status();
+
+		// Test Google Analytics only if configured
+		if ($key_status['google_analytics']['configured']) {
+			try {
+				$ga_data = $api_integrations->get_organic_traffic();
+				$results['google_analytics'] = array(
+					'connected' => 'google_analytics' === ($ga_data['source'] ?? ''),
+					'configured' => true,
+					'message'   => 'google_analytics' === ($ga_data['source'] ?? '') 
+						? 'Connected successfully' 
+						: 'Configured but connection failed',
+				);
+			} catch (Exception $e) {
+				$results['google_analytics'] = array(
+					'connected' => false,
+					'configured' => true,
+					'message'   => $e->getMessage(),
+				);
+			}
+		} else {
 			$results['google_analytics'] = array(
 				'connected' => false,
-				'message'   => $e->getMessage(),
+				'configured' => false,
+				'message'   => $key_status['google_analytics']['message'],
 			);
 		}
 
-		// Test PageSpeed Insights.
-		try {
-			$health_data          = $api_integrations->get_site_health_metrics();
-			$results['pagespeed'] = array(
-				'connected' => 'pagespeed_api' === $health_data['source'],
-				'message'   => 'pagespeed_api' === $health_data['source'] ? 'Connected successfully' : 'No data received',
-			);
-		} catch (Exception $e) {
+		// Test PageSpeed Insights only if configured
+		if ($key_status['pagespeed']['configured']) {
+			try {
+				$health_data = $api_integrations->get_site_health_metrics();
+				$results['pagespeed'] = array(
+					'connected' => 'pagespeed_api' === ($health_data['source'] ?? ''),
+					'configured' => true,
+					'message'   => 'pagespeed_api' === ($health_data['source'] ?? '') 
+						? 'Connected successfully' 
+						: 'Configured but connection failed',
+				);
+			} catch (Exception $e) {
+				$results['pagespeed'] = array(
+					'connected' => false,
+					'configured' => true,
+					'message'   => $e->getMessage(),
+				);
+			}
+		} else {
 			$results['pagespeed'] = array(
 				'connected' => false,
-				'message'   => $e->getMessage(),
-			);
-		}
-
-		// Test Ahrefs.
-		try {
-			$ahrefs_data       = $api_integrations->get_referring_domains();
-			$results['ahrefs'] = array(
-				'connected' => 'ahrefs_api' === $ahrefs_data['source'],
-				'message'   => 'ahrefs_api' === $ahrefs_data['source'] ? 'Connected successfully' : 'No data received',
-			);
-		} catch (Exception $e) {
-			$results['ahrefs'] = array(
-				'connected' => false,
-				'message'   => $e->getMessage(),
+				'configured' => false,
+				'message'   => $key_status['pagespeed']['message'],
 			);
 		}
 
@@ -3519,5 +3520,25 @@ class ProductScraperAnalytics
 				$cleared_count // FIX: correct variable name
 			)
 		);
+	}
+
+	/**
+	 * AJAX handler for checking API key status
+	 */
+	public function ajax_check_api_key_status()
+	{
+		// Check nonce
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'check_api_status_nonce')) {
+			wp_send_json_error('Security check failed');
+		}
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error('Insufficient permissions');
+		}
+
+		$api_integrations = new ProductScraper_API_Integrations();
+		$status = $api_integrations->check_api_key_status();
+
+		wp_send_json_success($status);
 	}
 }

@@ -11,7 +11,7 @@
 /**
  * Handles API integrations for various SEO and analytics services
  *
- * This class manages connections to Google Analytics, Ahrefs, SEMrush,
+ * This class manages connections to Google Analytics,
  * PageSpeed Insights, and other third-party APIs to gather SEO data.
  */
 class ProductScraper_API_Integrations {
@@ -148,22 +148,6 @@ class ProductScraper_API_Integrations {
 					error_log( 'GSC Traffic Error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				}
 				$sources_tried[] = 'search_console_failed';
-			}
-		}
-
-		// Source 3: Third-party SEO tools (Tertiary).
-		if ( $this->can_use_seo_tools() ) {
-			try {
-				$seo_tool_data = $this->get_seo_tool_traffic_estimate();
-				if ( $this->is_valid_traffic_data( $seo_tool_data ) ) {
-					$sources_tried[] = 'seo_tool';
-					return $seo_tool_data;
-				}
-			} catch ( Exception $e ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'SEO Tool Traffic Error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				}
-				$sources_tried[] = 'seo_tool_failed';
 			}
 		}
 
@@ -330,62 +314,6 @@ class ProductScraper_API_Integrations {
 	}
 
 	/**
-	 * Get traffic estimate from SEO tools (Ahrefs/SEMrush)
-	 *
-	 * @return array
-	 * @throws Exception If API call fails.
-	 */
-	private function get_seo_tool_traffic_estimate() {
-		$api_key = get_option( 'product_scraper_ahrefs_api' );
-		$target  = wp_parse_url( get_site_url(), PHP_URL_HOST );
-
-		if ( ! $api_key ) {
-			throw new Exception( 'No SEO tool API key configured' );
-		}
-
-		$url = "https://apiv2.ahrefs.com?token={$api_key}&target={$target}&from=metrics_extended&mode=domain";
-
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout' => 15,
-				'headers' => array(
-					'User-Agent' => 'WordPress/ProductScraper; ' . home_url(),
-				),
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			throw new Exception( 'SEO tool API HTTP error: ' . $response->get_error_message() ); // phpcs:ignore
-		}
-
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-		if ( isset( $data['error'] ) ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
-			throw new Exception( 'SEO tool API error: ' . $data['error'] );
-		}
-
-		$organic_traffic  = $data['organic_traffic'] ?? 0;
-		$previous_traffic = $data['organic_traffic_previous'] ?? $organic_traffic;
-
-		$change = $previous_traffic > 0 ?
-			( ( $organic_traffic - $previous_traffic ) / $previous_traffic ) * 100 : 0;
-
-		return array(
-			'current'      => (int) $organic_traffic,
-			'previous'     => (int) $previous_traffic,
-			'change'       => round( $change, 1 ),
-			'trend'        => $this->determine_trend( $change ),
-			'bounce_rate'  => 0, // Not available from SEO tools.
-			'avg_duration' => 0, // Not available from SEO tools.
-			'source'       => 'seo_tool',
-			'last_updated' => current_time( 'mysql' ),
-		);
-	}
-
-	/**
 	 * Check if traffic data is valid and usable
 	 *
 	 * @param array $data Traffic data to validate.
@@ -425,16 +353,6 @@ class ProductScraper_API_Integrations {
 	}
 
 	/**
-	 * Check if SEO tools can be used
-	 *
-	 * @return bool
-	 */
-	private function can_use_seo_tools() {
-		return ! empty( get_option( 'product_scraper_ahrefs_api' ) )
-			|| ! empty( get_option( 'product_scraper_semrush_api' ) );
-	}
-
-	/**
 	 * Get referring domains from multiple sources with comprehensive backlink data
 	 *
 	 * @return array
@@ -466,22 +384,6 @@ class ProductScraper_API_Integrations {
 			}
 		}
 
-		// Source 2: Ahrefs (Secondary - Comprehensive)
-		$ahrefs_data = $this->get_ahrefs_referring_domains();
-		if ( $this->is_valid_referring_data( $ahrefs_data ) ) {
-			$sources_tried[] = 'ahrefs';
-			set_transient( $cache_key, $ahrefs_data, $this->cache_duration );
-			return $ahrefs_data;
-		}
-
-		// Source 3: SEMrush (Tertiary)
-		$semrush_data = $this->get_semrush_backlinks();
-		if ( $this->is_valid_referring_data( $semrush_data ) ) {
-			$sources_tried[] = 'semrush';
-			set_transient( $cache_key, $semrush_data, $this->cache_duration );
-			return $semrush_data;
-		}
-
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( 'All referring domains sources failed: ' . implode( ', ', $sources_tried ) );
 		}
@@ -489,57 +391,6 @@ class ProductScraper_API_Integrations {
 		$empty_data = $this->get_empty_referring_domains();
 		set_transient( $cache_key, $empty_data, $this->cache_duration );
 		return $empty_data;
-	}
-
-	/**
-	 * Get backlink data from SEMrush
-	 */
-	private function get_semrush_backlinks() {
-		$api_key = get_option( 'product_scraper_semrush_api' );
-		$target  = wp_parse_url( get_site_url(), PHP_URL_HOST );
-
-		if ( ! $api_key ) {
-			return $this->get_empty_referring_domains();
-		}
-
-		// SEMrush backlinks endpoint
-		$url = add_query_arg(
-			array(
-				'key'            => $api_key,
-				'type'           => 'backlinks',
-				'target'         => $target,
-				'target_type'    => 'root_domain',
-				'export_columns' => 'total',
-			),
-			'https://api.semrush.com'
-		);
-
-		$response = wp_remote_get( $url );
-
-		if ( is_wp_error( $response ) ) {
-			return $this->get_empty_referring_domains();
-		}
-
-		$data = wp_remote_retrieve_body( $response );
-
-		// SEMrush returns CSV format
-		$lines = explode( "\n", $data );
-		if ( count( $lines ) > 1 ) {
-			$backlinks_data = str_getcsv( $lines[1] );
-			if ( isset( $backlinks_data[0] ) ) {
-				$backlinks_count = intval( $backlinks_data[0] );
-
-				return array(
-					'count'         => $backlinks_count,
-					'domain_rating' => 0, // SEMrush doesn't provide domain rating
-					'trend'         => 'neutral',
-					'change'        => 0,
-					'source'        => 'semrush_api',
-				);
-			}
-		}
-
-		return $this->get_empty_referring_domains();
 	}
 
 	/**
@@ -709,135 +560,6 @@ class ProductScraper_API_Integrations {
 		}
 
 		return $formatted_pages;
-	}
-
-	/**
-	 * Calculate estimated domain authority based on referring domains
-	 */
-	private function calculate_domain_authority( $referring_domains ) {
-		if ( $referring_domains <= 0 ) {
-			return 0.0;
-		}
-
-		// Simplified domain authority calculation
-		// Based on logarithmic scale similar to Ahrefs DR
-		$dr = log( $referring_domains + 1 ) * 10;
-
-		return min( 100.0, round( $dr, 1 ) );
-	}
-
-	/**
-	 * Get domain rating from Ahrefs API
-	 *
-	 * @param string $api_key Ahrefs API key.
-	 * @param string $target Domain to check.
-	 * @return float
-	 */
-	private function get_domain_rating( $api_key, $target ) {
-		if ( empty( $api_key ) ) {
-			return 0.0;
-		}
-
-		$url = add_query_arg(
-			array(
-				'token'  => $api_key,
-				'target' => $target,
-				'from'   => 'domain_rating',
-				'mode'   => 'domain',
-				'limit'  => 1,
-			),
-			'https://apiv2.ahrefs.com'
-		);
-
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout' => 15,
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return 0.0;
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( 200 !== $response_code ) {
-			return 0.0;
-		}
-
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-		if ( isset( $data['error'] ) || ! isset( $data['domain_rating'] ) ) {
-			return 0.0;
-		}
-
-		return floatval( $data['domain_rating'] );
-	}
-
-	/**
-	 * Enhanced Ahrefs implementation with better error handling
-	 */
-	private function get_ahrefs_referring_domains() {
-		$api_key = get_option( 'product_scraper_ahrefs_api' );
-		$target  = wp_parse_url( get_site_url(), PHP_URL_HOST );
-
-		if ( ! $api_key ) {
-			return $this->get_empty_referring_domains();
-		}
-
-		$url = add_query_arg(
-			array(
-				'token'  => $api_key,
-				'target' => $target,
-				'from'   => 'refdomains',
-				'mode'   => 'domain',
-				'limit'  => 1,
-			),
-			'https://apiv2.ahrefs.com'
-		);
-
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout' => 15,
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return $this->get_empty_referring_domains();
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( 200 !== $response_code ) {
-			return $this->get_empty_referring_domains();
-		}
-
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-		if ( isset( $data['error'] ) ) {
-			return $this->get_empty_referring_domains();
-		}
-
-		$refdomains = 0;
-		if ( isset( $data['refdomains'] ) ) {
-			$refdomains = intval( $data['refdomains'] );
-		} elseif ( isset( $data['total'] ) ) {
-			$refdomains = intval( $data['total'] );
-		}
-
-		$domain_rating = $this->get_domain_rating( $api_key, $target );
-
-		return array(
-			'count'               => $refdomains,
-			'domain_rating'       => $domain_rating,
-			'external_links'      => 0, // Ahrefs provides this separately
-			'internal_links'      => $this->calculate_internal_links_count(),
-			'top_linking_domains' => array(),
-			'top_linked_pages'    => $this->get_top_internal_linked_pages(),
-			'trend'               => 'neutral',
-			'change'              => 0,
-			'source'              => 'ahrefs_api',
-		);
 	}
 
 	/**
@@ -1129,40 +851,6 @@ class ProductScraper_API_Integrations {
 	private function fetch_competitor_data_with_fallback( $competitors ) {
 		$sources_tried = array();
 		$analysis      = array();
-
-		// Source 1: Ahrefs API (Primary)
-		if ( $this->can_use_ahrefs() ) {
-			try {
-				$ahrefs_data = $this->get_ahrefs_competitor_data( $competitors );
-				if ( $this->is_valid_competitor_data( $ahrefs_data ) ) {
-					$sources_tried[] = 'ahrefs';
-					return $ahrefs_data;
-				}
-			} catch ( Exception $e ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'Ahrefs Competitor Data Error: ' . $e->getMessage() );
-				}
-				$sources_tried[] = 'ahrefs_failed';
-			}
-		}
-
-		// Source 2: SEMrush API (Secondary)
-		if ( $this->can_use_semrush() ) {
-			try {
-				$semrush_data = $this->get_semrush_competitor_data( $competitors );
-				if ( $this->is_valid_competitor_data( $semrush_data ) ) {
-					$sources_tried[] = 'semrush';
-					return $semrush_data;
-				}
-			} catch ( Exception $e ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'SEMrush Competitor Data Error: ' . $e->getMessage() );
-				}
-				$sources_tried[] = 'semrush_failed';
-			}
-		}
-
-		// Source 3: Built-in analysis (Tertiary)
 		try {
 			$builtin_data = $this->get_builtin_competitor_analysis( $competitors );
 			if ( $this->is_valid_competitor_data( $builtin_data ) ) {
@@ -1181,134 +869,6 @@ class ProductScraper_API_Integrations {
 		}
 
 		return $this->get_empty_competitor_analysis();
-	}
-
-	/**
-	 * Check if Ahrefs API can be used
-	 *
-	 * @return bool
-	 */
-	private function can_use_ahrefs() {
-		return ! empty( get_option( 'product_scraper_ahrefs_api' ) );
-	}
-
-	/**
-	 * Check if SEMrush API can be used
-	 *
-	 * @return bool
-	 */
-	private function can_use_semrush() {
-		return ! empty( get_option( 'product_scraper_semrush_api' ) );
-	}
-
-	/**
-	 * Get competitor data from Ahrefs API
-	 *
-	 * @param array $competitors Array of competitor domains.
-	 * @return array
-	 * @throws Exception If API call fails.
-	 */
-	private function get_ahrefs_competitor_data( $competitors ) {
-		$api_key  = get_option( 'product_scraper_ahrefs_api' );
-		$analysis = array();
-
-		foreach ( $competitors as $domain ) {
-			$url = add_query_arg(
-				array(
-					'token'  => $api_key,
-					'target' => $domain,
-					'from'   => 'domain_rating',
-					'mode'   => 'domain',
-					'limit'  => 1,
-				),
-				'https://apiv2.ahrefs.com'
-			);
-
-			$response = wp_remote_get(
-				$url,
-				array(
-					'timeout' => 15,
-				)
-			);
-
-			if ( is_wp_error( $response ) ) {
-				throw new Exception( 'Ahrefs API HTTP error: ' . $response->get_error_message() );
-			}
-
-			$response_code = wp_remote_retrieve_response_code( $response );
-			if ( 200 !== $response_code ) {
-				throw new Exception( 'Ahrefs API returned HTTP ' . $response_code );
-			}
-
-			$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-			if ( isset( $data['error'] ) ) {
-				throw new Exception( 'Ahrefs API error: ' . $data['error'] );
-			}
-
-			$analysis[] = array(
-				'domain'      => $domain,
-				'authority'   => isset( $data['domain_rating'] ) ? floatval( $data['domain_rating'] ) : 0,
-				'ref_domains' => isset( $data['refdomains'] ) ? intval( $data['refdomains'] ) : 0,
-				'traffic'     => isset( $data['organic_traffic'] ) ? intval( $data['organic_traffic'] ) : 0,
-				'keywords'    => isset( $data['keywords'] ) ? intval( $data['keywords'] ) : 0,
-				'source'      => 'ahrefs_api',
-			);
-		}
-
-		return $analysis;
-	}
-
-	/**
-	 * Get competitor data from SEMrush API
-	 *
-	 * @param array $competitors Array of competitor domains.
-	 * @return array
-	 * @throws Exception If API call fails.
-	 */
-	private function get_semrush_competitor_data( $competitors ) {
-		$api_key  = get_option( 'product_scraper_semrush_api' );
-		$analysis = array();
-
-		foreach ( $competitors as $domain ) {
-			$url = add_query_arg(
-				array(
-					'key'            => $api_key,
-					'type'           => 'domain_ranks',
-					'domain'         => $domain,
-					'export_columns' => 'Dn,Rk,Or,Ot,Oc,Ad',
-				),
-				'https://api.semrush.com'
-			);
-
-			$response = wp_remote_get( $url );
-
-			if ( is_wp_error( $response ) ) {
-				throw new Exception( 'SEMrush API HTTP error: ' . $response->get_error_message() );
-			}
-
-			$data = wp_remote_retrieve_body( $response );
-
-			// SEMrush returns CSV format
-			$lines = explode( "\n", $data );
-			if ( count( $lines ) > 1 ) {
-				$competitor_data = str_getcsv( $lines[1] );
-
-				$analysis[] = array(
-					'domain'      => $domain,
-					'authority'   => isset( $competitor_data[1] ) ? floatval( $competitor_data[1] ) : 0,
-					'traffic'     => isset( $competitor_data[3] ) ? intval( $competitor_data[3] ) : 0,
-					'keywords'    => isset( $competitor_data[2] ) ? intval( $competitor_data[2] ) : 0,
-					'ref_domains' => isset( $competitor_data[5] ) ? intval( $competitor_data[5] ) : 0,
-					'source'      => 'semrush_api',
-				);
-			} else {
-				// If no data returned, add empty entry
-				$analysis[] = $this->get_empty_competitor_profile( $domain );
-			}
-		}
-
-		return $analysis;
 	}
 
 	/**
@@ -1834,111 +1394,44 @@ class ProductScraper_API_Integrations {
 	}
 
 	/**
-	 * Research keyword using available APIs
+	 * Check if API keys are properly set and valid
+	 *
+	 * @return array
 	 */
-	public function research_keyword( $keyword ) {
-		// Try SEMrush first if available
-		if ( $this->can_use_semrush() ) {
-			return $this->research_keyword_semrush( $keyword );
-		}
-
-		// Try Ahrefs if available
-		if ( $this->can_use_ahrefs() ) {
-			return $this->research_keyword_ahrefs( $keyword );
-		}
-
-		// No APIs available
-		throw new Exception( 'No keyword research APIs configured. Please set up SEMrush or Ahrefs in settings.' );
-	}
-
-	/**
-	 * Research keyword using SEMrush API
-	 */
-	private function research_keyword_semrush( $keyword ) {
-		$api_key = get_option( 'product_scraper_semrush_api' );
-
-		if ( ! $api_key ) {
-			throw new Exception( 'SEMrush API not configured' );
-		}
-
-		$url = add_query_arg(
-			array(
-				'key'            => $api_key,
-				'type'           => 'phrase_all',
-				'phrase'         => $keyword,
-				'database'       => 'us',
-				'export_columns' => 'Ph,Nq,Cp,Co',
+	public function check_api_key_status()
+	{
+		$status = array(
+			'google_analytics' => array(
+				'configured' => false,
+				'has_credentials' => false,
+				'property_id_set' => false,
+				'message' => ''
 			),
-			'https://api.semrush.com'
+			'pagespeed' => array(
+				'configured' => false,
+				'message' => ''
+			)
 		);
 
-		$response = wp_remote_get( $url, array( 'timeout' => 15 ) );
+		// Check Google Analytics
+		$ga4_property_id = get_option('product_scraper_ga4_property_id', '');
+		$google_service_account = get_option('product_scraper_google_service_account', '');
 
-		if ( is_wp_error( $response ) ) {
-			throw new Exception( 'SEMrush API error: ' . $response->get_error_message() );
+		$status['google_analytics']['property_id_set'] = !empty($ga4_property_id);
+		$status['google_analytics']['has_credentials'] = !empty($google_service_account);
+		$status['google_analytics']['configured'] = $status['google_analytics']['property_id_set'] && $status['google_analytics']['has_credentials'];
+
+		if (!$status['google_analytics']['configured']) {
+			$status['google_analytics']['message'] = 'GA4 Property ID or Service Account JSON missing';
 		}
 
-		$data  = wp_remote_retrieve_body( $response );
-		$lines = explode( "\n", $data );
-
-		if ( count( $lines ) > 1 ) {
-			$keyword_data = str_getcsv( $lines[1] );
-
-			return array(
-				'volume'      => isset( $keyword_data[1] ) ? intval( $keyword_data[1] ) : null,
-				'cpc'         => isset( $keyword_data[2] ) ? floatval( $keyword_data[2] ) : null,
-				'competition' => isset( $keyword_data[3] ) ? floatval( $keyword_data[3] ) : null,
-				'source'      => 'semrush',
-			);
+		// Check PageSpeed Insights
+		$pagespeed_api = get_option('product_scraper_pagespeed_api', '');
+		$status['pagespeed']['configured'] = !empty($pagespeed_api);
+		if (!$status['pagespeed']['configured']) {
+			$status['pagespeed']['message'] = 'API key not configured';
 		}
 
-		throw new Exception( 'No data returned from SEMrush' );
-	}
-
-	/**
-	 * Research keyword using Ahrefs API
-	 */
-	private function research_keyword_ahrefs( $keyword ) {
-		$api_key = get_option( 'product_scraper_ahrefs_api' );
-
-		if ( ! $api_key ) {
-			throw new Exception( 'Ahrefs API not configured' );
-		}
-
-		$url = add_query_arg(
-			array(
-				'token'  => $api_key,
-				'target' => $keyword,
-				'from'   => 'keywords_for_site',
-				'mode'   => 'phrase',
-				'limit'  => 1,
-			),
-			'https://apiv2.ahrefs.com'
-		);
-
-		$response = wp_remote_get( $url, array( 'timeout' => 15 ) );
-
-		if ( is_wp_error( $response ) ) {
-			throw new Exception( 'Ahrefs API error: ' . $response->get_error_message() );
-		}
-
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-		if ( isset( $data['error'] ) ) {
-			throw new Exception( 'Ahrefs API error: ' . $data['error'] );
-		}
-
-		if ( isset( $data['keywords'] ) && count( $data['keywords'] ) > 0 ) {
-			$keyword_data = $data['keywords'][0];
-
-			return array(
-				'volume'      => $keyword_data['search_volume'] ?? null,
-				'cpc'         => $keyword_data['cpc'] ?? null,
-				'competition' => $keyword_data['competition'] ?? null,
-				'source'      => 'ahrefs',
-			);
-		}
-
-		throw new Exception( 'No data returned from Ahrefs' );
+		return $status;
 	}
 }

@@ -212,12 +212,12 @@
     font-size: 14px;
 }
 
-.sa-report-section {
+/* .sa-report-section {
     background: #fff;
     border-radius: 8px;
     padding: 30px;
     margin-bottom: 30px;
-}
+} */
 
 .health-metrics {
     display: grid;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Link Manager Template
  *
@@ -7,7 +8,7 @@
  */
 
 // Security check.
-if ( ! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
 	exit;
 }
 
@@ -25,15 +26,15 @@ $external_links = $this->get_external_links();
 			</div>
 			<div class="sa-actions">
 				<button class="sa-btn sa-btn-primary" onclick="scanLinks()">
-					<span class="dashicons dashicons-update"></span>
+					<i data-lucide="refresh-cw" class="lucide-icon"></i>
 					Scan Links
 				</button>
 				<button class="sa-btn sa-btn-secondary" onclick="exportLinkReport()">
-					<span class="dashicons dashicons-download"></span>
+					<i data-lucide="download" class="lucide-icon"></i>
 					Export Report
 				</button>
 				<button class="sa-btn sa-btn-success" onclick="showAddLinkModal()">
-					<span class="dashicons dashicons-plus"></span>
+					<i data-lucide="plus" class="lucide-icon"></i>
 					Add Link
 				</button>
 			</div>
@@ -41,7 +42,7 @@ $external_links = $this->get_external_links();
 
 		<div class="sa-container">
 			<!-- Sidebar -->
-			<?php ProductScraper::product_scraper_render_sidebar( 'link-management' ); ?>
+			<?php ProductScraper::product_scraper_render_sidebar('link-management'); ?>
 
 			<!-- Main Content -->
 			<div class="sa-main-content">
@@ -54,30 +55,38 @@ $external_links = $this->get_external_links();
 					<div class="sa-link-overview">
 						<div class="link-stats-grid">
 							<div class="stat-card internal">
-								<div class="stat-icon">🔗</div>
+								<div>
+									<i data-lucide="link" class="lucide-icon"></i>
+								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html( $internal_links['total_internal_links'] ?? 0 ); ?></div>
+									<div class="stat-value"><?php echo esc_html($internal_links['total_internal_links'] ?? 0); ?></div>
 									<div class="stat-label">Internal Links</div>
 								</div>
 							</div>
 							<div class="stat-card external">
-								<div class="stat-icon">🌐</div>
+								<div>
+									<i data-lucide="globe" class="lucide-icon"></i>
+								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html( $external_links['total_external_links'] ?? 0 ); ?></div>
+									<div class="stat-value"><?php echo esc_html($external_links['total_external_links'] ?? 0); ?></div>
 									<div class="stat-label">External Links</div>
 								</div>
 							</div>
 							<div class="stat-card broken">
-								<div class="stat-icon">⚠️</div>
+								<div>
+									<i data-lucide="triangle-alert" class="lucide-icon"></i>
+								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html( $external_links['broken_links'] ?? 0 ); ?></div>
+									<div class="stat-value"><?php echo esc_html($external_links['broken_links'] ?? 0); ?></div>
 									<div class="stat-label">Broken Links</div>
 								</div>
 							</div>
 							<div class="stat-card orphaned">
-								<div class="stat-icon">📄</div>
+								<div>
+									<i data-lucide="file-text" class="lucide-icon"></i>
+								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html( $internal_links['orphaned_posts'] ?? 0 ); ?></div>
+									<div class="stat-value"><?php echo esc_html($internal_links['orphaned_posts'] ?? 0); ?></div>
 									<div class="stat-label">Orphaned Pages</div>
 								</div>
 							</div>
@@ -86,32 +95,32 @@ $external_links = $this->get_external_links();
 
 					<!-- Internal Links Section -->
 					<div class="sa-analysis-section">
-						<h3><span class="dashicons dashicons-admin-links"></span> Internal Links Analysis</h3>
-						
+						<h3><i data-lucide="link" class="lucide-icon"></i>Internal Links Analysis</h3>
+
 						<div class="internal-links-stats">
 							<div class="metric-row">
 								<div class="metric-item">
 									<span class="metric-label">Total Internal Links:</span>
-									<span class="metric-value"><?php echo esc_html( $internal_links['total_internal_links'] ?? 0 ); ?></span>
+									<span class="metric-value"><?php echo esc_html($internal_links['total_internal_links'] ?? 0); ?></span>
 								</div>
 								<div class="metric-item">
 									<span class="metric-label">Orphaned Pages:</span>
-									<span class="metric-value"><?php echo esc_html( $internal_links['orphaned_posts'] ?? 0 ); ?></span>
+									<span class="metric-value"><?php echo esc_html($internal_links['orphaned_posts'] ?? 0); ?></span>
 								</div>
 								<div class="metric-item">
 									<span class="metric-label">Linking Opportunities:</span>
-									<span class="metric-value"><?php echo esc_html( $internal_links['linking_opportunities'] ?? 0 ); ?></span>
+									<span class="metric-value"><?php echo esc_html($internal_links['linking_opportunities'] ?? 0); ?></span>
 								</div>
 							</div>
 						</div>
 
 						<div class="internal-links-actions">
 							<button class="sa-btn sa-btn-info" onclick="findOrphanedPages()">
-								<span class="dashicons dashicons-search"></span>
+								<i data-lucide="search" class="lucide-icon"></i>
 								Find Orphaned Pages
 							</button>
 							<button class="sa-btn sa-btn-warning" onclick="suggestInternalLinks()">
-								<span class="dashicons dashicons-lightbulb"></span>
+								<i data-lucide="lightbulb" class="lucide-icon"></i>
 								Suggest Internal Links
 							</button>
 						</div>
@@ -141,32 +150,32 @@ $external_links = $this->get_external_links();
 
 					<!-- External Links Section -->
 					<div class="sa-analysis-section">
-						<h3><span class="dashicons dashicons-external"></span> External Links Analysis</h3>
-						
+						<h3><i data-lucide="external-link" class="lucide-icon"></i> External Links Analysis</h3>
+
 						<div class="external-links-stats">
 							<div class="metric-row">
 								<div class="metric-item">
 									<span class="metric-label">Total External Links:</span>
-									<span class="metric-value"><?php echo esc_html( $external_links['total_external_links'] ?? 0 ); ?></span>
+									<span class="metric-value"><?php echo esc_html($external_links['total_external_links'] ?? 0); ?></span>
 								</div>
 								<div class="metric-item">
 									<span class="metric-label">Broken Links:</span>
-									<span class="metric-value"><?php echo esc_html( $external_links['broken_links'] ?? 0 ); ?></span>
+									<span class="metric-value"><?php echo esc_html($external_links['broken_links'] ?? 0); ?></span>
 								</div>
 								<div class="metric-item">
 									<span class="metric-label">NoFollow Links:</span>
-									<span class="metric-value"><?php echo esc_html( $external_links['nofollow_links'] ?? 0 ); ?></span>
+									<span class="metric-value"><?php echo esc_html($external_links['nofollow_links'] ?? 0); ?></span>
 								</div>
 							</div>
 						</div>
 
 						<div class="external-links-actions">
 							<button class="sa-btn sa-btn-danger" onclick="checkBrokenLinks()">
-								<span class="dashicons dashicons-warning"></span>
+								<span data-lucide="circle-alert" class="lucide-icon"></span>
 								Check Broken Links
 							</button>
 							<button class="sa-btn sa-btn-info" onclick="analyzeLinkQuality()">
-								<span class="dashicons dashicons-chart-bar"></span>
+								<span data-lucide="chart-column" class="lucide-icon"></span>
 								Analyze Link Quality
 							</button>
 						</div>
@@ -197,12 +206,12 @@ $external_links = $this->get_external_links();
 
 					<!-- Link Building Opportunities -->
 					<div class="sa-analysis-section">
-						<h3><span class="dashicons dashicons-chart-line"></span> Link Building Opportunities</h3>
-						
+						<h3><span data-lucide="chart-line" class="lucide-icon"></span> Link Building Opportunities</h3>
+
 						<div class="opportunities-grid">
 							<div class="opportunity-card">
 								<div class="opportunity-header">
-									<span class="opportunity-icon">💡</span>
+									<span><i data-lucide="lightbulb" class="lucide-icon"></i> </span>
 									<h4>Internal Linking</h4>
 								</div>
 								<div class="opportunity-content">
@@ -220,7 +229,7 @@ $external_links = $this->get_external_links();
 
 							<div class="opportunity-card">
 								<div class="opportunity-header">
-									<span class="opportunity-icon">🚀</span>
+									<span><i data-lucide="external-link" class="lucide-icon"></i></span>
 									<h4>External Link Audit</h4>
 								</div>
 								<div class="opportunity-content">
@@ -238,7 +247,7 @@ $external_links = $this->get_external_links();
 
 							<div class="opportunity-card">
 								<div class="opportunity-header">
-									<span class="opportunity-icon">🎯</span>
+									<span><i data-lucide="target" class="lucide-icon"></i></span>
 									<h4>Competitor Analysis</h4>
 								</div>
 								<div class="opportunity-content">
@@ -277,13 +286,13 @@ $external_links = $this->get_external_links();
 						<?php
 						$link_manager_pages = get_posts(
 							array(
-								'post_type'   => array( 'post', 'page' ),
+								'post_type'   => array('post', 'page'),
 								'post_status' => 'publish',
 								'numberposts' => 50,
 							)
 						);
-						foreach ( $link_manager_pages as $link_manager_page ) {
-							echo '<option value="' . esc_attr( $link_manager_page->ID ) . '">' . esc_html( $link_manager_page->post_title ) . '</option>';
+						foreach ($link_manager_pages as $link_manager_page) {
+							echo '<option value="' . esc_attr($link_manager_page->ID) . '">' . esc_html($link_manager_page->post_title) . '</option>';
 						}
 						?>
 					</select>
@@ -327,353 +336,344 @@ $external_links = $this->get_external_links();
 </div>
 
 <style>
-.sa-link-overview {
-	background: #fff;
-	border-radius: 8px;
-	padding: 30px;
-	margin-bottom: 30px;
-}
+	.sa-link-overview {
+		background: #fff;
+		border-radius: 8px;
+		padding: 30px;
+		margin-bottom: 30px;
+	}
 
-.link-stats-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 20px;
-}
+	.link-stats-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 20px;
+	}
 
-.stat-card {
-	display: flex;
-	align-items: center;
-	gap: 15px;
-	padding: 20px;
-	border-radius: 8px;
-	border: 1px solid #e0e0e0;
-}
+	.stat-card {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+		padding: 20px;
+		border-radius: 8px;
+		border: 1px solid #e0e0e0;
+	}
 
-.stat-card.internal {
-	border-left: 4px solid #4CAF50;
-}
+	.stat-card.internal {
+		border-left: 4px solid #4CAF50;
+	}
 
-.stat-card.external {
-	border-left: 4px solid #2196F3;
-}
+	.stat-card.external {
+		border-left: 4px solid #2196F3;
+	}
 
-.stat-card.broken {
-	border-left: 4px solid #f44336;
-}
+	.stat-card.broken {
+		border-left: 4px solid #f44336;
+	}
 
-.stat-card.orphaned {
-	border-left: 4px solid #FF9800;
-}
+	.stat-card.orphaned {
+		border-left: 4px solid #FF9800;
+	}
 
-.stat-icon {
-	font-size: 24px;
-	flex-shrink: 0;
-}
+	.stat-content {
+		flex: 1;
+	}
 
-.stat-content {
-	flex: 1;
-}
+	.stat-value {
+		font-size: 24px;
+		font-weight: bold;
+		color: #2c3338;
+		margin-bottom: 5px;
+	}
 
-.stat-value {
-	font-size: 24px;
-	font-weight: bold;
-	color: #2c3338;
-	margin-bottom: 5px;
-}
+	.stat-label {
+		font-size: 12px;
+		color: #646970;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
 
-.stat-label {
-	font-size: 12px;
-	color: #646970;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-}
+	.metric-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 20px;
+		margin-bottom: 20px;
+	}
 
-.metric-row {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 20px;
-	margin-bottom: 20px;
-}
+	.metric-item {
+		display: flex;
+		justify-content: space-between;
+		padding: 15px;
+		background: #f8f9fa;
+		border-radius: 6px;
+		border: 1px solid #e0e0e0;
+	}
 
-.metric-item {
-	display: flex;
-	justify-content: space-between;
-	padding: 15px;
-	background: #f8f9fa;
-	border-radius: 6px;
-	border: 1px solid #e0e0e0;
-}
+	.metric-label {
+		font-weight: 600;
+		color: #2c3338;
+	}
 
-.metric-label {
-	font-weight: 600;
-	color: #2c3338;
-}
+	.metric-value {
+		font-weight: bold;
+		color: #2196F3;
+	}
 
-.metric-value {
-	font-weight: bold;
-	color: #2196F3;
-}
+	.internal-links-actions,
+	.external-links-actions {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 20px;
+		flex-wrap: wrap;
+	}
 
-.internal-links-actions,
-.external-links-actions {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 20px;
-	flex-wrap: wrap;
-}
+	.links-table-container {
+		margin-top: 20px;
+	}
 
-.links-table-container {
-	margin-top: 20px;
-}
+	.no-links-message {
+		text-align: center;
+		padding: 40px;
+		color: #646970;
+		font-style: italic;
+	}
 
-.no-links-message {
-	text-align: center;
-	padding: 40px;
-	color: #646970;
-	font-style: italic;
-}
+	.opportunities-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 20px;
+	}
 
-.opportunities-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	gap: 20px;
-}
+	.opportunity-card {
+		background: #f8f9fa;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		padding: 20px;
+	}
 
-.opportunity-card {
-	background: #f8f9fa;
-	border: 1px solid #e0e0e0;
-	border-radius: 8px;
-	padding: 20px;
-}
+	.opportunity-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 15px;
+	}
 
-.opportunity-header {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin-bottom: 15px;
-}
+	.opportunity-header h4 {
+		margin: 0;
+		color: #2c3338;
+	}
 
-.opportunity-icon {
-	font-size: 24px;
-}
+	.opportunity-content {
+		margin-bottom: 15px;
+	}
 
-.opportunity-header h4 {
-	margin: 0;
-	color: #2c3338;
-}
+	.opportunity-content p {
+		margin: 0 0 15px 0;
+		color: #646970;
+	}
 
-.opportunity-content {
-	margin-bottom: 15px;
-}
+	.opportunity-content ul {
+		margin: 0;
+		padding-left: 20px;
+		color: #646970;
+	}
 
-.opportunity-content p {
-	margin: 0 0 15px 0;
-	color: #646970;
-}
+	.opportunity-content li {
+		margin-bottom: 5px;
+	}
 
-.opportunity-content ul {
-	margin: 0;
-	padding-left: 20px;
-	color: #646970;
-}
+	.opportunity-actions {
+		text-align: right;
+	}
 
-.opportunity-content li {
-	margin-bottom: 5px;
-}
+	.sa-btn-small {
+		padding: 8px 16px;
+		font-size: 12px;
+	}
 
-.opportunity-actions {
-	text-align: right;
-}
+	/* Modal Styles */
+	.sa-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 10000;
+	}
 
-.sa-btn-small {
-	padding: 8px 16px;
-	font-size: 12px;
-}
+	.sa-modal-content {
+		background: #fff;
+		border-radius: 8px;
+		width: 90%;
+		max-width: 500px;
+		max-height: 90vh;
+		overflow-y: auto;
+	}
 
-/* Modal Styles */
-.sa-modal {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(0,0,0,0.5);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 10000;
-}
+	.sa-modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px;
+		border-bottom: 1px solid #e0e0e0;
+	}
 
-.sa-modal-content {
-	background: #fff;
-	border-radius: 8px;
-	width: 90%;
-	max-width: 500px;
-	max-height: 90vh;
-	overflow-y: auto;
-}
+	.sa-modal-header h3 {
+		margin: 0;
+		color: #2c3338;
+	}
 
-.sa-modal-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 20px;
-	border-bottom: 1px solid #e0e0e0;
-}
+	.sa-modal-close {
+		font-size: 24px;
+		cursor: pointer;
+		color: #646970;
+	}
 
-.sa-modal-header h3 {
-	margin: 0;
-	color: #2c3338;
-}
+	.sa-modal-body {
+		padding: 20px;
+	}
 
-.sa-modal-close {
-	font-size: 24px;
-	cursor: pointer;
-	color: #646970;
-}
+	.sa-modal-footer {
+		padding: 20px;
+		border-top: 1px solid #e0e0e0;
+		text-align: right;
+	}
 
-.sa-modal-body {
-	padding: 20px;
-}
+	.form-group {
+		margin-bottom: 20px;
+	}
 
-.sa-modal-footer {
-	padding: 20px;
-	border-top: 1px solid #e0e0e0;
-	text-align: right;
-}
+	.form-group label {
+		display: block;
+		margin-bottom: 5px;
+		font-weight: 600;
+		color: #2c3338;
+	}
 
-.form-group {
-	margin-bottom: 20px;
-}
+	.sa-form-control {
+		width: 100%;
+		padding: 8px 12px;
+		border: 1px solid #dcdcde;
+		border-radius: 4px;
+		font-size: 14px;
+	}
 
-.form-group label {
-	display: block;
-	margin-bottom: 5px;
-	font-weight: 600;
-	color: #2c3338;
-}
+	.checkbox-group {
+		display: flex;
+		gap: 20px;
+		flex-wrap: wrap;
+	}
 
-.sa-form-control {
-	width: 100%;
-	padding: 8px 12px;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
-	font-size: 14px;
-}
+	.checkbox-group label {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		font-weight: normal;
+		cursor: pointer;
+	}
 
-.checkbox-group {
-	display: flex;
-	gap: 20px;
-	flex-wrap: wrap;
-}
+	.sa-btn-info {
+		background: #17a2b8;
+		color: white;
+	}
 
-.checkbox-group label {
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	font-weight: normal;
-	cursor: pointer;
-}
+	.sa-btn-warning {
+		background: #ffc107;
+		color: #2c3338;
+	}
 
-.sa-btn-info {
-	background: #17a2b8;
-	color: white;
-}
+	.sa-btn-danger {
+		background: #dc3545;
+		color: white;
+	}
 
-.sa-btn-warning {
-	background: #ffc107;
-	color: #2c3338;
-}
-
-.sa-btn-danger {
-	background: #dc3545;
-	color: white;
-}
-
-.sa-btn-info:hover,
-.sa-btn-warning:hover,
-.sa-btn-danger:hover {
-	opacity: 0.9;
-}
+	.sa-btn-info:hover,
+	.sa-btn-warning:hover,
+	.sa-btn-danger:hover {
+		opacity: 0.9;
+	}
 </style>
 
 <script>
-function scanLinks() {
-	const button = document.querySelector('.sa-btn-primary');
-	const originalText = button.innerHTML;
-	
-	button.disabled = true;
-	button.innerHTML = '<span class="dashicons dashicons-update spin"></span> Scanning...';
-	
-	// Simulate scanning process.
-	setTimeout(() => {
-		button.disabled = false;
-		button.innerHTML = originalText;
-		alert('Link scan completed!');
-		location.reload();
-	}, 3000);
-}
+	function scanLinks() {
+		const button = document.querySelector('.sa-btn-primary');
+		const originalText = button.innerHTML;
 
-function exportLinkReport() {
-	alert('Link report export feature would generate a comprehensive link analysis report');
-}
+		button.disabled = true;
+		button.innerHTML = '<span data-lucide="refresh-cw" class="lucide-icon spin"></span> Scanning...';
 
-function showAddLinkModal() {
-	document.getElementById('addLinkModal').style.display = 'flex';
-}
-
-function hideAddLinkModal() {
-	document.getElementById('addLinkModal').style.display = 'none';
-}
-
-function addNewLink() {
-	const form = document.getElementById('addLinkForm');
-	const formData = new FormData(form);
-	
-	// Validate form.
-	if (!formData.get('link_source') || !formData.get('link_target') || !formData.get('link_anchor')) {
-		alert('Please fill in all required fields');
-		return;
+		// Simulate scanning process.
+		setTimeout(() => {
+			button.disabled = false;
+			button.innerHTML = originalText;
+			alert('Link scan completed!');
+			location.reload();
+		}, 3000);
 	}
-	
-	// Simulate adding link.
-	alert('New link added successfully!');
-	hideAddLinkModal();
-	form.reset();
-}
 
-function findOrphanedPages() {
-	alert('Finding orphaned pages... This feature would identify pages with no internal links.');
-}
+	function exportLinkReport() {
+		alert('Link report export feature would generate a comprehensive link analysis report');
+	}
 
-function suggestInternalLinks() {
-	alert('Suggesting internal links... This feature would recommend relevant internal linking opportunities.');
-}
+	function showAddLinkModal() {
+		document.getElementById('addLinkModal').style.display = 'flex';
+	}
 
-function checkBrokenLinks() {
-	alert('Checking broken links... This feature would scan all external links for 404 errors.');
-}
+	function hideAddLinkModal() {
+		document.getElementById('addLinkModal').style.display = 'none';
+	}
 
-function analyzeLinkQuality() {
-	alert('Analyzing link quality... This feature would evaluate the quality of external links.');
-}
+	function addNewLink() {
+		const form = document.getElementById('addLinkForm');
+		const formData = new FormData(form);
 
-function optimizeInternalLinks() {
-	alert('Optimizing internal links... This feature would automatically improve internal linking structure.');
-}
+		// Validate form.
+		if (!formData.get('link_source') || !formData.get('link_target') || !formData.get('link_anchor')) {
+			alert('Please fill in all required fields');
+			return;
+		}
 
-function auditExternalLinks() {
-	alert('Starting external link audit... This feature would analyze all outbound links.');
-}
-
-function analyzeCompetitors() {
-	alert('Analyzing competitors... This feature would examine competitor backlink profiles.');
-}
-
-// Close modal when clicking outside.
-document.getElementById('addLinkModal').addEventListener('click', function(e) {
-	if (e.target === this) {
+		// Simulate adding link.
+		alert('New link added successfully!');
 		hideAddLinkModal();
+		form.reset();
 	}
-});
+
+	function findOrphanedPages() {
+		alert('Finding orphaned pages... This feature would identify pages with no internal links.');
+	}
+
+	function suggestInternalLinks() {
+		alert('Suggesting internal links... This feature would recommend relevant internal linking opportunities.');
+	}
+
+	function checkBrokenLinks() {
+		alert('Checking broken links... This feature would scan all external links for 404 errors.');
+	}
+
+	function analyzeLinkQuality() {
+		alert('Analyzing link quality... This feature would evaluate the quality of external links.');
+	}
+
+	function optimizeInternalLinks() {
+		alert('Optimizing internal links... This feature would automatically improve internal linking structure.');
+	}
+
+	function auditExternalLinks() {
+		alert('Starting external link audit... This feature would analyze all outbound links.');
+	}
+
+	function analyzeCompetitors() {
+		alert('Analyzing competitors... This feature would examine competitor backlink profiles.');
+	}
+
+	// Close modal when clicking outside.
+	document.getElementById('addLinkModal').addEventListener('click', function(e) {
+		if (e.target === this) {
+			hideAddLinkModal();
+		}
+	});
 </script>
