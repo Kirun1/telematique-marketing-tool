@@ -69,6 +69,10 @@ class ProductScraperAnalytics
 		add_action('wp_ajax_clear_seo_cache', array($this, 'ajax_clear_seo_cache'));
 		add_action('wp_ajax_check_api_key_status', array($this, 'ajax_check_api_key_status'));
 
+		// Google Tag Manager injections
+		add_action('wp_head', [$this, 'inject_gtm_head']);
+		add_action('wp_body_open', [$this, 'inject_gtm_body']);
+
 		// Initialize historical data if needed
 		add_action('init', array($this, 'initialize_historical_data'));
 
@@ -164,27 +168,27 @@ class ProductScraperAnalytics
 	 */
 	public function initialize_historical_data()
 	{
-		$historical_key  = 'product_scraper_historical_data';
+		$historical_key = 'product_scraper_historical_data';
 		$historical_data = get_option($historical_key, array());
 
 		// If no historical data exists, create some sample data for the past 7 days
 		if (empty($historical_data)) {
-			$seo_data     = $this->api->get_seo_dashboard_data();
+			$seo_data = $this->api->get_seo_dashboard_data();
 			$current_time = current_time('timestamp');
 
 			for ($i = 6; $i >= 0; $i--) {
-				$date          = date('Y-m-d', strtotime("-$i days", $current_time));
+				$date = date('Y-m-d', strtotime("-$i days", $current_time));
 				$random_factor = 0.8 + (mt_rand(0, 40) / 100); // Random factor between 0.8 and 1.2
 
 				$historical_data[$date] = array(
-					'timestamp'         => strtotime($date),
-					'organic_traffic'   => round($seo_data['organic_traffic']['current'] * $random_factor),
+					'timestamp' => strtotime($date),
+					'organic_traffic' => round($seo_data['organic_traffic']['current'] * $random_factor),
 					'referring_domains' => round($seo_data['referring_domains']['count'] * $random_factor),
-					'digital_score'     => max(0, min(100, round($seo_data['digital_score'] * (0.95 + (mt_rand(0, 10) / 100))))),
-					'engagement'        => array(
+					'digital_score' => max(0, min(100, round($seo_data['digital_score'] * (0.95 + (mt_rand(0, 10) / 100))))),
+					'engagement' => array(
 						'visit_duration' => round($seo_data['engagement_metrics']['visit_duration'] * $random_factor),
-						'page_views'     => round($seo_data['engagement_metrics']['page_views'] * $random_factor),
-						'bounce_rate'    => max(0, min(100, round($seo_data['engagement_metrics']['bounce_rate'] * (0.95 + (mt_rand(0, 10) / 100))))),
+						'page_views' => round($seo_data['engagement_metrics']['page_views'] * $random_factor),
+						'bounce_rate' => max(0, min(100, round($seo_data['engagement_metrics']['bounce_rate'] * (0.95 + (mt_rand(0, 10) / 100))))),
 					),
 				);
 			}
@@ -199,7 +203,7 @@ class ProductScraperAnalytics
 	public function display_analytics_dashboard()
 	{
 		$stats = $this->get_dashboard_stats();
-?>
+		?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<!-- sa-style Header -->
@@ -226,12 +230,16 @@ class ProductScraperAnalytics
 
 							<!-- Stats Grid -->
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Organic Traffic</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo number_format($stats['organic_traffic']); ?></div>
-											<div class="text-xs font-medium text-green-600">+<?php echo number_format($stats['traffic_target']); ?> from last month</div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo number_format($stats['organic_traffic']); ?>
+											</div>
+											<div class="text-xs font-medium text-green-600">
+												+<?php echo number_format($stats['traffic_target']); ?> from last month</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
 											<i data-lucide="trending-up" class="lucide-icon"></i>
@@ -239,12 +247,17 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Referring Domains</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo number_format($stats['referring_domains']); ?></div>
-											<div class="text-xs font-medium text-green-600">+<?php echo $this->format_percentage_change($stats['referring_domains_change']); ?> from last month</div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo number_format($stats['referring_domains']); ?>
+											</div>
+											<div class="text-xs font-medium text-green-600">
+												+<?php echo $this->format_percentage_change($stats['referring_domains_change']); ?>
+												from last month</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-green-500">
 											<i data-lucide="link-2" class=""></i>
@@ -252,12 +265,17 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Digital Score</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($stats['digital_score']); ?>%</div>
-											<div class="text-xs font-medium text-green-600">+<?php echo $this->format_percentage_change($stats['digital_score_change']); ?> from last month</div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html($stats['digital_score']); ?>%
+											</div>
+											<div class="text-xs font-medium text-green-600">
+												+<?php echo $this->format_percentage_change($stats['digital_score_change']); ?>
+												from last month</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-violet-500">
 											<i data-lucide="target" class=""></i>
@@ -265,7 +283,8 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Avg. Visit Duration</div>
@@ -290,7 +309,8 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Page Views</div>
@@ -315,13 +335,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Bounce Rate</div>
 											<div class="text-2xl font-bold tracking-tight mb-1">
 												<?php
-												$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
+												$bounce_rate = $stats['engagement']['bounce_rate'] ?? 0;
 												$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
 												// For bounce rate, negative change is good
 												$bounce_display_change = -$bounce_change;
@@ -332,7 +353,7 @@ class ProductScraperAnalytics
 											<div class="text-xs font-medium text-red-600">
 												+
 												<?php
-												$bounce_rate   = $stats['engagement']['bounce_rate'] ?? 0;
+												$bounce_rate = $stats['engagement']['bounce_rate'] ?? 0;
 												$bounce_change = $stats['engagement']['bounce_rate_change'] ?? 0;
 												// For bounce rate, negative change is good
 												$bounce_display_change = -$bounce_change;
@@ -400,7 +421,7 @@ class ProductScraperAnalytics
 						</div>
 
 						<script>
-							jQuery(document).ready(function($) {
+							jQuery(document).ready(function ($) {
 								// Initialize all charts
 								ProductScraperCharts.init({
 									ajaxurl: '<?php echo esc_js(admin_url('admin-ajax.php')); ?>',
@@ -437,7 +458,7 @@ class ProductScraperAnalytics
 		</div>
 
 		<script>
-			jQuery(document).ready(function($) {
+			jQuery(document).ready(function ($) {
 				loadKeywordsData();
 
 				function loadKeywordsData() {
@@ -448,7 +469,7 @@ class ProductScraperAnalytics
 							action: 'get_keyword_data',
 							nonce: '<?php echo esc_js(wp_create_nonce('analytics_nonce')); ?>'
 						},
-						success: function(response) {
+						success: function (response) {
 							if (response.success) {
 								displayKeywordsTable(response.data.keywords);
 							}
@@ -476,7 +497,7 @@ class ProductScraperAnalytics
 					$('#keywords-table-body').html(html);
 				}
 
-				window.refreshAnalytics = function() {
+				window.refreshAnalytics = function () {
 					loadKeywordsData();
 					// Show loading state.
 					$('.sa-btn-primary').addClass('loading');
@@ -486,7 +507,7 @@ class ProductScraperAnalytics
 				};
 			});
 		</script>
-	<?php
+		<?php
 	}
 
 
@@ -504,7 +525,7 @@ class ProductScraperAnalytics
 		if ($seconds < 60) {
 			return round($seconds) . 's';
 		}
-		$minutes           = floor($seconds / 60);
+		$minutes = floor($seconds / 60);
 		$remaining_seconds = $seconds % 60;
 		return $minutes . 'm ' . round($remaining_seconds) . 's';
 	}
@@ -526,7 +547,7 @@ class ProductScraperAnalytics
 	public function display_keyword_analysis()
 	{
 		$keyword_data = $this->get_keyword_analysis_data();
-	?>
+		?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -567,11 +588,14 @@ class ProductScraperAnalytics
 
 							<!-- Current Keyword Performance -->
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Top Performing Keywords</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($keyword_data['total_keywords']); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html($keyword_data['total_keywords']); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">From Google Search Console</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -580,11 +604,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Avg. Position</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($keyword_data['avg_position']); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html($keyword_data['avg_position']); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">Overall ranking position</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -593,11 +620,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Total Clicks</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($keyword_data['total_clicks'])); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html(number_format($keyword_data['total_clicks'])); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">Last 30 days</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -606,11 +636,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Total Impressions</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($keyword_data['total_impressions'])); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html(number_format($keyword_data['total_impressions'])); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">Last 30 days</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -644,8 +677,8 @@ class ProductScraperAnalytics
 										</tr>
 									</thead>
 									<tbody id="keywords-performance-body">
-										<?php if (! empty($keyword_data['keywords'])) : ?>
-											<?php foreach ($keyword_data['keywords'] as $keyword) : ?>
+										<?php if (!empty($keyword_data['keywords'])): ?>
+											<?php foreach ($keyword_data['keywords'] as $keyword): ?>
 												<tr>
 													<td><?php echo esc_html($keyword['query']); ?></td>
 													<td><?php echo esc_html(number_format($keyword['clicks'])); ?></td>
@@ -653,17 +686,17 @@ class ProductScraperAnalytics
 													<td><?php echo esc_html(number_format($keyword['ctr'] * 100, 1)); ?>%</td>
 													<td><?php echo esc_html(number_format($keyword['position'], 1)); ?></td>
 													<td>
-														<?php if ($keyword['trend'] === 'up') : ?>
+														<?php if ($keyword['trend'] === 'up'): ?>
 															<span class="trend-up">↗</span>
-														<?php elseif ($keyword['trend'] === 'down') : ?>
+														<?php elseif ($keyword['trend'] === 'down'): ?>
 															<span class="trend-down">↘</span>
-														<?php else : ?>
+														<?php else: ?>
 															<span class="trend-neutral">→</span>
 														<?php endif; ?>
 													</td>
 												</tr>
 											<?php endforeach; ?>
-										<?php else : ?>
+										<?php else: ?>
 											<tr>
 												<td colspan="6" class="no-data">
 													No keyword data available. Connect Google Search Console in settings.
@@ -698,7 +731,7 @@ class ProductScraperAnalytics
 						period: period,
 						nonce: '<?php echo esc_js(wp_create_nonce('keyword_analysis_nonce')); ?>'
 					},
-					success: function(response) {
+					success: function (response) {
 						if (response.success) {
 							displayKeywordTable(response.data.keywords);
 						}
@@ -726,7 +759,7 @@ class ProductScraperAnalytics
 						keyword: keyword,
 						nonce: '<?php echo esc_js(wp_create_nonce('keyword_research_nonce')); ?>'
 					},
-					success: function(response) {
+					success: function (response) {
 						researchButton.disabled = false;
 						researchButton.innerHTML = 'Research Keyword';
 
@@ -736,7 +769,7 @@ class ProductScraperAnalytics
 							alert('Error researching keyword: ' + response.data);
 						}
 					},
-					error: function() {
+					error: function () {
 						researchButton.disabled = false;
 						researchButton.innerHTML = 'Research Keyword';
 						alert('Error researching keyword. Please try again.');
@@ -748,7 +781,7 @@ class ProductScraperAnalytics
 				let html = '';
 
 				if (keywords && keywords.length > 0) {
-					keywords.forEach(function(keyword) {
+					keywords.forEach(function (keyword) {
 						html += `
 					<tr>
 						<td>${keyword.query}</td>
@@ -757,8 +790,8 @@ class ProductScraperAnalytics
 						<td>${(keyword.ctr * 100).toFixed(1)}%</td>
 						<td>${keyword.position.toFixed(1)}</td>
 						<td>
-							${keyword.trend === 'up' ? '<span class="trend-up">↗</span>' : 
-							keyword.trend === 'down' ? '<span class="trend-down">↘</span>' : 
+							${keyword.trend === 'up' ? '<span class="trend-up">↗</span>' :
+						keyword.trend === 'down' ? '<span class="trend-down">↘</span>' :
 							'<span class="trend-neutral">→</span>'}
 						</td>
 					</tr>
@@ -822,11 +855,11 @@ class ProductScraperAnalytics
 			}
 
 			// Load initial data
-			jQuery(document).ready(function($) {
+			jQuery(document).ready(function ($) {
 				loadKeywordData();
 			});
 		</script>
-	<?php
+		<?php
 	}
 
 	/**
@@ -834,7 +867,7 @@ class ProductScraperAnalytics
 	 */
 	private function get_keyword_analysis_data()
 	{
-		$cache_key   = 'product_scraper_keyword_analysis_' . md5(get_site_url());
+		$cache_key = 'product_scraper_keyword_analysis_' . md5(get_site_url());
 		$cached_data = get_transient($cache_key);
 
 		if (false !== $cached_data) {
@@ -845,28 +878,28 @@ class ProductScraperAnalytics
 		$keywords = $seo_data['top_keywords'];
 
 		$analysis_data = array(
-			'total_keywords'    => count($keywords),
-			'total_clicks'      => 0,
+			'total_keywords' => count($keywords),
+			'total_clicks' => 0,
 			'total_impressions' => 0,
-			'avg_position'      => 0,
-			'keywords'          => array(),
+			'avg_position' => 0,
+			'keywords' => array(),
 		);
 
-		if (! empty($keywords)) {
+		if (!empty($keywords)) {
 			$total_position = 0;
 
 			foreach ($keywords as $keyword) {
-				$analysis_data['total_clicks']      += $keyword['clicks'] ?? 0;
+				$analysis_data['total_clicks'] += $keyword['clicks'] ?? 0;
 				$analysis_data['total_impressions'] += $keyword['impressions'] ?? 0;
-				$total_position                     += $keyword['position'] ?? 0;
+				$total_position += $keyword['position'] ?? 0;
 
 				$analysis_data['keywords'][] = array(
-					'query'       => $keyword['query'] ?? $keyword['phrase'] ?? 'Unknown',
-					'clicks'      => $keyword['clicks'] ?? 0,
+					'query' => $keyword['query'] ?? $keyword['phrase'] ?? 'Unknown',
+					'clicks' => $keyword['clicks'] ?? 0,
 					'impressions' => $keyword['impressions'] ?? 0,
-					'ctr'         => $keyword['ctr'] ?? 0,
-					'position'    => $keyword['position'] ?? 0,
-					'trend'       => $this->determine_keyword_trend($keyword),
+					'ctr' => $keyword['ctr'] ?? 0,
+					'position' => $keyword['position'] ?? 0,
+					'trend' => $this->determine_keyword_trend($keyword),
 				);
 			}
 
@@ -898,7 +931,7 @@ class ProductScraperAnalytics
 	public function ajax_get_keyword_performance()
 	{
 		// Check nonce
-		if (! isset($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'keyword_analysis_nonce')) {
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'keyword_analysis_nonce')) {
 			wp_send_json_error('Security check failed');
 		}
 
@@ -920,7 +953,7 @@ class ProductScraperAnalytics
 	public function ajax_research_keyword()
 	{
 		// Check nonce
-		if (! isset($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'keyword_research_nonce')) {
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'keyword_research_nonce')) {
 			wp_send_json_error('Security check failed');
 		}
 
@@ -950,25 +983,25 @@ class ProductScraperAnalytics
 
 		// Find maximum values for each metric
 		$max_ref_domains = 0;
-		$max_traffic     = 0;
-		$max_keywords    = 0;
+		$max_traffic = 0;
+		$max_keywords = 0;
 
 		foreach ($competitors as $competitor) {
 			$max_ref_domains = max($max_ref_domains, $competitor['ref_domains']);
-			$max_traffic     = max($max_traffic, $competitor['traffic']);
-			$max_keywords    = max($max_keywords, $competitor['keywords']);
+			$max_traffic = max($max_traffic, $competitor['traffic']);
+			$max_keywords = max($max_keywords, $competitor['keywords']);
 		}
 
 		// Avoid division by zero
 		$max_ref_domains = $max_ref_domains > 0 ? $max_ref_domains : 1;
-		$max_traffic     = $max_traffic > 0 ? $max_traffic : 1;
-		$max_keywords    = $max_keywords > 0 ? $max_keywords : 1;
+		$max_traffic = $max_traffic > 0 ? $max_traffic : 1;
+		$max_keywords = $max_keywords > 0 ? $max_keywords : 1;
 
 		// Calculate percentages
 		foreach ($competitors as &$competitor) {
 			$competitor['ref_domains_percentage'] = ($competitor['ref_domains'] / $max_ref_domains) * 100;
-			$competitor['traffic_percentage']     = ($competitor['traffic'] / $max_traffic) * 100;
-			$competitor['keywords_percentage']    = ($competitor['keywords'] / $max_keywords) * 100;
+			$competitor['traffic_percentage'] = ($competitor['traffic'] / $max_traffic) * 100;
+			$competitor['keywords_percentage'] = ($competitor['keywords'] / $max_keywords) * 100;
 		}
 
 		return $competitors;
@@ -981,7 +1014,7 @@ class ProductScraperAnalytics
 	{
 		$competitor_data = $this->get_competitor_analysis_data();
 		error_log('Competitor Data scraper analytics: ' . print_r($competitor_data, true));
-	?>
+		?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -1009,11 +1042,14 @@ class ProductScraperAnalytics
 						<div class="sa-section">
 							<!-- Competitor Overview Stats -->
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Tracked Competitors</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($competitor_data['total_competitors'] ?? 0); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html($competitor_data['total_competitors'] ?? 0); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">Currently monitoring</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -1022,11 +1058,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Your Domain Authority</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($competitor_data['your_authority'] ?? 0); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html($competitor_data['your_authority'] ?? 0); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">vs competitors</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -1035,11 +1074,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Your Referring Domains</div>
-											<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($competitor_data['your_ref_domains'] ?? 0)); ?></div>
+											<div class="text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html(number_format($competitor_data['your_ref_domains'] ?? 0)); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">Backlink profile</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -1048,11 +1090,14 @@ class ProductScraperAnalytics
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="text-sm font-medium text-gray-500 mb-1">Your Organic Traffic</div>
-											<div class=" text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($this->format_large_number($competitor_data['your_traffic'] ?? 0)); ?></div>
+											<div class=" text-2xl font-bold tracking-tight mb-1">
+												<?php echo esc_html($this->format_large_number($competitor_data['your_traffic'] ?? 0)); ?>
+											</div>
 											<div class="text-xs font-medium text-green-600">Monthly estimate</div>
 										</div>
 										<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -1067,7 +1112,8 @@ class ProductScraperAnalytics
 								<div class="chart-header">
 									<h3>Competitor Comparison</h3>
 									<div class="chart-actions">
-										<select id="comparison-metric" class="chart-period-selector" onchange="updateCompetitorChart()">
+										<select id="comparison-metric" class="chart-period-selector"
+											onchange="updateCompetitorChart()">
 											<option value="authority">Domain Authority</option>
 											<option value="traffic">Organic Traffic</option>
 											<option value="backlinks">Referring Domains</option>
@@ -1106,22 +1152,24 @@ class ProductScraperAnalytics
 										</tr>
 									</thead>
 									<tbody id="competitor-table-body">
-										<?php if (! empty($competitor_data['competitors'])) : ?>
-											<?php foreach ($competitor_data['competitors'] as $competitor) : ?>
+										<?php if (!empty($competitor_data['competitors'])): ?>
+											<?php foreach ($competitor_data['competitors'] as $competitor): ?>
 												<tr data-domain="<?php echo esc_attr($competitor['domain']); ?>">
 													<td>
 														<div class="domain-info">
 															<strong><?php echo esc_html($competitor['domain']); ?></strong>
-															<?php if ($competitor['is_primary']) : ?>
+															<?php if ($competitor['is_primary']): ?>
 																<span class="badge badge-primary">You</span>
 															<?php endif; ?>
 														</div>
 													</td>
 													<td>
 														<div class="metric-with-trend">
-															<span class="metric-value"><?php echo esc_html($competitor['authority']); ?></span>
-															<?php if (isset($competitor['authority_change'])) : ?>
-																<span class="trend <?php echo esc_attr($competitor['authority_change'] >= 0 ? 'up' : 'down'); ?>">
+															<span
+																class="metric-value"><?php echo esc_html($competitor['authority']); ?></span>
+															<?php if (isset($competitor['authority_change'])): ?>
+																<span
+																	class="trend <?php echo esc_attr($competitor['authority_change'] >= 0 ? 'up' : 'down'); ?>">
 																	<?php echo $competitor['authority_change'] >= 0 ? '↗' : '↘'; ?>
 																	<?php echo esc_html(abs($competitor['authority_change'])); ?>
 																</span>
@@ -1139,7 +1187,7 @@ class ProductScraperAnalytics
 																title="View Details">
 																<span data-lucide="view" class="lucide-icon"></span>
 															</button>
-															<?php if (! $competitor['is_primary']) : ?>
+															<?php if (!$competitor['is_primary']): ?>
 																<button class="sa-btn sa-btn-sm sa-btn-outline sa-btn-warning"
 																	onclick="removeCompetitor('<?php echo esc_js($competitor['domain']); ?>')"
 																	title="Remove Competitor">
@@ -1150,10 +1198,11 @@ class ProductScraperAnalytics
 													</td>
 												</tr>
 											<?php endforeach; ?>
-										<?php else : ?>
+										<?php else: ?>
 											<tr>
 												<td colspan="7" class="no-data">
-													No competitors configured. <a href="#" onclick="showAddCompetitorModal()">Add your first competitor</a> to start tracking.
+													No competitors configured. <a href="#" onclick="showAddCompetitorModal()">Add
+														your first competitor</a> to start tracking.
 												</td>
 											</tr>
 										<?php endif; ?>
@@ -1162,11 +1211,11 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Gap Analysis -->
-							<?php if (! empty($competitor_data['content_gaps'])) : ?>
+							<?php if (!empty($competitor_data['content_gaps'])): ?>
 								<div class="sa-analysis-card">
 									<h3>Content Gap Analysis</h3>
 									<div class="gap-analysis">
-										<?php foreach ($competitor_data['content_gaps'] as $gap) : ?>
+										<?php foreach ($competitor_data['content_gaps'] as $gap): ?>
 											<div class="gap-item">
 												<div class="gap-header">
 													<h4><?php echo esc_html($gap['topic']); ?></h4>
@@ -1175,9 +1224,12 @@ class ProductScraperAnalytics
 													</span>
 												</div>
 												<div class="gap-metrics">
-													<span class="metric">Competitor Keywords: <?php echo esc_html(number_format($gap['competitor_keywords'])); ?></span>
-													<span class="metric">Avg. Position: <?php echo esc_html($gap['avg_position']); ?></span>
-													<span class="metric">Traffic Potential: <?php echo esc_html($this->format_large_number($gap['traffic_potential'])); ?>/mo</span>
+													<span class="metric">Competitor Keywords:
+														<?php echo esc_html(number_format($gap['competitor_keywords'])); ?></span>
+													<span class="metric">Avg. Position:
+														<?php echo esc_html($gap['avg_position']); ?></span>
+													<span class="metric">Traffic Potential:
+														<?php echo esc_html($this->format_large_number($gap['traffic_potential'])); ?>/mo</span>
 												</div>
 												<div class="gap-actions">
 													<button class="sa-btn sa-btn-sm sa-btn-primary"
@@ -1197,7 +1249,8 @@ class ProductScraperAnalytics
 								<div class="backlink-comparison">
 									<div class="comparison-metrics space-y-4">
 										<div class="metric-comparison">
-											<span class="metric-label block text-sm font-medium text-gray-600 mb-3">Total Referring Domains</span>
+											<span class="metric-label block text-sm font-medium text-gray-600 mb-3">Total
+												Referring Domains</span>
 											<div class="metric-bars space-y-3">
 												<?php
 												// Calculate percentages for visualization
@@ -1211,23 +1264,28 @@ class ProductScraperAnalytics
 												// Avoid division by zero
 												$max_ref_domains = $max_ref_domains > 0 ? $max_ref_domains : 1;
 
-												foreach ($competitor_data['competitors'] as $competitor) :
+												foreach ($competitor_data['competitors'] as $competitor):
 													$percentage = $max_ref_domains > 0 ? ($competitor['ref_domains'] / $max_ref_domains) * 100 : 0;
-												?>
-													<div class="metric-bar-item group hover:bg-gray-50 p-3 rounded-lg transition-colors duration-200">
+													?>
+													<div
+														class="metric-bar-item group hover:bg-gray-50 p-3 rounded-lg transition-colors duration-200">
 														<div class="flex justify-between items-center mb-2">
-															<span class="domain-name text-sm font-medium text-gray-700 truncate max-w-[180px] md:max-w-[250px]">
+															<span
+																class="domain-name text-sm font-medium text-gray-700 truncate max-w-[180px] md:max-w-[250px]">
 																<?php echo esc_html($competitor['domain']); ?>
-																<?php if ($competitor['is_primary']) : ?>
-																	<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">Primary</span>
+																<?php if ($competitor['is_primary']): ?>
+																	<span
+																		class="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">Primary</span>
 																<?php endif; ?>
 															</span>
-															<span class="metric-value text-sm font-bold <?php echo $competitor['is_primary'] ? 'text-green-700 bg-green-50' : 'text-blue-700 bg-blue-50'; ?> px-2 py-1 rounded">
+															<span
+																class="metric-value text-sm font-bold <?php echo $competitor['is_primary'] ? 'text-green-700 bg-green-50' : 'text-blue-700 bg-blue-50'; ?> px-2 py-1 rounded">
 																<?php echo esc_html(number_format($competitor['ref_domains'])); ?>
 															</span>
 														</div>
 														<div class="flex items-center space-x-3">
-															<div class="metric-bar-container w-full bg-gray-200 rounded-full h-2.5 overflow-hidden flex-grow">
+															<div
+																class="metric-bar-container w-full bg-gray-200 rounded-full h-2.5 overflow-hidden flex-grow">
 																<div class="metric-bar h-2.5 rounded-full transition-all duration-1000 ease-out <?php echo $competitor['is_primary'] ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'; ?>"
 																	style="width: <?php echo esc_attr($percentage); ?>%">
 																</div>
@@ -1260,8 +1318,8 @@ class ProductScraperAnalytics
 					<form id="add-competitor-form">
 						<div class="form-group">
 							<label for="competitor-domain">Competitor Domain</label>
-							<input type="text" id="competitor-domain" class="sa-form-control"
-								placeholder="example.com" required />
+							<input type="text" id="competitor-domain" class="sa-form-control" placeholder="example.com"
+								required />
 							<p class="description">Enter the domain name without http:// or https://</p>
 						</div>
 					</form>
@@ -1285,7 +1343,7 @@ class ProductScraperAnalytics
 						action: 'refresh_competitor_analysis',
 						nonce: '<?php echo esc_js(wp_create_nonce('competitor_analysis_nonce')); ?>'
 					},
-					success: function(response) {
+					success: function (response) {
 						if (response.success) {
 							competitorData = response.data;
 							updateCompetitorChart();
@@ -1333,7 +1391,7 @@ class ProductScraperAnalytics
 							},
 							tooltip: {
 								callbacks: {
-									label: function(context) {
+									label: function (context) {
 										const value = context.raw;
 										const competitor = competitorData.competitors[context.dataIndex];
 										let label = getMetricLabel(metric) + ': ';
@@ -1403,7 +1461,7 @@ class ProductScraperAnalytics
 					'traffic': 2,
 					'backlinks': 3,
 					'keywords': 4
-				} [metric];
+				}[metric];
 
 				if (cellIndex !== undefined) {
 					const cell = row.cells[cellIndex];
@@ -1444,7 +1502,7 @@ class ProductScraperAnalytics
 						domain: domain,
 						nonce: '<?php echo esc_js(wp_create_nonce('add_competitor_nonce')); ?>'
 					},
-					success: function(response) {
+					success: function (response) {
 						if (response.success) {
 							hideAddCompetitorModal();
 							refreshCompetitorAnalysis();
@@ -1452,7 +1510,7 @@ class ProductScraperAnalytics
 							alert('Error adding competitor: ' + response.data);
 						}
 					},
-					error: function() {
+					error: function () {
 						alert('Error adding competitor. Please try again.');
 					}
 				});
@@ -1476,7 +1534,7 @@ class ProductScraperAnalytics
 						domain: domain,
 						nonce: '<?php echo esc_js(wp_create_nonce('remove_competitor_nonce')); ?>'
 					},
-					success: function(response) {
+					success: function (response) {
 						if (response.success) {
 							refreshCompetitorAnalysis();
 						} else {
@@ -1498,19 +1556,19 @@ class ProductScraperAnalytics
 			}
 
 			// Initialize chart on page load
-			jQuery(document).ready(function($) {
+			jQuery(document).ready(function ($) {
 				updateCompetitorChart();
 			});
 
 			// Close modal when clicking outside
-			window.onclick = function(event) {
+			window.onclick = function (event) {
 				const modal = document.getElementById('add-competitor-modal');
 				if (event.target === modal) {
 					hideAddCompetitorModal();
 				}
 			}
 		</script>
-	<?php
+		<?php
 	}
 
 	/**
@@ -1518,7 +1576,7 @@ class ProductScraperAnalytics
 	 */
 	private function get_competitor_analysis_data()
 	{
-		$cache_key   = 'product_scraper_competitor_analysis_' . md5(get_site_url());
+		$cache_key = 'product_scraper_competitor_analysis_' . md5(get_site_url());
 		$cached_data = get_transient($cache_key);
 
 		if (false !== $cached_data) {
@@ -1526,33 +1584,33 @@ class ProductScraperAnalytics
 		}
 
 		try {
-			$seo_data    = $this->api->get_seo_dashboard_data();
+			$seo_data = $this->api->get_seo_dashboard_data();
 			$competitors = $seo_data['competitor_analysis'] ?? array();
-			$own_data    = $this->get_own_site_data();
+			$own_data = $this->get_own_site_data();
 
 			// Ensure we have a valid array structure with proper defaults
 			$analysis_data = array(
 				'total_competitors' => is_array($competitors) ? max(0, count($competitors) - 1) : 0, // Exclude own site
-				'your_authority'    => $own_data['authority'] ?? 0,
-				'your_ref_domains'  => $own_data['ref_domains'] ?? 0,
-				'your_traffic'      => $own_data['traffic'] ?? 0,
-				'competitors'       => array(),
-				'content_gaps'      => array(),
+				'your_authority' => $own_data['authority'] ?? 0,
+				'your_ref_domains' => $own_data['ref_domains'] ?? 0,
+				'your_traffic' => $own_data['traffic'] ?? 0,
+				'competitors' => array(),
+				'content_gaps' => array(),
 			);
 
 			// Add own site as primary competitor for comparison
-			if (! empty($own_data)) {
+			if (!empty($own_data)) {
 				$analysis_data['competitors'][] = array_merge($own_data, array('is_primary' => true));
 			}
 
 			// Add actual competitors with validation
-			if (is_array($competitors) && ! empty($competitors)) {
+			if (is_array($competitors) && !empty($competitors)) {
 				foreach ($competitors as $competitor) {
-					if ($this->is_valid_competitor_data($competitor) && ! ($competitor['is_primary'] ?? false)) {
+					if ($this->is_valid_competitor_data($competitor) && !($competitor['is_primary'] ?? false)) {
 						$analysis_data['competitors'][] = array_merge(
 							$competitor,
 							array(
-								'is_primary'    => false,
+								'is_primary' => false,
 								'traffic_value' => $this->calculate_traffic_value($competitor['traffic'] ?? 0),
 							)
 						);
@@ -1586,13 +1644,13 @@ class ProductScraperAnalytics
 
 		return array(
 			'total_competitors' => 0,
-			'your_authority'    => $own_data['authority'] ?? 0,
-			'your_ref_domains'  => $own_data['ref_domains'] ?? 0,
-			'your_traffic'      => $own_data['traffic'] ?? 0,
-			'competitors'       => array(
+			'your_authority' => $own_data['authority'] ?? 0,
+			'your_ref_domains' => $own_data['ref_domains'] ?? 0,
+			'your_traffic' => $own_data['traffic'] ?? 0,
+			'competitors' => array(
 				array_merge($own_data, array('is_primary' => true)),
 			),
-			'content_gaps'      => array(),
+			'content_gaps' => array(),
 		);
 	}
 
@@ -1604,30 +1662,30 @@ class ProductScraperAnalytics
 		try {
 			$seo_data = $this->api->get_seo_dashboard_data();
 			$site_url = get_site_url();
-			$domain   = wp_parse_url($site_url, PHP_URL_HOST);
+			$domain = wp_parse_url($site_url, PHP_URL_HOST);
 
 			return array(
-				'domain'        => $domain ?: 'your-site.com',
-				'authority'     => $seo_data['referring_domains']['domain_rating'] ?? 0,
-				'traffic'       => $seo_data['organic_traffic']['current'] ?? 0,
-				'ref_domains'   => $seo_data['referring_domains']['count'] ?? 0,
-				'keywords'      => count($seo_data['top_keywords'] ?? array()),
+				'domain' => $domain ?: 'your-site.com',
+				'authority' => $seo_data['referring_domains']['domain_rating'] ?? 0,
+				'traffic' => $seo_data['organic_traffic']['current'] ?? 0,
+				'ref_domains' => $seo_data['referring_domains']['count'] ?? 0,
+				'keywords' => count($seo_data['top_keywords'] ?? array()),
 				'traffic_value' => $this->calculate_traffic_value($seo_data['organic_traffic']['current'] ?? 0),
-				'is_primary'    => true,
+				'is_primary' => true,
 			);
 		} catch (Exception $e) {
 			error_log('Own site data error: ' . $e->getMessage());
 			$site_url = get_site_url();
-			$domain   = wp_parse_url($site_url, PHP_URL_HOST);
+			$domain = wp_parse_url($site_url, PHP_URL_HOST);
 
 			return array(
-				'domain'        => $domain ?: 'your-site.com',
-				'authority'     => 0,
-				'traffic'       => 0,
-				'ref_domains'   => 0,
-				'keywords'      => 0,
+				'domain' => $domain ?: 'your-site.com',
+				'authority' => 0,
+				'traffic' => 0,
+				'ref_domains' => 0,
+				'keywords' => 0,
 				'traffic_value' => 0,
-				'is_primary'    => true,
+				'is_primary' => true,
 			);
 		}
 	}
@@ -1659,7 +1717,7 @@ class ProductScraperAnalytics
 	{
 		$gaps = array();
 
-		if (! is_array($competitors) || count($competitors) < 2) {
+		if (!is_array($competitors) || count($competitors) < 2) {
 			return $gaps;
 		}
 
@@ -1673,30 +1731,30 @@ class ProductScraperAnalytics
 			}
 		}
 
-		if (! $own_site) {
+		if (!$own_site) {
 			return $gaps;
 		}
 
 		// Simple gap analysis based on authority and keyword differences
 		foreach ($competitors as $competitor) {
-			if (! ($competitor['is_primary'] ?? false) && is_array($competitor)) {
+			if (!($competitor['is_primary'] ?? false) && is_array($competitor)) {
 				$competitor_authority = $competitor['authority'] ?? 0;
-				$own_authority        = $own_site['authority'] ?? 0;
-				$competitor_keywords  = $competitor['keywords'] ?? 0;
-				$own_keywords         = $own_site['keywords'] ?? 0;
+				$own_authority = $own_site['authority'] ?? 0;
+				$competitor_keywords = $competitor['keywords'] ?? 0;
+				$own_keywords = $own_site['keywords'] ?? 0;
 
 				if ($competitor_authority > $own_authority) {
 					$authority_gap = $competitor_authority - $own_authority;
-					$keyword_gap   = $competitor_keywords - $own_keywords;
+					$keyword_gap = $competitor_keywords - $own_keywords;
 
 					if ($authority_gap > 10 || $keyword_gap > 100) {
 						$gaps[] = array(
-							'topic'               => $this->identify_topic_from_domain($competitor['domain'] ?? 'unknown'),
+							'topic' => $this->identify_topic_from_domain($competitor['domain'] ?? 'unknown'),
 							'competitor_keywords' => $competitor_keywords,
-							'avg_position'        => 'Top 20',
-							'traffic_potential'   => round(($competitor['traffic'] ?? 0) * 0.1),
-							'opportunity_score'   => min(100, $authority_gap * 2 + $keyword_gap / 10),
-							'opportunity_level'   => $this->get_opportunity_level(min(100, $authority_gap * 2 + $keyword_gap / 10)),
+							'avg_position' => 'Top 20',
+							'traffic_potential' => round(($competitor['traffic'] ?? 0) * 0.1),
+							'opportunity_score' => min(100, $authority_gap * 2 + $keyword_gap / 10),
+							'opportunity_level' => $this->get_opportunity_level(min(100, $authority_gap * 2 + $keyword_gap / 10)),
 						);
 					}
 				}
@@ -1716,7 +1774,7 @@ class ProductScraperAnalytics
 		}
 
 		$domain_parts = explode('.', $domain);
-		$name         = $domain_parts[0] ?? 'unknown';
+		$name = $domain_parts[0] ?? 'unknown';
 
 		// Convert domain name to readable topic
 		$topic = str_replace(array('-', '_'), ' ', $name);
@@ -1744,14 +1802,14 @@ class ProductScraperAnalytics
 	 */
 	private function is_valid_competitor_data($competitor)
 	{
-		if (! is_array($competitor)) {
+		if (!is_array($competitor)) {
 			return false;
 		}
 
-		$domain     = $competitor['domain'] ?? '';
+		$domain = $competitor['domain'] ?? '';
 		$own_domain = wp_parse_url(get_site_url(), PHP_URL_HOST);
 
-		return ! empty($domain)
+		return !empty($domain)
 			&& $domain !== $own_domain
 			&& filter_var('http://' . $domain, FILTER_VALIDATE_URL) !== false;
 	}
@@ -1761,7 +1819,7 @@ class ProductScraperAnalytics
 	 */
 	public function ajax_refresh_competitor_analysis()
 	{
-		if (! isset($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'competitor_analysis_nonce')) {
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'competitor_analysis_nonce')) {
 			wp_send_json_error('Security check failed');
 		}
 
@@ -1783,7 +1841,7 @@ class ProductScraperAnalytics
 	 */
 	public function ajax_add_competitor()
 	{
-		if (! isset($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'add_competitor_nonce')) {
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'add_competitor_nonce')) {
 			wp_send_json_error('Security check failed');
 		}
 
@@ -1795,10 +1853,10 @@ class ProductScraperAnalytics
 
 		// Get current competitors
 		$current_competitors = get_option('product_scraper_competitors', '');
-		$competitors_array   = array_filter(array_map('trim', explode(',', $current_competitors)));
+		$competitors_array = array_filter(array_map('trim', explode(',', $current_competitors)));
 
 		// Add new competitor
-		if (! in_array($domain, $competitors_array)) {
+		if (!in_array($domain, $competitors_array)) {
 			$competitors_array[] = $domain;
 			update_option('product_scraper_competitors', implode(',', $competitors_array));
 
@@ -1817,7 +1875,7 @@ class ProductScraperAnalytics
 	 */
 	public function ajax_remove_competitor()
 	{
-		if (! isset($_POST['nonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'remove_competitor_nonce')) {
+		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'remove_competitor_nonce')) {
 			wp_send_json_error('Security check failed');
 		}
 
@@ -1829,7 +1887,7 @@ class ProductScraperAnalytics
 
 		// Get current competitors
 		$current_competitors = get_option('product_scraper_competitors', '');
-		$competitors_array   = array_filter(array_map('trim', explode(',', $current_competitors)));
+		$competitors_array = array_filter(array_map('trim', explode(',', $current_competitors)));
 
 		// Remove competitor
 		$updated_competitors = array_diff($competitors_array, array($domain));
@@ -1847,8 +1905,8 @@ class ProductScraperAnalytics
 	 */
 	public function get_dashboard_stats()
 	{
-		$seo_data      = $this->api->get_seo_dashboard_data();
-		$plugin        = new ProductScraper();
+		$seo_data = $this->api->get_seo_dashboard_data();
+		$plugin = new ProductScraper();
 		$scraper_stats = $plugin->storage->get_stats();
 
 		// Store current data for historical tracking
@@ -1858,20 +1916,20 @@ class ProductScraperAnalytics
 		$historical_trends = $this->calculate_historical_trends();
 
 		return array(
-			'organic_traffic'          => $seo_data['organic_traffic']['current'],
-			'traffic_target'           => 0, // Don't estimate targets
-			'organic_traffic_change'   => $historical_trends['organic_traffic_change'],
-			'organic_traffic_trend'    => $historical_trends['organic_traffic_trend'],
-			'referring_domains'        => $seo_data['referring_domains']['count'],
+			'organic_traffic' => $seo_data['organic_traffic']['current'],
+			'traffic_target' => 0, // Don't estimate targets
+			'organic_traffic_change' => $historical_trends['organic_traffic_change'],
+			'organic_traffic_trend' => $historical_trends['organic_traffic_trend'],
+			'referring_domains' => $seo_data['referring_domains']['count'],
 			'referring_domains_change' => $historical_trends['referring_domains_change'],
-			'referring_domains_trend'  => $historical_trends['referring_domains_trend'],
-			'digital_score'            => $seo_data['digital_score'],
-			'digital_score_change'     => $historical_trends['digital_score_change'],
-			'digital_score_trend'      => $historical_trends['digital_score_trend'],
-			'weekly_trend'             => $this->generate_weekly_trend_data($seo_data['referring_domains']['count']),
-			'total_products'           => $scraper_stats['total_products'] ?? 0,
-			'imported_products'        => $scraper_stats['imported_products'] ?? 0,
-			'engagement'               => $this->get_engagement_with_trends($seo_data['engagement_metrics']),
+			'referring_domains_trend' => $historical_trends['referring_domains_trend'],
+			'digital_score' => $seo_data['digital_score'],
+			'digital_score_change' => $historical_trends['digital_score_change'],
+			'digital_score_trend' => $historical_trends['digital_score_trend'],
+			'weekly_trend' => $this->generate_weekly_trend_data($seo_data['referring_domains']['count']),
+			'total_products' => $scraper_stats['total_products'] ?? 0,
+			'imported_products' => $scraper_stats['imported_products'] ?? 0,
+			'engagement' => $this->get_engagement_with_trends($seo_data['engagement_metrics']),
 		);
 	}
 
@@ -1880,11 +1938,11 @@ class ProductScraperAnalytics
 	 */
 	private function store_historical_data($current_data)
 	{
-		$historical_key  = 'product_scraper_historical_data';
+		$historical_key = 'product_scraper_historical_data';
 		$historical_data = get_option($historical_key, array());
 
 		$current_timestamp = current_time('timestamp');
-		$today             = date('Y-m-d', $current_timestamp);
+		$today = date('Y-m-d', $current_timestamp);
 
 		// Only store one record per day to avoid bloating the database
 		if (isset($historical_data[$today])) {
@@ -1892,11 +1950,11 @@ class ProductScraperAnalytics
 		}
 
 		$daily_data = array(
-			'timestamp'         => $current_timestamp,
-			'organic_traffic'   => $current_data['organic_traffic']['current'],
+			'timestamp' => $current_timestamp,
+			'organic_traffic' => $current_data['organic_traffic']['current'],
 			'referring_domains' => $current_data['referring_domains']['count'],
-			'digital_score'     => $current_data['digital_score'],
-			'engagement'        => $current_data['engagement_metrics'],
+			'digital_score' => $current_data['digital_score'],
+			'engagement' => $current_data['engagement_metrics'],
 		);
 
 		// Store today's data
@@ -1913,18 +1971,18 @@ class ProductScraperAnalytics
 	 */
 	private function calculate_historical_trends()
 	{
-		$historical_key  = 'product_scraper_historical_data';
+		$historical_key = 'product_scraper_historical_data';
 		$historical_data = get_option($historical_key, array());
 
 		if (count($historical_data) < 2) {
 			// Not enough data for trend calculation
 			return array(
-				'organic_traffic_change'   => 0,
-				'organic_traffic_trend'    => 'neutral',
+				'organic_traffic_change' => 0,
+				'organic_traffic_trend' => 'neutral',
 				'referring_domains_change' => 0,
-				'referring_domains_trend'  => 'neutral',
-				'digital_score_change'     => 0,
-				'digital_score_trend'      => 'neutral',
+				'referring_domains_trend' => 'neutral',
+				'digital_score_change' => 0,
+				'digital_score_trend' => 'neutral',
 			);
 		}
 
@@ -1941,37 +1999,37 @@ class ProductScraperAnalytics
 		if (empty($previous_period)) {
 			// Not enough data for comparison
 			return array(
-				'organic_traffic_change'   => 0,
-				'organic_traffic_trend'    => 'neutral',
+				'organic_traffic_change' => 0,
+				'organic_traffic_trend' => 'neutral',
 				'referring_domains_change' => 0,
-				'referring_domains_trend'  => 'neutral',
-				'digital_score_change'     => 0,
-				'digital_score_trend'      => 'neutral',
+				'referring_domains_trend' => 'neutral',
+				'digital_score_change' => 0,
+				'digital_score_trend' => 'neutral',
 			);
 		}
 
 		// Calculate averages for both periods
-		$current_traffic_avg  = $this->calculate_average($current_period, 'organic_traffic');
+		$current_traffic_avg = $this->calculate_average($current_period, 'organic_traffic');
 		$previous_traffic_avg = $this->calculate_average($previous_period, 'organic_traffic');
 
-		$current_domains_avg  = $this->calculate_average($current_period, 'referring_domains');
+		$current_domains_avg = $this->calculate_average($current_period, 'referring_domains');
 		$previous_domains_avg = $this->calculate_average($previous_period, 'referring_domains');
 
-		$current_score_avg  = $this->calculate_average($current_period, 'digital_score');
+		$current_score_avg = $this->calculate_average($current_period, 'digital_score');
 		$previous_score_avg = $this->calculate_average($previous_period, 'digital_score');
 
 		// Calculate percentage changes
 		$traffic_change = $this->calculate_percentage_change($previous_traffic_avg, $current_traffic_avg);
 		$domains_change = $this->calculate_percentage_change($previous_domains_avg, $current_domains_avg);
-		$score_change   = $this->calculate_percentage_change($previous_score_avg, $current_score_avg);
+		$score_change = $this->calculate_percentage_change($previous_score_avg, $current_score_avg);
 
 		return array(
-			'organic_traffic_change'   => $traffic_change,
-			'organic_traffic_trend'    => $this->determine_trend_direction($traffic_change),
+			'organic_traffic_change' => $traffic_change,
+			'organic_traffic_trend' => $this->determine_trend_direction($traffic_change),
 			'referring_domains_change' => $domains_change,
-			'referring_domains_trend'  => $this->determine_trend_direction($domains_change),
-			'digital_score_change'     => $score_change,
-			'digital_score_trend'      => $this->determine_trend_direction($score_change),
+			'referring_domains_trend' => $this->determine_trend_direction($domains_change),
+			'digital_score_change' => $score_change,
+			'digital_score_trend' => $this->determine_trend_direction($score_change),
 		);
 	}
 
@@ -1984,7 +2042,7 @@ class ProductScraperAnalytics
 			return 0;
 		}
 
-		$sum   = 0;
+		$sum = 0;
 		$count = 0;
 
 		foreach ($data as $record) {
@@ -2029,7 +2087,7 @@ class ProductScraperAnalytics
 	 */
 	private function get_engagement_with_trends($current_engagement)
 	{
-		$historical_key  = 'product_scraper_historical_data';
+		$historical_key = 'product_scraper_historical_data';
 		$historical_data = get_option($historical_key, array());
 
 		if (count($historical_data) < 2) {
@@ -2038,8 +2096,8 @@ class ProductScraperAnalytics
 				$current_engagement,
 				array(
 					'visit_duration_change' => 0,
-					'page_views_change'     => 0,
-					'bounce_rate_change'    => 0,
+					'page_views_change' => 0,
+					'bounce_rate_change' => 0,
 				)
 			);
 		}
@@ -2049,7 +2107,7 @@ class ProductScraperAnalytics
 		$historical_array = array_values($historical_data);
 
 		// Current period (last 7 days)
-		$current_period  = array_slice($historical_array, 0, min(7, count($historical_array)));
+		$current_period = array_slice($historical_array, 0, min(7, count($historical_array)));
 		$previous_period = array_slice($historical_array, 7, min(7, count($historical_array) - 7));
 
 		if (empty($previous_period)) {
@@ -2057,28 +2115,28 @@ class ProductScraperAnalytics
 				$current_engagement,
 				array(
 					'visit_duration_change' => 0,
-					'page_views_change'     => 0,
-					'bounce_rate_change'    => 0,
+					'page_views_change' => 0,
+					'bounce_rate_change' => 0,
 				)
 			);
 		}
 
 		// Calculate engagement trends
-		$current_duration_avg  = $this->calculate_engagement_average($current_period, 'visit_duration');
+		$current_duration_avg = $this->calculate_engagement_average($current_period, 'visit_duration');
 		$previous_duration_avg = $this->calculate_engagement_average($previous_period, 'visit_duration');
 
-		$current_views_avg  = $this->calculate_engagement_average($current_period, 'page_views');
+		$current_views_avg = $this->calculate_engagement_average($current_period, 'page_views');
 		$previous_views_avg = $this->calculate_engagement_average($previous_period, 'page_views');
 
-		$current_bounce_avg  = $this->calculate_engagement_average($current_period, 'bounce_rate');
+		$current_bounce_avg = $this->calculate_engagement_average($current_period, 'bounce_rate');
 		$previous_bounce_avg = $this->calculate_engagement_average($previous_period, 'bounce_rate');
 
 		return array_merge(
 			$current_engagement,
 			array(
 				'visit_duration_change' => $this->calculate_percentage_change($previous_duration_avg, $current_duration_avg),
-				'page_views_change'     => $this->calculate_percentage_change($previous_views_avg, $current_views_avg),
-				'bounce_rate_change'    => $this->calculate_percentage_change($previous_bounce_avg, $current_bounce_avg),
+				'page_views_change' => $this->calculate_percentage_change($previous_views_avg, $current_views_avg),
+				'bounce_rate_change' => $this->calculate_percentage_change($previous_bounce_avg, $current_bounce_avg),
 			)
 		);
 	}
@@ -2092,7 +2150,7 @@ class ProductScraperAnalytics
 			return 0;
 		}
 
-		$sum   = 0;
+		$sum = 0;
 		$count = 0;
 
 		foreach ($data as $record) {
@@ -2110,7 +2168,7 @@ class ProductScraperAnalytics
 	 */
 	private function generate_weekly_trend_data($current_count)
 	{
-		$historical_key  = 'product_scraper_historical_data';
+		$historical_key = 'product_scraper_historical_data';
 		$historical_data = get_option($historical_key, array());
 
 		// Only use real historical data
@@ -2168,14 +2226,14 @@ class ProductScraperAnalytics
 	 */
 	private function generate_weekly_trend_html($weekly_trend)
 	{
-		$days       = array('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
+		$days = array('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
 		$day_labels = array('M', 'T', 'W', 'T', 'F', 'S', 'S');
 
 		$html = '<div class="stat-trend">';
 
 		foreach ($days as $index => $day) {
-			$value    = $weekly_trend[$day] ?? 0;
-			$height   = $value > 0 ? min(100, ($value / max($weekly_trend)) * 100) : 5;
+			$value = $weekly_trend[$day] ?? 0;
+			$height = $value > 0 ? min(100, ($value / max($weekly_trend)) * 100) : 5;
 			$is_today = $index === (int) date('N') - 1; // Monday = 0, Sunday = 6
 
 			$html .= '<span class="trend-day ' . ($is_today ? 'today' : '') . '" title="' . ucfirst($day) . ': ' . $value . '" style="height: ' . $height . '%">';
@@ -2194,7 +2252,7 @@ class ProductScraperAnalytics
 	{
 
 		// Ensure nonce exists.
-		if (! isset($_POST['nonce'])) {
+		if (!isset($_POST['nonce'])) {
 			wp_die('Missing nonce.');
 		}
 
@@ -2202,7 +2260,7 @@ class ProductScraperAnalytics
 		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
 		// Verify the nonce.
-		if (! wp_verify_nonce($nonce, 'analytics_nonce')) {
+		if (!wp_verify_nonce($nonce, 'analytics_nonce')) {
 			wp_die('Security check failed.');
 		}
 
@@ -2219,7 +2277,7 @@ class ProductScraperAnalytics
 	{
 
 		// Ensure nonce exists.
-		if (! isset($_POST['nonce'])) {
+		if (!isset($_POST['nonce'])) {
 			wp_die('Missing nonce.');
 		}
 
@@ -2227,7 +2285,7 @@ class ProductScraperAnalytics
 		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
 		// Verify the nonce.
-		if (! wp_verify_nonce($nonce, 'analytics_nonce')) {
+		if (!wp_verify_nonce($nonce, 'analytics_nonce')) {
 			wp_die('Security check failed.');
 		}
 
@@ -2244,7 +2302,7 @@ class ProductScraperAnalytics
 	{
 
 		// Ensure nonce exists.
-		if (! isset($_POST['nonce'])) {
+		if (!isset($_POST['nonce'])) {
 			wp_die('Missing nonce.');
 		}
 
@@ -2252,7 +2310,7 @@ class ProductScraperAnalytics
 		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
 		// Verify the nonce.
-		if (! wp_verify_nonce($nonce, 'analytics_nonce')) {
+		if (!wp_verify_nonce($nonce, 'analytics_nonce')) {
 			wp_die('Security check failed.');
 		}
 
@@ -2287,7 +2345,7 @@ class ProductScraperAnalytics
 
 		// Get current settings.
 		$settings = $this->get_current_settings();
-	?>
+		?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -2305,7 +2363,8 @@ class ProductScraperAnalytics
 					<div class="sa-main-content">
 						<div class="sa-section">
 							<h2>API Configuration</h2>
-							<p class="sa-description">Configure your API keys to enable real data collection from various SEO platforms.</p>
+							<p class="sa-description">Configure your API keys to enable real data collection from various SEO
+								platforms.</p>
 
 							<!-- Main SEO Settings Form -->
 							<form method="post" class="sa-settings-form">
@@ -2319,9 +2378,10 @@ class ProductScraperAnalytics
 										<label for="ga4_property_id">Google Analytics 4 Property ID</label>
 										<input type="text" id="ga4_property_id" name="ga4_property_id"
 											value="<?php echo esc_attr($settings['ga4_property_id']); ?>"
-											class="sa-form-control"
-											placeholder="123456789">
-										<p class="description">Enter your <strong>numeric GA4 Property ID</strong> (e.g., 123456789), NOT the Measurement ID that starts with "G-". Find it in Google Analytics under Admin → Property Settings.</p>
+											class="sa-form-control" placeholder="123456789">
+										<p class="description">Enter your <strong>numeric GA4 Property ID</strong> (e.g.,
+											123456789), NOT the Measurement ID that starts with "G-". Find it in Google
+											Analytics under Admin → Property Settings.</p>
 									</div>
 
 									<div class="sa-setting-row">
@@ -2335,11 +2395,19 @@ class ProductScraperAnalytics
 									<div class="sa-setting-row">
 										<label for="pagespeed_api">Google PageSpeed Insights API Key</label>
 										<input type="password" id="pagespeed_api" name="pagespeed_api"
-											value="<?php echo esc_attr($settings['pagespeed_api']); ?>"
-											class="sa-form-control"
+											value="<?php echo esc_attr($settings['pagespeed_api']); ?>" class="sa-form-control"
 											placeholder="AIza...">
 										<p class="description">API key for PageSpeed Insights performance data</p>
 									</div>
+									<div class="sa-setting-row">
+										<label for="google_tag_id">Google Tag Manager ID</label>
+										<input type="text" id="google_tag_id" name="google_tag_id"
+											value="<?php echo esc_attr($settings['google_tag_id'] ?? ''); ?>"
+											class="sa-form-control" placeholder="G-XXXXXXX">
+										<p class="description">Enter your <strong>Google Tag Manager ID</strong> (e.g.,
+											G-XXXXXXX). We will automatically inject the tag into your site.</p>
+									</div>
+
 								</div>
 
 								<!-- Competitor Analysis -->
@@ -2348,10 +2416,10 @@ class ProductScraperAnalytics
 
 									<div class="sa-setting-row">
 										<label for="competitors">Competitor Domains</label>
-										<textarea id="competitors" name="competitors"
-											class="sa-form-control" rows="3"
+										<textarea id="competitors" name="competitors" class="sa-form-control" rows="3"
 											placeholder="competitor1.com, competitor2.com, competitor3.com"><?php echo esc_textarea($settings['competitors']); ?></textarea>
-										<p class="description">Enter competitor domains (comma-separated). Maximum 5 competitors.</p>
+										<p class="description">Enter competitor domains (comma-separated). Maximum 5
+											competitors.</p>
 									</div>
 								</div>
 
@@ -2362,11 +2430,16 @@ class ProductScraperAnalytics
 									<div class="sa-setting-row">
 										<label for="cache_duration">Data Cache Duration</label>
 										<select id="cache_duration" name="cache_duration" class="sa-form-control">
-											<option value="900" <?php selected($settings['cache_duration'], '900'); ?>>15 minutes</option>
-											<option value="1800" <?php selected($settings['cache_duration'], '1800'); ?>>30 minutes</option>
-											<option value="3600" <?php selected($settings['cache_duration'], '3600'); ?>>1 hour</option>
-											<option value="7200" <?php selected($settings['cache_duration'], '7200'); ?>>2 hours</option>
-											<option value="14400" <?php selected($settings['cache_duration'], '14400'); ?>>4 hours</option>
+											<option value="900" <?php selected($settings['cache_duration'], '900'); ?>>15
+												minutes</option>
+											<option value="1800" <?php selected($settings['cache_duration'], '1800'); ?>>30
+												minutes</option>
+											<option value="3600" <?php selected($settings['cache_duration'], '3600'); ?>>1 hour
+											</option>
+											<option value="7200" <?php selected($settings['cache_duration'], '7200'); ?>>2 hours
+											</option>
+											<option value="14400" <?php selected($settings['cache_duration'], '14400'); ?>>4
+												hours</option>
 										</select>
 										<p class="description">How long to cache API data before refreshing</p>
 									</div>
@@ -2409,14 +2482,14 @@ class ProductScraperAnalytics
 										<label for="openai_api_key">OpenAI API Key</label>
 										<input type="password" id="openai_api_key" name="product_scraper_openai_api_key"
 											value="<?php echo esc_attr(get_option('product_scraper_openai_api_key', '')); ?>"
-											class="sa-form-control"
-											placeholder="sk-...">
+											class="sa-form-control" placeholder="sk-...">
 										<p class="description">Your OpenAI API key for AI content generation</p>
 									</div>
 
 									<div class="sa-setting-row">
 										<label for="ai_content_tone">Default Content Tone</label>
-										<select id="ai_content_tone" name="product_scraper_ai_content_tone" class="sa-form-control">
+										<select id="ai_content_tone" name="product_scraper_ai_content_tone"
+											class="sa-form-control">
 											<option value="professional" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'professional'); ?>>Professional</option>
 											<option value="casual" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'casual'); ?>>Casual</option>
 											<option value="enthusiastic" <?php selected(get_option('product_scraper_ai_content_tone', 'professional'), 'enthusiastic'); ?>>Enthusiastic</option>
@@ -2486,18 +2559,18 @@ class ProductScraperAnalytics
 		</div>
 
 		<script>
-			jQuery(document).ready(function($) {
+			jQuery(document).ready(function ($) {
 				// Check API key status on page load
 				checkApiKeyStatus();
 
 				// Test API connections.
-				$('#test_apis').on('click', function() {
+				$('#test_apis').on('click', function () {
 					var $button = $(this);
 					var originalText = $button.html();
 
 					$button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Testing APIs...');
 
-					$('.sa-status-item').each(function() {
+					$('.sa-status-item').each(function () {
 						var $item = $(this);
 						$item.find('.status-icon').removeClass('success error warning').addClass('loading');
 						$item.find('.status-message').text('Testing...');
@@ -2510,15 +2583,15 @@ class ProductScraperAnalytics
 							action: 'test_api_connections',
 							nonce: '<?php echo esc_js(wp_create_nonce('test_apis_nonce')); ?>'
 						},
-						success: function(response) {
+						success: function (response) {
 							if (response.success) {
-								$.each(response.data, function(api, result) {
+								$.each(response.data, function (api, result) {
 									var $item = $('.sa-status-item[data-api="' + api + '"]');
 									var $icon = $item.find('.status-icon');
 									var $message = $item.find('.status-message');
 
 									$icon.removeClass('loading');
-									
+
 									if (!result.configured) {
 										$icon.addClass('warning').html('⚠');
 										$message.text('Not configured').css('color', '#FF9800');
@@ -2532,7 +2605,7 @@ class ProductScraperAnalytics
 								});
 							}
 						},
-						complete: function() {
+						complete: function () {
 							$button.prop('disabled', false).html(originalText);
 						}
 					});
@@ -2547,9 +2620,9 @@ class ProductScraperAnalytics
 							action: 'check_api_key_status',
 							nonce: '<?php echo esc_js(wp_create_nonce('check_api_status_nonce')); ?>'
 						},
-						success: function(response) {
+						success: function (response) {
 							if (response.success) {
-								$.each(response.data, function(api, status) {
+								$.each(response.data, function (api, status) {
 									var $item = $('.sa-status-item[data-api="' + api + '"]');
 									var $icon = $item.find('.status-icon');
 									var $message = $item.find('.status-message');
@@ -2568,7 +2641,7 @@ class ProductScraperAnalytics
 				}
 
 				// Clear cache.
-				$('#clear_cache').on('click', function() {
+				$('#clear_cache').on('click', function () {
 					var $button = $(this);
 					var originalText = $button.html();
 
@@ -2581,21 +2654,21 @@ class ProductScraperAnalytics
 							action: 'clear_seo_cache',
 							nonce: '<?php echo esc_js(wp_create_nonce('clear_cache_nonce')); ?>'
 						},
-						success: function(response) {
+						success: function (response) {
 							if (response.success) {
 								alert('Cache cleared successfully!');
 							} else {
 								alert('Error clearing cache.');
 							}
 						},
-						complete: function() {
+						complete: function () {
 							$button.prop('disabled', false).html(originalText);
 						}
 					});
 				});
 			});
 		</script>
-	<?php
+		<?php
 	}
 
 	/**
@@ -2630,14 +2703,28 @@ class ProductScraperAnalytics
 	 */
 	private function get_current_settings()
 	{
+		error_log(
+			'get_current_settings: ' . print_r(array(
+				'ga4_property_id' => get_option('product_scraper_ga4_property_id', ''),
+				'google_service_account' => get_option('product_scraper_google_service_account', ''),
+				'pagespeed_api' => get_option('product_scraper_pagespeed_api', ''),
+				'google_tag_id' => get_option('product_scraper_gtm_id', ''),
+				'competitors' => get_option('product_scraper_competitors', ''),
+				'cache_duration' => get_option('product_scraper_cache_duration', '3600'),
+				'enable_debug' => get_option('product_scraper_enable_debug', 0),
+				'auto_sync' => get_option('product_scraper_auto_sync', 1),
+			), true)
+		);
+
 		return array(
-			'ga4_property_id'        => get_option('product_scraper_ga4_property_id', ''),
+			'ga4_property_id' => get_option('product_scraper_ga4_property_id', ''),
 			'google_service_account' => get_option('product_scraper_google_service_account', ''),
-			'pagespeed_api'          => get_option('product_scraper_pagespeed_api', ''),
-			'competitors'            => get_option('product_scraper_competitors', ''),
-			'cache_duration'         => get_option('product_scraper_cache_duration', '3600'),
-			'enable_debug'           => get_option('product_scraper_enable_debug', 0),
-			'auto_sync'              => get_option('product_scraper_auto_sync', 1),
+			'pagespeed_api' => get_option('product_scraper_pagespeed_api', ''),
+			'google_tag_id' => get_option('product_scraper_gtm_id', ''),
+			'competitors' => get_option('product_scraper_competitors', ''),
+			'cache_duration' => get_option('product_scraper_cache_duration', '3600'),
+			'enable_debug' => get_option('product_scraper_enable_debug', 0),
+			'auto_sync' => get_option('product_scraper_auto_sync', 1),
 		);
 	}
 
@@ -2660,6 +2747,11 @@ class ProductScraperAnalytics
 		if (isset($_POST['pagespeed_api'])) {
 			$pagespeed_api = sanitize_text_field(wp_unslash($_POST['pagespeed_api']));
 			update_option('product_scraper_pagespeed_api', $pagespeed_api);
+		}
+
+		if (isset($_POST['google_tag_id'])) {
+			$google_tag_id = sanitize_text_field(wp_unslash($_POST['google_tag_id']));
+			update_option('product_scraper_gtm_id', sanitize_text_field($google_tag_id ?? ''));
 		}
 
 		if (isset($_POST['google_service_account'])) {
@@ -2692,7 +2784,7 @@ class ProductScraperAnalytics
 	{
 		// Get report data.
 		$reports = $this->get_seo_reports();
-	?>
+		?>
 		<div class="wrap">
 			<div class="scraper-analytics-dashboard">
 				<div class="sa-header">
@@ -2750,33 +2842,47 @@ class ProductScraperAnalytics
 
 							<!-- Key Metrics -->
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="text-sm font-medium text-gray-500 mb-1">
 										<div>Overall SEO Score</div>
 									</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html($reports['overall_score']); ?>%</div>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html($reports['overall_score']); ?>%
+									</div>
 									<div class="text-xs font-medium text-green-600">+5%</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="text-sm font-medium text-gray-500 mb-1">
 										Organic Traffic
 									</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($reports['organic_traffic'])); ?></div>
-									<div class="text-xs font-medium text-green-600 <?php echo esc_attr($reports['traffic_change'] >= 0 ? 'positive' : 'negative'); ?>">
-										<?php echo esc_html($reports['traffic_change'] >= 0 ? '+' : ''); ?><?php echo esc_html($reports['traffic_change']); ?>%
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(number_format($reports['organic_traffic'])); ?>
+									</div>
+									<div
+										class="text-xs font-medium text-green-600 <?php echo esc_attr($reports['traffic_change'] >= 0 ? 'positive' : 'negative'); ?>">
+										<?php echo esc_html($reports['traffic_change'] >= 0 ? '+' : ''); ?>
+										<?php echo esc_html($reports['traffic_change']); ?>%
 									</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="text-sm font-medium text-gray-500 mb-1">Keyword Rankings</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($reports['keyword_rankings'])); ?></div>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(number_format($reports['keyword_rankings'])); ?>
+									</div>
 									<div class="text-xs font-medium text-green-600 positive">+12%</div>
 								</div>
 
-								<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+								<div
+									class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 									<div class="text-sm font-medium text-gray-500 mb-1">Backlinks</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(number_format($reports['backlinks'])); ?></div>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(number_format($reports['backlinks'])); ?>
+									</div>
 									<div class="text-xs font-medium text-green-600 positive">+8%</div>
 								</div>
 							</div>
@@ -2785,19 +2891,21 @@ class ProductScraperAnalytics
 							<div class="sa-report-card">
 								<h3>Technical SEO Health</h3>
 								<div class="health-metrics">
-									<?php foreach ($reports['technical_health'] as $metric) : ?>
+									<?php foreach ($reports['technical_health'] as $metric): ?>
 										<?php
 										// Sanitize metric data.
-										$label  = isset($metric['label']) ? esc_html($metric['label']) : '';
-										$score  = isset($metric['score']) ? intval($metric['score']) : 0;
+										$label = isset($metric['label']) ? esc_html($metric['label']) : '';
+										$score = isset($metric['score']) ? intval($metric['score']) : 0;
 										$status = isset($metric['status']) ? esc_attr($metric['status']) : 'neutral';
 										?>
-										<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200c">
+										<div
+											class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200c">
 											<span class="metric-label"><?php echo esc_html($label); ?></span>
 											<div class="metric-score">
 												<span class="score"><?php echo esc_html($score); ?>%</span>
 												<div class="score-bar">
-													<div class="score-fill <?php echo esc_attr($status); ?>" style="width: <?php echo esc_attr($score); ?>%;"></div>
+													<div class="score-fill <?php echo esc_attr($status); ?>"
+														style="width: <?php echo esc_attr($score); ?>%;"></div>
 												</div>
 											</div>
 										</div>
@@ -2806,16 +2914,17 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Top Performing Content -->
-							<div class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
+							<div
+								class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
 								<h3>Top Performing Content</h3>
 								<div class="content-list">
-									<?php foreach ($reports['top_content'] as $content) : ?>
+									<?php foreach ($reports['top_content'] as $content): ?>
 										<?php
 										// Sanitize content data.
-										$title     = isset($content['title']) ? esc_html($content['title']) : '';
-										$url       = isset($content['url']) ? esc_url($content['url']) : '';
-										$traffic   = isset($content['traffic']) ? intval($content['traffic']) : 0;
-										$keywords  = isset($content['keywords']) ? intval($content['keywords']) : 0;
+										$title = isset($content['title']) ? esc_html($content['title']) : '';
+										$url = isset($content['url']) ? esc_url($content['url']) : '';
+										$traffic = isset($content['traffic']) ? intval($content['traffic']) : 0;
+										$keywords = isset($content['keywords']) ? intval($content['keywords']) : 0;
 										$backlinks = isset($content['backlinks']) ? intval($content['backlinks']) : 0;
 										?>
 										<div class="content-item">
@@ -2825,9 +2934,12 @@ class ProductScraperAnalytics
 												</a>
 											</div>
 											<div class="content-metrics">
-												<span class="metric">Traffic: <?php echo esc_html(number_format($traffic)); ?></span>
-												<span class="metric">Keywords: <?php echo esc_html(number_format($keywords)); ?></span>
-												<span class="metric">Backlinks: <?php echo esc_html(number_format($backlinks)); ?></span>
+												<span class="metric">Traffic:
+													<?php echo esc_html(number_format($traffic)); ?></span>
+												<span class="metric">Keywords:
+													<?php echo esc_html(number_format($keywords)); ?></span>
+												<span class="metric">Backlinks:
+													<?php echo esc_html(number_format($backlinks)); ?></span>
 											</div>
 										</div>
 									<?php endforeach; ?>
@@ -2835,7 +2947,8 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Competitor Comparison -->
-							<div class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
+							<div
+								class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
 								<h3>Competitor Comparison</h3>
 								<div class="competitor-table">
 									<table class="sa-table">
@@ -2849,14 +2962,14 @@ class ProductScraperAnalytics
 											</tr>
 										</thead>
 										<tbody>
-											<?php foreach ($reports['competitors'] as $competitor) : ?>
+											<?php foreach ($reports['competitors'] as $competitor): ?>
 												<?php
 												// Sanitize competitor data.
-												$domain      = isset($competitor['domain']) ? esc_html($competitor['domain']) : '';
-												$authority   = isset($competitor['authority']) ? esc_html($competitor['authority']) : 0;
+												$domain = isset($competitor['domain']) ? esc_html($competitor['domain']) : '';
+												$authority = isset($competitor['authority']) ? esc_html($competitor['authority']) : 0;
 												$ref_domains = isset($competitor['ref_domains']) ? intval($competitor['ref_domains']) : 0;
-												$traffic     = isset($competitor['traffic']) ? intval($competitor['traffic']) : 0;
-												$keywords    = isset($competitor['keywords']) ? intval($competitor['keywords']) : 0;
+												$traffic = isset($competitor['traffic']) ? intval($competitor['traffic']) : 0;
+												$keywords = isset($competitor['keywords']) ? intval($competitor['keywords']) : 0;
 												?>
 												<tr>
 													<td><?php echo esc_html($domain); ?></td>
@@ -2872,16 +2985,17 @@ class ProductScraperAnalytics
 							</div>
 
 							<!-- Recommendations -->
-							<div class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
+							<div
+								class="sa-report-card rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200 mt-6">
 								<h3>SEO Recommendations</h3>
 								<div class="recommendations-list">
-									<?php foreach ($reports['recommendations'] as $rec) : ?>
+									<?php foreach ($reports['recommendations'] as $rec): ?>
 										<?php
 										// Sanitize recommendation data.
-										$title       = isset($rec['title']) ? esc_html($rec['title']) : '';
+										$title = isset($rec['title']) ? esc_html($rec['title']) : '';
 										$description = isset($rec['description']) ? esc_html($rec['description']) : '';
-										$priority    = isset($rec['priority']) ? esc_attr($rec['priority']) : 'medium';
-										$impact      = isset($rec['impact']) ? esc_html($rec['impact']) : 'Medium';
+										$priority = isset($rec['priority']) ? esc_attr($rec['priority']) : 'medium';
+										$impact = isset($rec['impact']) ? esc_html($rec['impact']) : 'Medium';
 										?>
 										<div class="recommendation-item priority-<?php echo esc_attr($priority); ?>">
 											<div class="rec-content">
@@ -2908,7 +3022,7 @@ class ProductScraperAnalytics
 				jQuery('.sa-main-content').addClass('loading');
 
 				// In a real implementation, you would make an AJAX call here.
-				setTimeout(function() {
+				setTimeout(function () {
 					jQuery('.sa-main-content').removeClass('loading');
 					alert('Report generated for ' + period + ' days, type: ' + type);
 				}, 1000);
@@ -2924,7 +3038,7 @@ class ProductScraperAnalytics
 				// Implement CSV generation and download.
 			}
 		</script>
-<?php
+		<?php
 	}
 
 	/**
@@ -2934,7 +3048,7 @@ class ProductScraperAnalytics
 	 */
 	private function get_seo_reports()
 	{
-		$cache_key   = 'product_scraper_seo_reports_' . md5(get_site_url());
+		$cache_key = 'product_scraper_seo_reports_' . md5(get_site_url());
 		$cached_data = get_transient($cache_key);
 
 		if (false !== $cached_data) {
@@ -2946,15 +3060,15 @@ class ProductScraperAnalytics
 
 		// Use ONLY real data - no estimates
 		$reports = array(
-			'overall_score'    => $seo_data['digital_score'],
-			'organic_traffic'  => $seo_data['organic_traffic']['current'],
-			'traffic_change'   => $seo_data['organic_traffic']['change'],
+			'overall_score' => $seo_data['digital_score'],
+			'organic_traffic' => $seo_data['organic_traffic']['current'],
+			'traffic_change' => $seo_data['organic_traffic']['change'],
 			'keyword_rankings' => count($seo_data['top_keywords']), // Real count only
-			'backlinks'        => $seo_data['referring_domains']['count'],
+			'backlinks' => $seo_data['referring_domains']['count'],
 			'technical_health' => $this->get_technical_health_data($seo_data),
-			'top_content'      => $this->get_top_performing_content(), // Real data only
-			'competitors'      => $seo_data['competitor_analysis'],
-			'recommendations'  => $this->generate_seo_recommendations($seo_data),
+			'top_content' => $this->get_top_performing_content(), // Real data only
+			'competitors' => $seo_data['competitor_analysis'],
+			'recommendations' => $this->generate_seo_recommendations($seo_data),
 		);
 
 		set_transient($cache_key, $reports, $this->cache_duration);
@@ -2976,7 +3090,7 @@ class ProductScraperAnalytics
 		}
 
 		// Estimate based on traffic and domain authority
-		$traffic   = $seo_data['organic_traffic']['current'];
+		$traffic = $seo_data['organic_traffic']['current'];
 		$authority = $seo_data['referring_domains']['domain_rating'];
 
 		if ($traffic > 0 && $authority > 0) {
@@ -2998,28 +3112,28 @@ class ProductScraperAnalytics
 
 		return array(
 			array(
-				'label'  => 'Page Speed',
-				'score'  => $site_health['scores']['performance'] ?? 0,
+				'label' => 'Page Speed',
+				'score' => $site_health['scores']['performance'] ?? 0,
 				'status' => $this->get_score_status($site_health['scores']['performance'] ?? 0),
 			),
 			array(
-				'label'  => 'Mobile Friendly',
-				'score'  => $this->get_mobile_friendliness_score(),
+				'label' => 'Mobile Friendly',
+				'score' => $this->get_mobile_friendliness_score(),
 				'status' => $this->get_score_status($this->get_mobile_friendliness_score()),
 			),
 			array(
-				'label'  => 'SSL Security',
-				'score'  => $this->get_ssl_security_score(),
+				'label' => 'SSL Security',
+				'score' => $this->get_ssl_security_score(),
 				'status' => $this->get_score_status($this->get_ssl_security_score()),
 			),
 			array(
-				'label'  => 'Structured Data',
-				'score'  => $this->get_structured_data_score(),
+				'label' => 'Structured Data',
+				'score' => $this->get_structured_data_score(),
 				'status' => $this->get_score_status($this->get_structured_data_score()),
 			),
 			array(
-				'label'  => 'Internal Linking',
-				'score'  => $this->get_internal_linking_score($seo_data),
+				'label' => 'Internal Linking',
+				'score' => $this->get_internal_linking_score($seo_data),
 				'status' => $this->get_score_status($this->get_internal_linking_score($seo_data)),
 			),
 		);
@@ -3033,17 +3147,60 @@ class ProductScraperAnalytics
 	private function get_mobile_friendliness_score()
 	{
 		$api_integrations = new ProductScraper_API_Integrations();
-		// Use PageSpeed Insights mobile score if available
 		$site_health = $api_integrations->get_site_health_metrics();
 
+		// If PageSpeed API returned data
 		if ('pagespeed_api' === $site_health['source']) {
-			return $site_health['scores']['performance'] ?? 0;
+
+			// Log API errors if present
+			if (!empty($site_health['error'])) {
+				error_log('PageSpeed API Error: ' . $site_health['error']);
+				return 0;
+			}
+
+			// Lighthouse scores (0-100)
+			$performance_score = $site_health['scores']['performance'] ?? 0;
+			$accessibility_score = $site_health['scores']['accessibility'] ?? 0;
+			$best_practices_score = $site_health['scores']['best_practices'] ?? 0;
+			$seo_score = $site_health['scores']['seo'] ?? 0;
+
+			// Optional: Mobile-specific metrics from loadingExperience
+			$loading = $site_health['loadingExperience']['metrics'] ?? [];
+			$cls_score = $loading['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'] ?? null;
+			$lcp_score = $loading['LARGEST_CONTENTFUL_PAINT_MS']['percentile'] ?? null;
+			$fid_score = $loading['FIRST_INPUT_DELAY_MS']['percentile'] ?? null;
+
+			// Normalize loadingExperience metrics (percentiles -> 0-100)
+			$cls_normalized = $cls_score !== null ? round((1 - $cls_score) * 100) : null; // lower CLS is better
+			$lcp_normalized = $lcp_score !== null ? round((1 - min($lcp_score / 2500, 1)) * 100) : null; // ideal LCP ~2500ms
+			$fid_normalized = $fid_score !== null ? round((1 - min($fid_score / 100, 1)) * 100) : null; // ideal FID ~100ms
+
+			// Combine scores intelligently
+			$scores_to_average = [$performance_score];
+			if ($accessibility_score !== null)
+				$scores_to_average[] = $accessibility_score;
+			if ($best_practices_score !== null)
+				$scores_to_average[] = $best_practices_score;
+			if ($seo_score !== null)
+				$scores_to_average[] = $seo_score;
+			if ($cls_normalized !== null)
+				$scores_to_average[] = $cls_normalized;
+			if ($lcp_normalized !== null)
+				$scores_to_average[] = $lcp_normalized;
+			if ($fid_normalized !== null)
+				$scores_to_average[] = $fid_normalized;
+
+			// Final mobile friendliness score
+			$mobile_score = count($scores_to_average) > 0 ? round(array_sum($scores_to_average) / count($scores_to_average)) : 0;
+
+			return $mobile_score;
 		}
 
-		// Fallback: Check if theme is responsive
+		// Fallback: theme responsiveness
 		$is_responsive = $this->check_theme_responsiveness();
 		return $is_responsive ? 85 : 60;
 	}
+
 
 	/**
 	 * Check if current theme is responsive
@@ -3076,7 +3233,7 @@ class ProductScraperAnalytics
 		$site_url = get_site_url();
 		$is_https = 'https' === wp_parse_url($site_url, PHP_URL_SCHEME);
 
-		if (! $is_https) {
+		if (!$is_https) {
 			return 0;
 		}
 
@@ -3096,7 +3253,7 @@ class ProductScraperAnalytics
 		$site_url = get_site_url();
 
 		// Basic SSL checks
-		$has_ssl    = is_ssl();
+		$has_ssl = is_ssl();
 		$forced_ssl = defined('FORCE_SSL_ADMIN') && FORCE_SSL_ADMIN;
 
 		return $has_ssl && $forced_ssl;
@@ -3117,7 +3274,7 @@ class ProductScraperAnalytics
 			get_option('page_for_posts'),
 		);
 
-		$key_pages         = array_filter($key_pages);
+		$key_pages = array_filter($key_pages);
 		$pages_with_schema = 0;
 
 		foreach ($key_pages as $page_id) {
@@ -3141,7 +3298,7 @@ class ProductScraperAnalytics
 			}
 		}
 
-		$total_checked     = count($key_pages) + count($recent_posts);
+		$total_checked = count($key_pages) + count($recent_posts);
 		$total_with_schema = $pages_with_schema + $posts_with_schema;
 
 		if (0 === $total_checked) {
@@ -3187,7 +3344,7 @@ class ProductScraperAnalytics
 	private function get_internal_linking_score($seo_data)
 	{
 		$internal_links = $seo_data['referring_domains']['internal_links'] ?? 0;
-		$total_posts    = wp_count_posts()->publish + wp_count_posts('page')->publish;
+		$total_posts = wp_count_posts()->publish + wp_count_posts('page')->publish;
 
 		if (0 === $total_posts) {
 			return 0;
@@ -3221,12 +3378,12 @@ class ProductScraperAnalytics
 		$popular_posts = get_posts(
 			array(
 				'numberposts' => 5,
-				'meta_key'    => '_product_scraper_traffic_estimate',
-				'orderby'     => 'meta_value_num',
-				'order'       => 'DESC',
-				'meta_query'  => array(
+				'meta_key' => '_product_scraper_traffic_estimate',
+				'orderby' => 'meta_value_num',
+				'order' => 'DESC',
+				'meta_query' => array(
 					array(
-						'key'     => '_product_scraper_traffic_estimate',
+						'key' => '_product_scraper_traffic_estimate',
 						'compare' => 'EXISTS',
 					),
 				),
@@ -3235,16 +3392,16 @@ class ProductScraperAnalytics
 
 		foreach ($popular_posts as $post) {
 			$traffic_estimate = get_post_meta($post->ID, '_product_scraper_traffic_estimate', true);
-			$keyword_count    = get_post_meta($post->ID, '_product_scraper_keyword_count', true);
-			$backlink_count   = get_post_meta($post->ID, '_product_scraper_backlink_count', true);
+			$keyword_count = get_post_meta($post->ID, '_product_scraper_keyword_count', true);
+			$backlink_count = get_post_meta($post->ID, '_product_scraper_backlink_count', true);
 
 			// Only include if we have real traffic data
 			if ($traffic_estimate) {
 				$top_content[] = array(
-					'title'     => get_the_title($post->ID),
-					'url'       => get_permalink($post->ID),
-					'traffic'   => intval($traffic_estimate),
-					'keywords'  => $keyword_count ? intval($keyword_count) : 0,
+					'title' => get_the_title($post->ID),
+					'url' => get_permalink($post->ID),
+					'traffic' => intval($traffic_estimate),
+					'keywords' => $keyword_count ? intval($keyword_count) : 0,
 					'backlinks' => $backlink_count ? intval($backlink_count) : 0,
 				);
 			}
@@ -3276,40 +3433,40 @@ class ProductScraperAnalytics
 		// Traffic-based recommendations
 		if ($seo_data['organic_traffic']['current'] < 1000) {
 			$recommendations[] = array(
-				'title'       => 'Increase Organic Traffic',
+				'title' => 'Increase Organic Traffic',
 				'description' => 'Focus on creating high-quality, keyword-optimized content to improve search visibility and drive more organic traffic.',
-				'priority'    => 'high',
-				'impact'      => 'High',
+				'priority' => 'high',
+				'impact' => 'High',
 			);
 		}
 
 		// Backlink-based recommendations
 		if ($seo_data['referring_domains']['count'] < 50) {
 			$recommendations[] = array(
-				'title'       => 'Build Quality Backlinks',
+				'title' => 'Build Quality Backlinks',
 				'description' => 'Develop a backlink strategy to acquire links from authoritative websites in your industry.',
-				'priority'    => 'high',
-				'impact'      => 'High',
+				'priority' => 'high',
+				'impact' => 'High',
 			);
 		}
 
 		// Content-based recommendations
 		if (count($seo_data['top_keywords']) < 10) {
 			$recommendations[] = array(
-				'title'       => 'Expand Keyword Targeting',
+				'title' => 'Expand Keyword Targeting',
 				'description' => 'Research and target additional relevant keywords to capture more search traffic opportunities.',
-				'priority'    => 'medium',
-				'impact'      => 'Medium',
+				'priority' => 'medium',
+				'impact' => 'Medium',
 			);
 		}
 
 		// Ensure we have at least some recommendations
 		if (empty($recommendations)) {
 			$recommendations[] = array(
-				'title'       => 'Maintain Current Performance',
+				'title' => 'Maintain Current Performance',
 				'description' => 'Your site is performing well. Continue monitoring metrics and look for incremental improvement opportunities.',
-				'priority'    => 'low',
-				'impact'      => 'Low',
+				'priority' => 'low',
+				'impact' => 'Low',
 			);
 		}
 
@@ -3325,43 +3482,43 @@ class ProductScraperAnalytics
 	private function get_recommendation_for_metric($metric)
 	{
 		$recommendations = array(
-			'Page Speed'       => array(
-				'title'       => 'Improve Page Load Speed',
+			'Page Speed' => array(
+				'title' => 'Improve Page Load Speed',
 				'description' => 'Optimize images, leverage browser caching, and minimize CSS/JS to improve page load times.',
-				'priority'    => 'high',
-				'impact'      => 'High',
+				'priority' => 'high',
+				'impact' => 'High',
 			),
-			'Mobile Friendly'  => array(
-				'title'       => 'Enhance Mobile Experience',
+			'Mobile Friendly' => array(
+				'title' => 'Enhance Mobile Experience',
 				'description' => 'Ensure your theme is fully responsive and optimize content for mobile users.',
-				'priority'    => 'high',
-				'impact'      => 'High',
+				'priority' => 'high',
+				'impact' => 'High',
 			),
-			'SSL Security'     => array(
-				'title'       => 'Strengthen SSL Configuration',
+			'SSL Security' => array(
+				'title' => 'Strengthen SSL Configuration',
 				'description' => 'Ensure SSL is properly configured and consider implementing security headers.',
-				'priority'    => 'medium',
-				'impact'      => 'Medium',
+				'priority' => 'medium',
+				'impact' => 'Medium',
 			),
-			'Structured Data'  => array(
-				'title'       => 'Add Schema Markup',
+			'Structured Data' => array(
+				'title' => 'Add Schema Markup',
 				'description' => 'Implement structured data to enhance search result appearances and rich snippets.',
-				'priority'    => 'medium',
-				'impact'      => 'Medium',
+				'priority' => 'medium',
+				'impact' => 'Medium',
 			),
 			'Internal Linking' => array(
-				'title'       => 'Improve Internal Linking',
+				'title' => 'Improve Internal Linking',
 				'description' => 'Create more internal links between related content to improve site structure and user navigation.',
-				'priority'    => 'medium',
-				'impact'      => 'Medium',
+				'priority' => 'medium',
+				'impact' => 'Medium',
 			),
 		);
 
 		return $recommendations[$metric['label']] ?? array(
-			'title'       => 'Improve ' . $metric['label'],
+			'title' => 'Improve ' . $metric['label'],
 			'description' => 'Focus on improving your ' . $metric['label'] . ' score for better SEO performance.',
-			'priority'    => 'medium',
-			'impact'      => 'Medium',
+			'priority' => 'medium',
+			'impact' => 'Medium',
 		);
 	}
 
@@ -3383,7 +3540,7 @@ class ProductScraperAnalytics
 			return 'needs-improvement';
 		}
 	}
-	
+
 	/**
 	 * AJAX handler for testing API connections.
 	 *
@@ -3391,79 +3548,91 @@ class ProductScraperAnalytics
 	 */
 	public function ajax_test_api_connections()
 	{
-		// Check if nonce exists first.
+		// Check if nonce exists first
 		if (!isset($_POST['nonce'])) {
 			wp_send_json_error('Missing security token.');
 		}
 
-		// Sanitize and verify nonce.
+		// Sanitize and verify nonce
 		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
-
 		if (!wp_verify_nonce($nonce, 'test_apis_nonce')) {
 			wp_send_json_error('Security check failed.');
 		}
 
-		// Check user capabilities.
+		// Check user capabilities
 		if (!current_user_can('manage_options')) {
 			wp_send_json_error('Insufficient permissions.');
 		}
 
-		$results = array();
+		$results = [];
 		$api_integrations = new ProductScraper_API_Integrations();
 
-		// First check if API keys are even configured
+		// Check API key status
 		$key_status = $api_integrations->check_api_key_status();
 
-		// Test Google Analytics only if configured
+		// --- Google Analytics ---
 		if ($key_status['google_analytics']['configured']) {
 			try {
 				$ga_data = $api_integrations->get_organic_traffic();
-				$results['google_analytics'] = array(
-					'connected' => 'google_analytics' === ($ga_data['source'] ?? ''),
+				error_log('$ga_data: ' . print_r($ga_data, true));
+
+				$connected = isset($ga_data['source']) && 'google_analytics' === $ga_data['source'];
+				$message = $ga_data['error'] ?? ($connected ? 'Connected successfully' : 'Configured but connection failed');
+
+				$results['google_analytics'] = [
+					'connected' => $connected,
 					'configured' => true,
-					'message'   => 'google_analytics' === ($ga_data['source'] ?? '') 
-						? 'Connected successfully' 
-						: 'Configured but connection failed',
-				);
+					'message' => $message,
+					'debug' => $ga_data, // optional full data for frontend debug
+				];
 			} catch (Exception $e) {
-				$results['google_analytics'] = array(
+				$results['google_analytics'] = [
 					'connected' => false,
 					'configured' => true,
-					'message'   => $e->getMessage(),
-				);
+					'message' => $e->getMessage(),
+				];
 			}
 		} else {
-			$results['google_analytics'] = array(
+			$results['google_analytics'] = [
 				'connected' => false,
 				'configured' => false,
-				'message'   => $key_status['google_analytics']['message'],
-			);
+				'message' => $key_status['google_analytics']['message'],
+			];
 		}
 
-		// Test PageSpeed Insights only if configured
+		// --- PageSpeed Insights ---
+		// TODO: Improve handling for localhost/private IPs so frontend shows proper error message 
+		// when PageSpeed API cannot test the site. Currently returns "Configured but connection failed".
 		if ($key_status['pagespeed']['configured']) {
 			try {
 				$health_data = $api_integrations->get_site_health_metrics();
-				$results['pagespeed'] = array(
-					'connected' => 'pagespeed_api' === ($health_data['source'] ?? ''),
+				error_log('$health_data from pagespeed API: ' . print_r($health_data, true));
+
+				$connected = isset($health_data['source']) && 'pagespeed_api' === $health_data['source'];
+				$message = $health_data['error'] ?? ($connected ? 'Connected successfully' : 'Configured but connection failed');
+
+				$results['pagespeed'] = [
+					'connected' => $connected,
 					'configured' => true,
-					'message'   => 'pagespeed_api' === ($health_data['source'] ?? '') 
-						? 'Connected successfully' 
-						: 'Configured but connection failed',
-				);
+					'message' => $message, // <-- use the error if present
+					'scores' => $health_data['scores'] ?? [],
+					'overall' => $health_data['overall'] ?? null,
+					'lighthouse' => $health_data['lighthouse'] ?? [],
+					'loadingExperience' => $health_data['loadingExperience'] ?? [],
+				];
 			} catch (Exception $e) {
-				$results['pagespeed'] = array(
+				$results['pagespeed'] = [
 					'connected' => false,
 					'configured' => true,
-					'message'   => $e->getMessage(),
-				);
+					'message' => $e->getMessage(),
+				];
 			}
 		} else {
-			$results['pagespeed'] = array(
+			$results['pagespeed'] = [
 				'connected' => false,
 				'configured' => false,
-				'message'   => $key_status['pagespeed']['message'],
-			);
+				'message' => $key_status['pagespeed']['message'],
+			];
 		}
 
 		wp_send_json_success($results);
@@ -3476,7 +3645,7 @@ class ProductScraperAnalytics
 	{
 
 		// Check nonce exists
-		if (! isset($_POST['nonce'])) {
+		if (!isset($_POST['nonce'])) {
 			wp_send_json_error('Missing nonce.');
 		}
 
@@ -3484,7 +3653,7 @@ class ProductScraperAnalytics
 		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
 
 		// Verify nonce
-		if (! wp_verify_nonce($nonce, 'clear_cache_nonce')) {
+		if (!wp_verify_nonce($nonce, 'clear_cache_nonce')) {
 			wp_send_json_error('Security check failed.');
 		}
 
@@ -3540,5 +3709,53 @@ class ProductScraperAnalytics
 		$status = $api_integrations->check_api_key_status();
 
 		wp_send_json_success($status);
+	}
+
+	/**
+	 * Inject Google Tag Manager script into <head>
+	 */
+	public function inject_gtm_head()
+	{
+		$gtm_id = get_option('product_scraper_gtm_id', '');
+
+		if (empty($gtm_id)) {
+			return;
+		}
+		?>
+		<!-- Google Tag Manager -->
+		<script>
+			(function (w, d, s, l, i) {
+				w[l] = w[l] || [];
+				w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+				var f = d.getElementsByTagName(s)[0],
+					j = d.createElement(s),
+					dl = l != 'dataLayer' ? '&l=' + l : '';
+				j.async = true;
+				j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+				f.parentNode.insertBefore(j, f);
+			})(window, document, 'script', 'dataLayer', '<?php echo esc_js($gtm_id); ?>');
+		</script>
+		<!-- End Google Tag Manager -->
+		<?php
+	}
+
+	/**
+	 * Inject Google Tag Manager noscript fallback
+	 */
+	public function inject_gtm_body()
+	{
+		$gtm_id = get_option('product_scraper_gtm_id', '');
+
+		if (empty($gtm_id)) {
+			return;
+		}
+		?>
+		<!-- Google Tag Manager (noscript) -->
+		<noscript>
+			<iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo esc_attr($gtm_id); ?>" height="0" width="0"
+				style="display:none;visibility:hidden"></iframe>
+		</noscript>
+		<!-- End Google Tag Manager (noscript) -->
+		<?php
 	}
 }

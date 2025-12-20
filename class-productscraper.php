@@ -10,18 +10,18 @@
  */
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
 	exit;
 }
 
 // Define plugin constants.
-define( 'PRODUCT_SCRAPER_VERSION', '2.1.0' );
-define( 'PRODUCT_SCRAPER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'PRODUCT_SCRAPER_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define('PRODUCT_SCRAPER_VERSION', '2.1.0');
+define('PRODUCT_SCRAPER_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('PRODUCT_SCRAPER_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
 // Load Composer dependencies.
 $vendor_autoload = __DIR__ . '/vendor/autoload.php';
-if ( file_exists( $vendor_autoload ) ) {
+if (file_exists($vendor_autoload)) {
 	require_once $vendor_autoload;
 }
 
@@ -34,12 +34,9 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-productscra
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-seo-assistant.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-content-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/api/class-keyword-research.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-voice-search.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-productscraper-social-optimizer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-schema-generator.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-roi-tracker.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-redirect-manager.php';
-require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/analytics/class-rank-tracker.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-onpage-analyzer.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-local-seo.php';
 require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/seo/class-international-seo.php';
@@ -61,7 +58,8 @@ require_once PRODUCT_SCRAPER_PLUGIN_PATH . 'includes/scraper/class-firecrawl-int
  *
  * @phpcs:disable WordPress.Files.FileName.InvalidClassFileName -- Main plugin file must retain its slugged filename.
  */
-class ProductScraper {
+class ProductScraper
+{
 
 	/**
 	 * Data storage handler.
@@ -150,17 +148,18 @@ class ProductScraper {
 	/**
 	 * Bootstrap plugin services and hooks.
 	 */
-	public function __construct() {
-		$this->storage           = new ProductScraperDataStorage();
-		$this->analytics         = new ProductScraperAnalytics();
-		$this->seo_assistant     = new ProductScraper_SEO_Assistant();
+	public function __construct()
+	{
+		$this->storage = new ProductScraperDataStorage();
+		$this->analytics = new ProductScraperAnalytics();
+		$this->seo_assistant = new ProductScraper_SEO_Assistant();
 		$this->content_optimizer = new ProductScraper_Content_Optimizer();
-		$this->keyword_research  = new ProductScraper_Keyword_Research();
-		$this->api_integrations  = new ProductScraper_API_Integrations();
-		$this->seo_analysis      = new ProductScraper_SEO_Analysis();
-		$this->link_manager      = new ProductScraper_Link_Manager();
-		$this->robots_manager    = new ProductScraper_Robots_Txt();
-		$this->chart_manager     = new ProductScraper_Chart_Manager();
+		$this->keyword_research = new ProductScraper_Keyword_Research();
+		$this->api_integrations = new ProductScraper_API_Integrations();
+		$this->seo_analysis = new ProductScraper_SEO_Analysis();
+		$this->link_manager = new ProductScraper_Link_Manager();
+		$this->robots_manager = new ProductScraper_Robots_Txt();
+		$this->chart_manager = new ProductScraper_Chart_Manager();
 
 		// Initialize AI services
 		$this->ai_content_writer = new ProductScraper_AI_Content_Writer();
@@ -170,19 +169,19 @@ class ProductScraper {
 		$this->firecrawl = new ProductScraper_Firecrawl_Integration();
 
 		// Core SEO hooks.
-		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'wp_head', array( $this, 'output_seo_meta_tags' ) );
-		add_action( 'template_redirect', array( $this, 'canonical_redirects' ) );
+		add_action('init', array($this, 'init'));
+		add_action('wp_head', array($this, 'output_seo_meta_tags'));
+		add_action('template_redirect', array($this, 'canonical_redirects'));
 
 		// Admin hooks.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+		add_action('admin_init', array($this, 'register_settings'));
 
 		// XML Sitemaps.
-		add_action( 'init', array( $this, 'setup_sitemaps' ) );
+		add_action('init', array($this, 'setup_sitemaps'));
 
 		// REST API.
-		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		add_action('rest_api_init', array($this, 'register_rest_routes'));
 
 		// Add AI-specific hooks.
 		add_action('wp_ajax_generate_ai_content', array($this, 'ajax_generate_ai_content'));
@@ -195,8 +194,9 @@ class ProductScraper {
 	 *
 	 * @return void
 	 */
-	public function init() {
-		if ( is_admin() ) {
+	public function init()
+	{
+		if (is_admin()) {
 			new ProductScraperAdmin();
 		}
 
@@ -209,20 +209,21 @@ class ProductScraper {
 	 *
 	 * @return void
 	 */
-	public function setup_seo_features() {
+	public function setup_seo_features()
+	{
 		// Remove other SEO plugins' meta boxes to avoid conflicts.
-		if ( is_admin() ) {
-			add_action( 'add_meta_boxes', array( $this, 'remove_other_seo_meta_boxes' ), 100 );
+		if (is_admin()) {
+			add_action('add_meta_boxes', array($this, 'remove_other_seo_meta_boxes'), 100);
 		}
 
 		// Add Open Graph meta tags.
-		add_action( 'wp_head', array( $this, 'add_opengraph_meta' ), 5 );
+		add_action('wp_head', array($this, 'add_opengraph_meta'), 5);
 
 		// Add Twitter Card meta tags.
-		add_action( 'wp_head', array( $this, 'add_twitter_card_meta' ), 5 );
+		add_action('wp_head', array($this, 'add_twitter_card_meta'), 5);
 
 		// Add JSON-LD structured data.
-		add_action( 'wp_head', array( $this, 'add_structured_data' ), 10 );
+		add_action('wp_head', array($this, 'add_structured_data'), 10);
 	}
 
 	/**
@@ -230,15 +231,16 @@ class ProductScraper {
 	 *
 	 * @return void
 	 */
-	public function remove_other_seo_meta_boxes() {
+	public function remove_other_seo_meta_boxes()
+	{
 		// Remove Yoast SEO meta box.
-		remove_meta_box( 'wpseo_meta', get_post_types(), 'normal' );
+		remove_meta_box('wpseo_meta', get_post_types(), 'normal');
 
 		// Remove Rank Math meta box.
-		remove_meta_box( 'rank_math_metabox', get_post_types(), 'normal' );
+		remove_meta_box('rank_math_metabox', get_post_types(), 'normal');
 
 		// Remove All in One SEO meta box.
-		remove_meta_box( 'aioseo-settings', get_post_types(), 'normal' );
+		remove_meta_box('aioseo-settings', get_post_types(), 'normal');
 	}
 
 	/**
@@ -246,18 +248,19 @@ class ProductScraper {
 	 *
 	 * @return void
 	 */
-	public function output_seo_meta_tags() {
-		if ( is_singular() ) {
+	public function output_seo_meta_tags()
+	{
+		if (is_singular()) {
 			$this->output_singular_meta_tags();
-		} elseif ( is_tax() || is_category() || is_tag() ) {
+		} elseif (is_tax() || is_category() || is_tag()) {
 			$this->output_taxonomy_meta_tags();
-		} elseif ( is_author() ) {
+		} elseif (is_author()) {
 			$this->output_author_meta_tags();
-		} elseif ( is_home() || is_front_page() ) {
+		} elseif (is_home() || is_front_page()) {
 			$this->output_homepage_meta_tags();
-		} elseif ( is_search() ) {
+		} elseif (is_search()) {
 			$this->output_search_meta_tags();
-		} elseif ( is_archive() ) {
+		} elseif (is_archive()) {
 			$this->output_archive_meta_tags();
 		}
 	}
@@ -267,115 +270,117 @@ class ProductScraper {
 	 *
 	 * @return void
 	 */
-	public function output_singular_meta_tags() {
+	public function output_singular_meta_tags()
+	{
 		global $post;
 
-		if ( ! $post ) {
+		if (!$post) {
 			return;
 		}
 
-		$seo_title        = get_post_meta( $post->ID, '_seo_title', true );
-		$meta_description = get_post_meta( $post->ID, '_meta_description', true );
-		$canonical_url    = get_post_meta( $post->ID, '_canonical_url', true );
-		$meta_robots      = get_post_meta( $post->ID, '_meta_robots', true );
+		$seo_title = get_post_meta($post->ID, '_seo_title', true);
+		$meta_description = get_post_meta($post->ID, '_meta_description', true);
+		$canonical_url = get_post_meta($post->ID, '_canonical_url', true);
+		$meta_robots = get_post_meta($post->ID, '_meta_robots', true);
 
 		// Title tag.
-		if ( ! empty( $seo_title ) ) {
-			echo '<title>' . esc_html( $seo_title ) . '</title>' . "\n";
+		if (!empty($seo_title)) {
+			echo '<title>' . esc_html($seo_title) . '</title>' . "\n";
 		} else {
-			echo '<title>' . esc_html( get_the_title() ) . ' | ' . esc_html( get_bloginfo( 'name' ) ) . '</title>' . "\n";
+			echo '<title>' . esc_html(get_the_title()) . ' | ' . esc_html(get_bloginfo('name')) . '</title>' . "\n";
 		}
 
 		// Meta description.
-		if ( ! empty( $meta_description ) ) {
-			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
-		} elseif ( $post->post_excerpt ) {
-			echo '<meta name="description" content="' . esc_attr( wp_trim_words( $post->post_excerpt, 25 ) ) . '" />' . "\n";
+		if (!empty($meta_description)) {
+			echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+		} elseif ($post->post_excerpt) {
+			echo '<meta name="description" content="' . esc_attr(wp_trim_words($post->post_excerpt, 25)) . '" />' . "\n";
 		} else {
-			echo '<meta name="description" content="' . esc_attr( wp_trim_words( wp_strip_all_tags( $post->post_content ), 25 ) ) . '" />' . "\n";
+			echo '<meta name="description" content="' . esc_attr(wp_trim_words(wp_strip_all_tags($post->post_content), 25)) . '" />' . "\n";
 		}
 
 		// Canonical URL.
-		if ( ! empty( $canonical_url ) ) {
-			echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
+		if (!empty($canonical_url)) {
+			echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
 		} else {
-			echo '<link rel="canonical" href="' . esc_url( get_permalink( $post->ID ) ) . '" />' . "\n";
+			echo '<link rel="canonical" href="' . esc_url(get_permalink($post->ID)) . '" />' . "\n";
 		}
 
 		// Meta robots.
-		if ( ! empty( $meta_robots ) ) {
-			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
+		if (!empty($meta_robots)) {
+			echo '<meta name="robots" content="' . esc_attr($meta_robots) . '" />' . "\n";
 		}
 	}
 
 	/**
 	 * Output meta tags for taxonomy pages (categories, tags, custom taxonomies)
 	 */
-	public function output_taxonomy_meta_tags() {
+	public function output_taxonomy_meta_tags()
+	{
 		$term = get_queried_object();
 
-		if ( ! $term || ! isset( $term->term_id ) ) {
+		if (!$term || !isset($term->term_id)) {
 			return;
 		}
 
-		$term_id  = $term->term_id;
+		$term_id = $term->term_id;
 		$taxonomy = $term->taxonomy;
 
 		// Get SEO meta from term meta.
-		$seo_title        = get_term_meta( $term_id, '_seo_title', true );
-		$meta_description = get_term_meta( $term_id, '_meta_description', true );
-		$canonical_url    = get_term_meta( $term_id, '_canonical_url', true );
-		$meta_robots      = get_term_meta( $term_id, '_meta_robots', true );
+		$seo_title = get_term_meta($term_id, '_seo_title', true);
+		$meta_description = get_term_meta($term_id, '_meta_description', true);
+		$canonical_url = get_term_meta($term_id, '_canonical_url', true);
+		$meta_robots = get_term_meta($term_id, '_meta_robots', true);
 
 		// Generate title.
-		if ( ! empty( $seo_title ) ) {
+		if (!empty($seo_title)) {
 			$title = $seo_title;
 		} else {
-			$title_parts = array( $term->name );
+			$title_parts = array($term->name);
 
-			if ( is_category() ) {
-				$title_parts[] = __( 'Category', 'product-scraper' );
-			} elseif ( is_tag() ) {
-				$title_parts[] = __( 'Tag', 'product-scraper' );
+			if (is_category()) {
+				$title_parts[] = __('Category', 'product-scraper');
+			} elseif (is_tag()) {
+				$title_parts[] = __('Tag', 'product-scraper');
 			} else {
-				$taxonomy_obj = get_taxonomy( $taxonomy );
-				if ( $taxonomy_obj && ! empty( $taxonomy_obj->labels->singular_name ) ) {
+				$taxonomy_obj = get_taxonomy($taxonomy);
+				if ($taxonomy_obj && !empty($taxonomy_obj->labels->singular_name)) {
 					$title_parts[] = $taxonomy_obj->labels->singular_name;
 				}
 			}
-			$title_parts[] = get_bloginfo( 'name' );
+			$title_parts[] = get_bloginfo('name');
 
-			$title = implode( ' | ', array_filter( $title_parts ) );
+			$title = implode(' | ', array_filter($title_parts));
 		}
 
-		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
+		echo '<title>' . esc_html($title) . '</title>' . "\n";
 
 		// Meta description.
-		if ( ! empty( $meta_description ) ) {
-			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
-		} elseif ( ! empty( $term->description ) ) {
-			echo '<meta name="description" content="' . esc_attr( wp_trim_words( $term->description, 25 ) ) . '" />' . "\n";
+		if (!empty($meta_description)) {
+			echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+		} elseif (!empty($term->description)) {
+			echo '<meta name="description" content="' . esc_attr(wp_trim_words($term->description, 25)) . '" />' . "\n";
 		} else {
 			$default_description = sprintf(
 				/* translators: 1: taxonomy term name, 2: taxonomy term name. */
-				__( 'Browse our collection of %1$s. Find the best products and content related to %2$s.', 'product-scraper' ),
+				__('Browse our collection of %1$s. Find the best products and content related to %2$s.', 'product-scraper'),
 				$term->name,
 				$term->name
 			);
-			echo '<meta name="description" content="' . esc_attr( $default_description ) . '" />' . "\n";
+			echo '<meta name="description" content="' . esc_attr($default_description) . '" />' . "\n";
 		}
 
 		// Canonical URL.
-		if ( ! empty( $canonical_url ) ) {
-			echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
+		if (!empty($canonical_url)) {
+			echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
 		} else {
-			echo '<link rel="canonical" href="' . esc_url( get_term_link( $term ) ) . '" />' . "\n";
+			echo '<link rel="canonical" href="' . esc_url(get_term_link($term)) . '" />' . "\n";
 		}
 
 		// Meta robots.
-		if ( ! empty( $meta_robots ) ) {
-			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
-		} elseif ( $this->is_paginated_archive() ) {
+		if (!empty($meta_robots)) {
+			echo '<meta name="robots" content="' . esc_attr($meta_robots) . '" />' . "\n";
+		} elseif ($this->is_paginated_archive()) {
 			// Default for taxonomy pages - index, follow unless paginated.
 			echo '<meta name="robots" content="noindex, follow" />' . "\n";
 		} else {
@@ -383,48 +388,49 @@ class ProductScraper {
 		}
 
 		// Prevent pagination duplication.
-		if ( $this->is_paginated_archive() ) {
-			$this->output_pagination_meta( $term );
+		if ($this->is_paginated_archive()) {
+			$this->output_pagination_meta($term);
 		}
 	}
 
 	/**
 	 * Output meta tags for author pages
 	 */
-	public function output_author_meta_tags() {
+	public function output_author_meta_tags()
+	{
 		$author_id = get_queried_object_id();
-		$author    = get_queried_object();
+		$author = get_queried_object();
 
-		if ( ! $author ) {
+		if (!$author) {
 			return;
 		}
 
 		// Get SEO meta from user meta.
-		$seo_title        = get_user_meta( $author_id, '_seo_title', true );
-		$meta_description = get_user_meta( $author_id, '_meta_description', true );
-		$canonical_url    = get_user_meta( $author_id, '_canonical_url', true );
-		$meta_robots      = get_user_meta( $author_id, '_meta_robots', true );
+		$seo_title = get_user_meta($author_id, '_seo_title', true);
+		$meta_description = get_user_meta($author_id, '_meta_description', true);
+		$canonical_url = get_user_meta($author_id, '_canonical_url', true);
+		$meta_robots = get_user_meta($author_id, '_meta_robots', true);
 
 		// Generate title.
-		if ( ! empty( $seo_title ) ) {
+		if (!empty($seo_title)) {
 			$title = $seo_title;
 		} else {
 			$author_title_parts = array(
 				$author->display_name,
-				__( 'Author', 'product-scraper' ),
-				get_bloginfo( 'name' ),
+				__('Author', 'product-scraper'),
+				get_bloginfo('name'),
 			);
-			$title              = implode( ' | ', array_filter( $author_title_parts ) );
+			$title = implode(' | ', array_filter($author_title_parts));
 		}
-		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
+		echo '<title>' . esc_html($title) . '</title>' . "\n";
 
 		// Meta description.
-		if ( ! empty( $meta_description ) ) {
-			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
-		} elseif ( ! empty( $author->description ) ) {
-			echo '<meta name="description" content="' . esc_attr( wp_trim_words( $author->description, 25 ) ) . '" />' . "\n";
+		if (!empty($meta_description)) {
+			echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+		} elseif (!empty($author->description)) {
+			echo '<meta name="description" content="' . esc_attr(wp_trim_words($author->description, 25)) . '" />' . "\n";
 		} else {
-			$post_count          = count_user_posts( $author_id );
+			$post_count = count_user_posts($author_id);
 			$default_description = sprintf(
 				/* translators: 1: post count, 2: author display name, 3: author display name, 4: site name. */
 				_n(
@@ -436,22 +442,22 @@ class ProductScraper {
 				$post_count,
 				$author->display_name,
 				$author->display_name,
-				get_bloginfo( 'name' )
+				get_bloginfo('name')
 			);
-			echo '<meta name="description" content="' . esc_attr( $default_description ) . '" />' . "\n";
+			echo '<meta name="description" content="' . esc_attr($default_description) . '" />' . "\n";
 		}
 
 		// Canonical URL.
-		if ( ! empty( $canonical_url ) ) {
-			echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
+		if (!empty($canonical_url)) {
+			echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
 		} else {
-			echo '<link rel="canonical" href="' . esc_url( get_author_posts_url( $author_id ) ) . '" />' . "\n";
+			echo '<link rel="canonical" href="' . esc_url(get_author_posts_url($author_id)) . '" />' . "\n";
 		}
 
 		// Meta robots.
-		if ( ! empty( $meta_robots ) ) {
-			echo '<meta name="robots" content="' . esc_attr( $meta_robots ) . '" />' . "\n";
-		} elseif ( $this->is_paginated_archive() ) {
+		if (!empty($meta_robots)) {
+			echo '<meta name="robots" content="' . esc_attr($meta_robots) . '" />' . "\n";
+		} elseif ($this->is_paginated_archive()) {
 			// Default for author pages - index, follow unless paginated.
 			echo '<meta name="robots" content="noindex, follow" />' . "\n";
 		} else {
@@ -459,35 +465,36 @@ class ProductScraper {
 		}
 
 		// Prevent pagination duplication.
-		if ( $this->is_paginated_archive() ) {
-			$this->output_pagination_meta( $author );
+		if ($this->is_paginated_archive()) {
+			$this->output_pagination_meta($author);
 		}
 	}
 
 	/**
 	 * Output meta tags for homepage
 	 */
-	public function output_homepage_meta_tags() {
-		$seo_title        = get_option( 'product_scraper_homepage_title' );
-		$meta_description = get_option( 'product_scraper_homepage_description' );
-		$canonical_url    = home_url( '/' );
+	public function output_homepage_meta_tags()
+	{
+		$seo_title = get_option('product_scraper_homepage_title');
+		$meta_description = get_option('product_scraper_homepage_description');
+		$canonical_url = home_url('/');
 
 		// Title tag.
-		if ( ! empty( $seo_title ) ) {
-			echo '<title>' . esc_html( $seo_title ) . '</title>' . "\n";
+		if (!empty($seo_title)) {
+			echo '<title>' . esc_html($seo_title) . '</title>' . "\n";
 		} else {
-			echo '<title>' . esc_html( get_bloginfo( 'name' ) ) . ' | ' . esc_html( get_bloginfo( 'description' ) ) . '</title>' . "\n";
+			echo '<title>' . esc_html(get_bloginfo('name')) . ' | ' . esc_html(get_bloginfo('description')) . '</title>' . "\n";
 		}
 
 		// Meta description.
-		if ( ! empty( $meta_description ) ) {
-			echo '<meta name="description" content="' . esc_attr( $meta_description ) . '" />' . "\n";
-		} elseif ( ! empty( get_bloginfo( 'description' ) ) ) {
-			echo '<meta name="description" content="' . esc_attr( get_bloginfo( 'description' ) ) . '" />' . "\n";
+		if (!empty($meta_description)) {
+			echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+		} elseif (!empty(get_bloginfo('description'))) {
+			echo '<meta name="description" content="' . esc_attr(get_bloginfo('description')) . '" />' . "\n";
 		}
 
 		// Canonical URL.
-		echo '<link rel="canonical" href="' . esc_url( $canonical_url ) . '" />' . "\n";
+		echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
 
 		// Meta robots.
 		echo '<meta name="robots" content="index, follow" />' . "\n";
@@ -496,28 +503,29 @@ class ProductScraper {
 	/**
 	 * Output meta tags for search results
 	 */
-	public function output_search_meta_tags() {
+	public function output_search_meta_tags()
+	{
 		$search_query = get_search_query();
 
 		$title = sprintf(
 			// translators: 1: search query, 2: site name.
-			__( 'Search Results for: "%1$s" | %2$s', 'product-scraper' ),
+			__('Search Results for: "%1$s" | %2$s', 'product-scraper'),
 			$search_query,
-			get_bloginfo( 'name' )
+			get_bloginfo('name')
 		);
 
 		$description = sprintf(
 			// translators: 1: search query, 2: site name.
-			__( 'Search results for "%1$s". Find relevant content and products on %2$s.', 'product-scraper' ),
+			__('Search results for "%1$s". Find relevant content and products on %2$s.', 'product-scraper'),
 			$search_query,
-			get_bloginfo( 'name' )
+			get_bloginfo('name')
 		);
 
-		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
+		echo '<title>' . esc_html($title) . '</title>' . "\n";
 
-		echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
+		echo '<meta name="description" content="' . esc_attr($description) . '" />' . "\n";
 
-		echo '<link rel="canonical" href="' . esc_url( get_search_link() ) . '" />' . "\n";
+		echo '<link rel="canonical" href="' . esc_url(get_search_link()) . '" />' . "\n";
 
 		// Typically noindex search results to avoid duplicate content.
 		echo '<meta name="robots" content="noindex, follow" />' . "\n";
@@ -526,16 +534,17 @@ class ProductScraper {
 	/**
 	 * Output meta tags for general archive pages
 	 */
-	public function output_archive_meta_tags() {
-		if ( is_date() ) {
+	public function output_archive_meta_tags()
+	{
+		if (is_date()) {
 			$this->output_date_archive_meta_tags();
 		} else {
 			// Fallback for other archive types.
-			echo '<title>' . esc_html( get_the_archive_title() ) . ' | ' . esc_html( get_bloginfo( 'name' ) ) . '</title>' . "\n";
-			echo '<meta name="description" content="' . esc_attr( wp_trim_words( get_the_archive_description(), 25 ) ) . '" />' . "\n";
-			echo '<link rel="canonical" href="' . esc_url( get_pagenum_link() ) . '" />' . "\n";
+			echo '<title>' . esc_html(get_the_archive_title()) . ' | ' . esc_html(get_bloginfo('name')) . '</title>' . "\n";
+			echo '<meta name="description" content="' . esc_attr(wp_trim_words(get_the_archive_description(), 25)) . '" />' . "\n";
+			echo '<link rel="canonical" href="' . esc_url(get_pagenum_link()) . '" />' . "\n";
 
-			if ( $this->is_paginated_archive() ) {
+			if ($this->is_paginated_archive()) {
 				echo '<meta name="robots" content="noindex, follow" />' . "\n";
 			} else {
 				echo '<meta name="robots" content="index, follow" />' . "\n";
@@ -546,51 +555,52 @@ class ProductScraper {
 	/**
 	 * Output meta tags for date-based archives
 	 */
-	public function output_date_archive_meta_tags() {
-		if ( is_year() ) {
+	public function output_date_archive_meta_tags()
+	{
+		if (is_year()) {
 			$title = sprintf(
 				// translators: 1: year, 2: site name.
-				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
-				get_the_date( 'Y' ),
-				get_bloginfo( 'name' )
+				__('Posts from %1$s | %2$s', 'product-scraper'),
+				get_the_date('Y'),
+				get_bloginfo('name')
 			);
 			$description = sprintf(
 				// translators: 1: year, 2: site name.
-				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
-				get_the_date( 'Y' ),
-				get_bloginfo( 'name' )
+				__('Browse all posts from %1$s on %2$s.', 'product-scraper'),
+				get_the_date('Y'),
+				get_bloginfo('name')
 			);
-		} elseif ( is_month() ) {
+		} elseif (is_month()) {
 			$title = sprintf(
 				// translators: 1: month and year, 2: site name.
-				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
-				get_the_date( 'F Y' ),
-				get_bloginfo( 'name' )
+				__('Posts from %1$s | %2$s', 'product-scraper'),
+				get_the_date('F Y'),
+				get_bloginfo('name')
 			);
 			$description = sprintf(
 				// translators: 1: month and year, 2: site name.
-				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
-				get_the_date( 'F Y' ),
-				get_bloginfo( 'name' )
+				__('Browse all posts from %1$s on %2$s.', 'product-scraper'),
+				get_the_date('F Y'),
+				get_bloginfo('name')
 			);
-		} elseif ( is_day() ) {
+		} elseif (is_day()) {
 			$title = sprintf(
 				// translators: 1: date, 2: site name.
-				__( 'Posts from %1$s | %2$s', 'product-scraper' ),
+				__('Posts from %1$s | %2$s', 'product-scraper'),
 				get_the_date(),
-				get_bloginfo( 'name' )
+				get_bloginfo('name')
 			);
 			$description = sprintf(
 				// translators: 1: date, 2: site name.
-				__( 'Browse all posts from %1$s on %2$s.', 'product-scraper' ),
+				__('Browse all posts from %1$s on %2$s.', 'product-scraper'),
 				get_the_date(),
-				get_bloginfo( 'name' )
+				get_bloginfo('name')
 			);
 		}
 
-		echo '<title>' . esc_html( $title ) . '</title>' . "\n";
-		echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
-		echo '<link rel="canonical" href="' . esc_url( get_pagenum_link() ) . '" />' . "\n";
+		echo '<title>' . esc_html($title) . '</title>' . "\n";
+		echo '<meta name="description" content="' . esc_attr($description) . '" />' . "\n";
+		echo '<link rel="canonical" href="' . esc_url(get_pagenum_link()) . '" />' . "\n";
 
 		// Typically noindex date archives to avoid thin content.
 		echo '<meta name="robots" content="noindex, follow" />' . "\n";
@@ -601,25 +611,26 @@ class ProductScraper {
 	 *
 	 * @param WP_Post|WP_Term|null $pagination_object Optional object context.
 	 */
-	private function output_pagination_meta( $pagination_object = null ) {
+	private function output_pagination_meta($pagination_object = null)
+	{
 		global $wp_query;
 
-		unset( $pagination_object );
+		unset($pagination_object);
 
-		$paged = get_query_var( 'paged' );
-		if ( ! $paged ) {
+		$paged = get_query_var('paged');
+		if (!$paged) {
 			$paged = 1;
 		}
 
-		if ( $paged > 1 ) {
+		if ($paged > 1) {
 			// Prev link.
-			if ( $paged > 1 ) {
-				echo '<link rel="prev" href="' . esc_url( get_pagenum_link( $paged - 1 ) ) . '" />' . "\n";
+			if ($paged > 1) {
+				echo '<link rel="prev" href="' . esc_url(get_pagenum_link($paged - 1)) . '" />' . "\n";
 			}
 
 			// Next link.
-			if ( $paged < $wp_query->max_num_pages ) {
-				echo '<link rel="next" href="' . esc_url( get_pagenum_link( $paged + 1 ) ) . '" />' . "\n";
+			if ($paged < $wp_query->max_num_pages) {
+				echo '<link rel="next" href="' . esc_url(get_pagenum_link($paged + 1)) . '" />' . "\n";
 			}
 		}
 	}
@@ -627,170 +638,176 @@ class ProductScraper {
 	/**
 	 * Check if current page is a paginated archive
 	 */
-	private function is_paginated_archive() {
+	private function is_paginated_archive()
+	{
 		global $wp_query;
-		return $wp_query->is_paged && ( $wp_query->is_archive() || $wp_query->is_home() || $wp_query->is_search() );
+		return $wp_query->is_paged && ($wp_query->is_archive() || $wp_query->is_home() || $wp_query->is_search());
 	}
 
 	/**
 	 * Add Open Graph tags for singular content.
 	 */
-	public function add_opengraph_meta() {
-		if ( ! is_singular() ) {
+	public function add_opengraph_meta()
+	{
+		if (!is_singular()) {
 			return;
 		}
 
 		global $post;
 
-		$og_title = get_post_meta( $post->ID, '_og_title', true );
-		if ( '' === $og_title ) {
+		$og_title = get_post_meta($post->ID, '_og_title', true);
+		if ('' === $og_title) {
 			$og_title = get_the_title();
 		}
 
-		$og_description = get_post_meta( $post->ID, '_og_description', true );
-		if ( '' === $og_description ) {
-			$og_description = wp_trim_words( get_the_excerpt(), 25 );
+		$og_description = get_post_meta($post->ID, '_og_description', true);
+		if ('' === $og_description) {
+			$og_description = wp_trim_words(get_the_excerpt(), 25);
 		}
-		$og_image = get_post_meta( $post->ID, '_og_image', true );
+		$og_image = get_post_meta($post->ID, '_og_image', true);
 
 		echo '<!-- Product Scraper Open Graph -->' . "\n";
 		echo '<meta property="og:type" content="article" />' . "\n";
-		echo '<meta property="og:title" content="' . esc_attr( $og_title ) . '" />' . "\n";
-		echo '<meta property="og:description" content="' . esc_attr( $og_description ) . '" />' . "\n";
-		echo '<meta property="og:url" content="' . esc_url( get_permalink() ) . '" />' . "\n";
-		echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '" />' . "\n";
+		echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
+		echo '<meta property="og:description" content="' . esc_attr($og_description) . '" />' . "\n";
+		echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '" />' . "\n";
+		echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
 
-		if ( $og_image ) {
-			echo '<meta property="og:image" content="' . esc_url( $og_image ) . '" />' . "\n";
-		} elseif ( has_post_thumbnail( $post->ID ) ) {
-			$image_url = wp_get_attachment_image_url( get_post_thumbnail_id( $post->ID ), 'large' );
-			echo '<meta property="og:image" content="' . esc_url( $image_url ) . '" />' . "\n";
+		if ($og_image) {
+			echo '<meta property="og:image" content="' . esc_url($og_image) . '" />' . "\n";
+		} elseif (has_post_thumbnail($post->ID)) {
+			$image_url = wp_get_attachment_image_url(get_post_thumbnail_id($post->ID), 'large');
+			echo '<meta property="og:image" content="' . esc_url($image_url) . '" />' . "\n";
 		}
 	}
 
 	/**
 	 * Add Open Graph meta tags for taxonomy pages
 	 */
-	public function add_taxonomy_opengraph_meta() {
-		if ( ! is_tax() && ! is_category() && ! is_tag() ) {
+	public function add_taxonomy_opengraph_meta()
+	{
+		if (!is_tax() && !is_category() && !is_tag()) {
 			return;
 		}
 
 		$term = get_queried_object();
-		if ( ! $term ) {
+		if (!$term) {
 			return;
 		}
 
-		$og_title = get_term_meta( $term->term_id, '_og_title', true );
-		if ( '' === $og_title ) {
+		$og_title = get_term_meta($term->term_id, '_og_title', true);
+		if ('' === $og_title) {
 			$og_title = $term->name;
 		}
 
-		$og_description = get_term_meta( $term->term_id, '_og_description', true );
-		if ( '' === $og_description ) {
-			$og_description = wp_trim_words( $term->description, 25 );
+		$og_description = get_term_meta($term->term_id, '_og_description', true);
+		if ('' === $og_description) {
+			$og_description = wp_trim_words($term->description, 25);
 		}
-		$og_image = get_term_meta( $term->term_id, '_og_image', true );
+		$og_image = get_term_meta($term->term_id, '_og_image', true);
 
 		echo '<!-- Product Scraper Taxonomy Open Graph -->' . "\n";
 		echo '<meta property="og:type" content="website" />' . "\n";
-		echo '<meta property="og:title" content="' . esc_attr( $og_title ) . '" />' . "\n";
-		echo '<meta property="og:description" content="' . esc_attr( $og_description ) . '" />' . "\n";
-		echo '<meta property="og:url" content="' . esc_url( get_term_link( $term ) ) . '" />' . "\n";
-		echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '" />' . "\n";
+		echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
+		echo '<meta property="og:description" content="' . esc_attr($og_description) . '" />' . "\n";
+		echo '<meta property="og:url" content="' . esc_url(get_term_link($term)) . '" />' . "\n";
+		echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
 
-		if ( $og_image ) {
-			echo '<meta property="og:image" content="' . esc_url( $og_image ) . '" />' . "\n";
+		if ($og_image) {
+			echo '<meta property="og:image" content="' . esc_url($og_image) . '" />' . "\n";
 		}
 	}
 
 	/**
 	 * Add Open Graph meta tags for author pages
 	 */
-	public function add_author_opengraph_meta() {
-		if ( ! is_author() ) {
+	public function add_author_opengraph_meta()
+	{
+		if (!is_author()) {
 			return;
 		}
 
 		$author_id = get_queried_object_id();
-		$author    = get_queried_object();
+		$author = get_queried_object();
 
-		$og_title = get_user_meta( $author_id, '_og_title', true );
-		if ( '' === $og_title ) {
+		$og_title = get_user_meta($author_id, '_og_title', true);
+		if ('' === $og_title) {
 			$og_title = $author->display_name;
 		}
 
-		$og_description = get_user_meta( $author_id, '_og_description', true );
-		if ( '' === $og_description ) {
-			$og_description = wp_trim_words( $author->description, 25 );
+		$og_description = get_user_meta($author_id, '_og_description', true);
+		if ('' === $og_description) {
+			$og_description = wp_trim_words($author->description, 25);
 		}
-		$og_image = get_user_meta( $author_id, '_og_image', true );
+		$og_image = get_user_meta($author_id, '_og_image', true);
 
 		echo '<!-- Product Scraper Author Open Graph -->' . "\n";
 		echo '<meta property="og:type" content="profile" />' . "\n";
-		echo '<meta property="og:title" content="' . esc_attr( $og_title ) . '" />' . "\n";
-		echo '<meta property="og:description" content="' . esc_attr( $og_description ) . '" />' . "\n";
-		echo '<meta property="og:url" content="' . esc_url( get_author_posts_url( $author_id ) ) . '" />' . "\n";
-		echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '" />' . "\n";
-		echo '<meta property="profile:username" content="' . esc_attr( $author->user_login ) . '" />' . "\n";
+		echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
+		echo '<meta property="og:description" content="' . esc_attr($og_description) . '" />' . "\n";
+		echo '<meta property="og:url" content="' . esc_url(get_author_posts_url($author_id)) . '" />' . "\n";
+		echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
+		echo '<meta property="profile:username" content="' . esc_attr($author->user_login) . '" />' . "\n";
 
-		if ( $og_image ) {
-			echo '<meta property="og:image" content="' . esc_url( $og_image ) . '" />' . "\n";
-		} elseif ( function_exists( 'get_avatar_url' ) ) {
-			$avatar_url = get_avatar_url( $author_id, array( 'size' => 300 ) );
-			echo '<meta property="og:image" content="' . esc_url( $avatar_url ) . '" />' . "\n";
+		if ($og_image) {
+			echo '<meta property="og:image" content="' . esc_url($og_image) . '" />' . "\n";
+		} elseif (function_exists('get_avatar_url')) {
+			$avatar_url = get_avatar_url($author_id, array('size' => 300));
+			echo '<meta property="og:image" content="' . esc_url($avatar_url) . '" />' . "\n";
 		}
 	}
 
 	/**
 	 * Output Twitter Card meta tags for singular content.
 	 */
-	public function add_twitter_card_meta() {
-		if ( ! is_singular() ) {
+	public function add_twitter_card_meta()
+	{
+		if (!is_singular()) {
 			return;
 		}
 
 		global $post;
 
-		$twitter_title = get_post_meta( $post->ID, '_twitter_title', true );
-		if ( '' === $twitter_title ) {
+		$twitter_title = get_post_meta($post->ID, '_twitter_title', true);
+		if ('' === $twitter_title) {
 			$twitter_title = get_the_title();
 		}
 
-		$twitter_description = get_post_meta( $post->ID, '_twitter_description', true );
-		if ( '' === $twitter_description ) {
-			$twitter_description = wp_trim_words( get_the_excerpt(), 25 );
+		$twitter_description = get_post_meta($post->ID, '_twitter_description', true);
+		if ('' === $twitter_description) {
+			$twitter_description = wp_trim_words(get_the_excerpt(), 25);
 		}
-		$twitter_image = get_post_meta( $post->ID, '_twitter_image', true );
+		$twitter_image = get_post_meta($post->ID, '_twitter_image', true);
 
 		echo '<!-- Product Scraper Twitter Card -->' . "\n";
 		echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
-		echo '<meta name="twitter:title" content="' . esc_attr( $twitter_title ) . '" />' . "\n";
-		echo '<meta name="twitter:description" content="' . esc_attr( $twitter_description ) . '" />' . "\n";
+		echo '<meta name="twitter:title" content="' . esc_attr($twitter_title) . '" />' . "\n";
+		echo '<meta name="twitter:description" content="' . esc_attr($twitter_description) . '" />' . "\n";
 
-		if ( $twitter_image ) {
-			echo '<meta name="twitter:image" content="' . esc_url( $twitter_image ) . '" />' . "\n";
-		} elseif ( has_post_thumbnail( $post->ID ) ) {
-			$image_url = wp_get_attachment_image_url( get_post_thumbnail_id( $post->ID ), 'large' );
-			echo '<meta name="twitter:image" content="' . esc_url( $image_url ) . '" />' . "\n";
+		if ($twitter_image) {
+			echo '<meta name="twitter:image" content="' . esc_url($twitter_image) . '" />' . "\n";
+		} elseif (has_post_thumbnail($post->ID)) {
+			$image_url = wp_get_attachment_image_url(get_post_thumbnail_id($post->ID), 'large');
+			echo '<meta name="twitter:image" content="' . esc_url($image_url) . '" />' . "\n";
 		}
 	}
 
 	/**
 	 * Output appropriate structured data based on the current view.
 	 */
-	public function add_structured_data() {
-		if ( is_singular( 'product' ) && function_exists( 'wc_get_product' ) ) {
+	public function add_structured_data()
+	{
+		if (is_singular('product') && function_exists('wc_get_product')) {
 			$this->output_product_structured_data();
-		} elseif ( is_singular() ) {
+		} elseif (is_singular()) {
 			$this->output_article_structured_data();
-		} elseif ( is_tax() || is_category() || is_tag() ) {
+		} elseif (is_tax() || is_category() || is_tag()) {
 			$this->output_taxonomy_structured_data();
-		} elseif ( is_author() ) {
+		} elseif (is_author()) {
 			$this->output_author_structured_data();
 		}
 
-		if ( is_front_page() ) {
+		if (is_front_page()) {
 			$this->output_website_structured_data();
 		}
 	}
@@ -798,82 +815,87 @@ class ProductScraper {
 	/**
 	 * Output structured data for taxonomy pages
 	 */
-	private function output_taxonomy_structured_data() {
+	private function output_taxonomy_structured_data()
+	{
 		$term = get_queried_object();
-		if ( ! $term ) {
+		if (!$term) {
 			return;
 		}
 
 		$schema = array(
-			'@context'    => 'https://schema.org',
-			'@type'       => 'CollectionPage',
-			'name'        => $term->name,
-			'description' => wp_strip_all_tags( $term->description ),
-			'url'         => get_term_link( $term ),
+			'@context' => 'https://schema.org',
+			'@type' => 'CollectionPage',
+			'name' => $term->name,
+			'description' => wp_strip_all_tags($term->description),
+			'url' => get_term_link($term),
 		);
 
 		echo '<script type="application/ld+json">' .
-			wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+			wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) .
 			'</script>' . "\n";
 	}
 
 	/**
 	 * Output structured data for author pages
 	 */
-	private function output_author_structured_data() {
+	private function output_author_structured_data()
+	{
 		$author_id = get_queried_object_id();
-		$author    = get_queried_object();
+		$author = get_queried_object();
 
 		$schema = array(
-			'@context'    => 'https://schema.org',
-			'@type'       => 'ProfilePage',
-			'name'        => $author->display_name,
-			'description' => wp_strip_all_tags( $author->description ),
-			'url'         => get_author_posts_url( $author_id ),
-			'mainEntity'  => array(
-				'@type'       => 'Person',
-				'name'        => $author->display_name,
-				'description' => wp_strip_all_tags( $author->description ),
+			'@context' => 'https://schema.org',
+			'@type' => 'ProfilePage',
+			'name' => $author->display_name,
+			'description' => wp_strip_all_tags($author->description),
+			'url' => get_author_posts_url($author_id),
+			'mainEntity' => array(
+				'@type' => 'Person',
+				'name' => $author->display_name,
+				'description' => wp_strip_all_tags($author->description),
 			),
 		);
 
 		echo '<script type="application/ld+json">' .
-			wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+			wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) .
 			'</script>' . "\n";
 	}
 
 	/**
 	 * Enhance default WordPress sitemaps with SEO-related data.
 	 */
-	public function setup_sitemaps() {
-		add_filter( 'wp_sitemaps_add_provider', array( $this, 'enhance_sitemaps' ), 10, 2 );
-		add_filter( 'wp_sitemaps_posts_query_args', array( $this, 'enhance_posts_sitemap' ) );
-		add_filter( 'wp_sitemaps_taxonomies_query_args', array( $this, 'enhance_taxonomies_sitemap' ) );
+	public function setup_sitemaps()
+	{
+		add_filter('wp_sitemaps_add_provider', array($this, 'enhance_sitemaps'), 10, 2);
+		add_filter('wp_sitemaps_posts_query_args', array($this, 'enhance_posts_sitemap'));
+		add_filter('wp_sitemaps_taxonomies_query_args', array($this, 'enhance_taxonomies_sitemap'));
 	}
 
 	/**
 	 * Register plugin settings for various SEO features.
 	 */
-	public function register_settings() {
+	public function register_settings()
+	{
 		// Core SEO settings.
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_title_template' );
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_description_template' );
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_robots_default' );
+		register_setting('product_scraper_seo_settings', 'product_scraper_seo_title_template');
+		register_setting('product_scraper_seo_settings', 'product_scraper_seo_description_template');
+		register_setting('product_scraper_seo_settings', 'product_scraper_seo_robots_default');
 
 		// Social media settings.
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_facebook_app_id' );
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_twitter_site' );
+		register_setting('product_scraper_seo_settings', 'product_scraper_facebook_app_id');
+		register_setting('product_scraper_seo_settings', 'product_scraper_twitter_site');
 
 		// Analytics settings.
-		register_setting( 'product_scraper_settings', 'product_scraper_google_analytics_id' );
-		register_setting( 'product_scraper_settings', 'product_scraper_google_search_console' );
-		register_setting( 'product_scraper_settings', 'product_scraper_ga4_property_id' );
-		register_setting( 'product_scraper_settings', 'product_scraper_pagespeed_api' );
+		register_setting('product_scraper_settings', 'product_scraper_google_analytics_id');
+		register_setting('product_scraper_settings', 'product_scraper_google_search_console');
+		register_setting('product_scraper_settings', 'product_scraper_ga4_property_id');
+		register_setting('product_scraper_settings', 'product_scraper_pagespeed_api');
+		register_setting('product_scraper_settings', 'product_scraper_gtm_id');
 
 		// Advanced SEO settings.
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_breadcrumbs' );
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_schema' );
-		register_setting( 'product_scraper_seo_settings', 'product_scraper_seo_clean_permalinks' );
+		register_setting('product_scraper_seo_settings', 'product_scraper_seo_breadcrumbs');
+		register_setting('product_scraper_seo_settings', 'product_scraper_seo_schema');
+		register_setting('product_scraper_seo_settings', 'product_scraper_seo_clean_permalinks');
 
 		// AI Settings
 		register_setting('product_scraper_ai_settings', 'product_scraper_openai_api_key');
@@ -892,7 +914,8 @@ class ProductScraper {
 	 *
 	 * @param string $hook Current admin page hook suffix.
 	 */
-	public function enqueue_admin_scripts( $hook ) {
+	public function enqueue_admin_scripts($hook)
+	{
 		$plugin_pages = array(
 			'toplevel_page_scraper-analytics',
 			'scraper-analytics_page_scraper-keywords',
@@ -907,16 +930,16 @@ class ProductScraper {
 			'scraper-analytics_page_scraper-settings',
 		);
 
-		$is_plugin_page = in_array( $hook, $plugin_pages, true );
-		$is_post_edit   = in_array( $hook, array( 'post.php', 'post-new.php' ), true );
-		$is_tax_edit    = in_array( $hook, array( 'edit-tags.php', 'term.php' ), true );
+		$is_plugin_page = in_array($hook, $plugin_pages, true);
+		$is_post_edit = in_array($hook, array('post.php', 'post-new.php'), true);
+		$is_tax_edit = in_array($hook, array('edit-tags.php', 'term.php'), true);
 
-		if ( $is_plugin_page || $is_post_edit || $is_tax_edit ) {
+		if ($is_plugin_page || $is_post_edit || $is_tax_edit) {
 			// Enqueue lucide for icons.
 			wp_enqueue_script(
 				'lucide-js',
 				'https://unpkg.com/lucide@latest',
-				array( 'jquery' ),
+				array('jquery'),
 				PRODUCT_SCRAPER_VERSION,
 				true
 			);
@@ -934,7 +957,7 @@ class ProductScraper {
 			wp_enqueue_script(
 				'select2-js',
 				'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
-				array( 'jquery' ),
+				array('jquery'),
 				'4.1.0',
 				true
 			);
@@ -942,7 +965,7 @@ class ProductScraper {
 			wp_enqueue_script(
 				'product-scraper-charts-js',
 				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/js/product-scraper-charts.js',
-				array( 'jquery', 'chart-js', 'product-scraper-seo-admin-js' ),
+				array('jquery', 'chart-js', 'product-scraper-seo-admin-js'),
 				PRODUCT_SCRAPER_VERSION,
 				true
 			);
@@ -987,7 +1010,7 @@ class ProductScraper {
 			wp_enqueue_script(
 				'product-scraper-seo-admin-js',
 				PRODUCT_SCRAPER_PLUGIN_URL . 'assets/js/seo-admin.js',
-				array( 'jquery', 'wp-api', 'chart-js', 'select2-js' ),
+				array('jquery', 'wp-api', 'chart-js', 'select2-js'),
 				PRODUCT_SCRAPER_VERSION,
 				true
 			);
@@ -1000,20 +1023,20 @@ class ProductScraper {
 				'product-scraper-charts-js',
 				'productScraperChartData',
 				array(
-					'ajaxurl'     => admin_url( 'admin-ajax.php' ),
-					'nonce'       => wp_create_nonce( 'product_scraper_charts' ),
+					'ajaxurl' => admin_url('admin-ajax.php'),
+					'nonce' => wp_create_nonce('product_scraper_charts'),
 					'initialData' => $chart_data,
-					'settings'    => array(
-						'colors'        => array(
-							'primary'   => '#4CAF50',
+					'settings' => array(
+						'colors' => array(
+							'primary' => '#4CAF50',
 							'secondary' => '#2196F3',
-							'tertiary'  => '#FFC107',
-							'success'   => '#4CAF50',
-							'warning'   => '#FF9800',
-							'danger'    => '#F44336',
+							'tertiary' => '#FFC107',
+							'success' => '#4CAF50',
+							'warning' => '#FF9800',
+							'danger' => '#F44336',
 						),
 						'chartDefaults' => array(
-							'responsive'          => true,
+							'responsive' => true,
 							'maintainAspectRatio' => false,
 						),
 					),
@@ -1024,19 +1047,19 @@ class ProductScraper {
 				'product-scraper-seo-admin-js',
 				'productScraper',
 				array(
-					'ajaxurl'       => admin_url( 'admin-ajax.php' ),
-					'nonce'         => wp_create_nonce( 'product_scraper_nonce' ),
-					'api_nonce'     => wp_create_nonce( 'wp_rest' ),
-					'api_url'       => rest_url( 'product-scraper/v1/' ),
-					'site_url'      => get_site_url(),
-					'vendor_loaded' => file_exists( __DIR__ . '/vendor/autoload.php' ),
-					'post_id'       => get_the_ID(),
-					'strings'       => array(
-						'saving'     => __( 'Saving...', 'product-scraper' ),
-						'saved'      => __( 'Saved!', 'product-scraper' ),
-						'error'      => __( 'Error saving data.', 'product-scraper' ),
-						'analyzing'  => __( 'Analyzing content...', 'product-scraper' ),
-						'optimizing' => __( 'Optimizing...', 'product-scraper' ),
+					'ajaxurl' => admin_url('admin-ajax.php'),
+					'nonce' => wp_create_nonce('product_scraper_nonce'),
+					'api_nonce' => wp_create_nonce('wp_rest'),
+					'api_url' => rest_url('product-scraper/v1/'),
+					'site_url' => get_site_url(),
+					'vendor_loaded' => file_exists(__DIR__ . '/vendor/autoload.php'),
+					'post_id' => get_the_ID(),
+					'strings' => array(
+						'saving' => __('Saving...', 'product-scraper'),
+						'saved' => __('Saved!', 'product-scraper'),
+						'error' => __('Error saving data.', 'product-scraper'),
+						'analyzing' => __('Analyzing content...', 'product-scraper'),
+						'optimizing' => __('Optimizing...', 'product-scraper'),
 					),
 				)
 			);
@@ -1046,14 +1069,15 @@ class ProductScraper {
 	/**
 	 * Register REST API routes for content analysis endpoints.
 	 */
-	public function register_rest_routes() {
+	public function register_rest_routes()
+	{
 		register_rest_route(
 			'product-scraper/v1',
 			'/analyze-content',
 			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'rest_analyze_content' ),
-				'permission_callback' => array( $this, 'rest_permission_check' ),
+				'methods' => 'POST',
+				'callback' => array($this, 'rest_analyze_content'),
+				'permission_callback' => array($this, 'rest_permission_check'),
 			)
 		);
 
@@ -1061,9 +1085,9 @@ class ProductScraper {
 			'product-scraper/v1',
 			'/optimize-content',
 			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'rest_optimize_content' ),
-				'permission_callback' => array( $this, 'rest_permission_check' ),
+				'methods' => 'POST',
+				'callback' => array($this, 'rest_optimize_content'),
+				'permission_callback' => array($this, 'rest_permission_check'),
 			)
 		);
 
@@ -1071,9 +1095,9 @@ class ProductScraper {
 			'product-scraper/v1',
 			'/get-keyword-suggestions',
 			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'rest_get_keyword_suggestions' ),
-				'permission_callback' => array( $this, 'rest_permission_check' ),
+				'methods' => 'POST',
+				'callback' => array($this, 'rest_get_keyword_suggestions'),
+				'permission_callback' => array($this, 'rest_permission_check'),
 			)
 		);
 	}
@@ -1085,30 +1109,32 @@ class ProductScraper {
 	 *
 	 * @return bool
 	 */
-	public function rest_permission_check( $request ) {
-		unset( $request );
+	public function rest_permission_check($request)
+	{
+		unset($request);
 
-		return current_user_can( 'edit_posts' );
+		return current_user_can('edit_posts');
 	}
 
 	// Helper methods for structured data.
 	/**
 	 * Output structured data for WooCommerce products.
 	 */
-	private function output_product_structured_data() {
+	private function output_product_structured_data()
+	{
 		global $post;
-		$product = wc_get_product( $post->ID );
+		$product = wc_get_product($post->ID);
 
-		if ( ! $product ) {
+		if (!$product) {
 			return;
 		}
 
 		$ecommerce_seo = new ProductScraper_Ecommerce_SEO();
-		$schema        = $ecommerce_seo->generate_product_schema( $post->ID );
+		$schema = $ecommerce_seo->generate_product_schema($post->ID);
 
-		if ( ! empty( $schema ) && ! isset( $schema['error'] ) ) {
+		if (!empty($schema) && !isset($schema['error'])) {
 			echo '<script type="application/ld+json">' .
-				wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+				wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) .
 				'</script>' . "\n";
 		}
 	}
@@ -1116,66 +1142,68 @@ class ProductScraper {
 	/**
 	 * Output structured data for articles.
 	 */
-	private function output_article_structured_data() {
+	private function output_article_structured_data()
+	{
 		global $post;
 
 		$schema = array(
-			'@context'      => 'https://schema.org',
-			'@type'         => 'Article',
-			'headline'      => get_the_title(),
-			'description'   => wp_trim_words( get_the_excerpt(), 25 ),
-			'datePublished' => get_the_date( 'c' ),
-			'dateModified'  => get_the_modified_date( 'c' ),
-			'author'        => array(
+			'@context' => 'https://schema.org',
+			'@type' => 'Article',
+			'headline' => get_the_title(),
+			'description' => wp_trim_words(get_the_excerpt(), 25),
+			'datePublished' => get_the_date('c'),
+			'dateModified' => get_the_modified_date('c'),
+			'author' => array(
 				'@type' => 'Person',
-				'name'  => get_the_author(),
+				'name' => get_the_author(),
 			),
-			'publisher'     => array(
+			'publisher' => array(
 				'@type' => 'Organization',
-				'name'  => get_bloginfo( 'name' ),
-				'logo'  => array(
+				'name' => get_bloginfo('name'),
+				'logo' => array(
 					'@type' => 'ImageObject',
-					'url'   => $this->get_site_logo(),
+					'url' => $this->get_site_logo(),
 				),
 			),
 		);
 
-		if ( has_post_thumbnail() ) {
+		if (has_post_thumbnail()) {
 			$schema['image'] = array(
-				'@type'  => 'ImageObject',
-				'url'    => get_the_post_thumbnail_url( $post->ID, 'full' ),
-				'width'  => 1200,
+				'@type' => 'ImageObject',
+				'url' => get_the_post_thumbnail_url($post->ID, 'full'),
+				'width' => 1200,
 				'height' => 630,
 			);
 		}
 
 		echo '<script type="application/ld+json">' .
-			wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+			wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) .
 			'</script>' . "\n";
 	}
 
 	/**
 	 * Output website-level structured data markup.
 	 */
-	private function output_website_structured_data() {
+	private function output_website_structured_data()
+	{
 		$schema = array(
-			'@context'        => 'https://schema.org',
-			'@type'           => 'WebSite',
-			'name'            => get_bloginfo( 'name' ),
-			'description'     => get_bloginfo( 'description' ),
-			'url'             => home_url(),
+			'@context' => 'https://schema.org',
+			'@type' => 'WebSite',
+			'name' => get_bloginfo('name'),
+			'description' => get_bloginfo('description'),
+			'url' => home_url(),
 			'potentialAction' => array(
-				'@type'       => 'SearchAction',
-				'target'      => array(
-					'@type'       => 'EntryPoint',
-					'urlTemplate' => home_url( '/?s={search_term_string}' ),
+				'@type' => 'SearchAction',
+				'target' => array(
+					'@type' => 'EntryPoint',
+					'urlTemplate' => home_url('/?s={search_term_string}'),
 				),
 				'query-input' => 'required name=search_term_string',
 			),
 		);
 
 		echo '<script type="application/ld+json">' .
-			wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) .
+			wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) .
 			'</script>' . "\n";
 	}
 
@@ -1184,10 +1212,11 @@ class ProductScraper {
 	 *
 	 * @return string Site logo URL or empty string.
 	 */
-	private function get_site_logo() {
-		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		if ( $custom_logo_id ) {
-			return wp_get_attachment_url( $custom_logo_id );
+	private function get_site_logo()
+	{
+		$custom_logo_id = get_theme_mod('custom_logo');
+		if ($custom_logo_id) {
+			return wp_get_attachment_url($custom_logo_id);
 		}
 		return '';
 	}
@@ -1195,10 +1224,11 @@ class ProductScraper {
 	/**
 	 * Redirect attachment pages to their canonical URLs to prevent duplicates.
 	 */
-	public function canonical_redirects() {
+	public function canonical_redirects()
+	{
 		// Prevent duplicate content by redirecting non-canonical URLs.
-		if ( is_attachment() ) {
-			wp_safe_redirect( get_attachment_link(), 301 );
+		if (is_attachment()) {
+			wp_safe_redirect(get_attachment_link(), 301);
 			exit;
 		}
 	}
@@ -1208,14 +1238,15 @@ class ProductScraper {
 	 *
 	 * @param string $current_page The current page slug.
 	 */
-	public static function product_scraper_render_sidebar( $current_page = '' ) {
-		if ( empty( $current_page ) ) {
+	public static function product_scraper_render_sidebar($current_page = '')
+	{
+		if (empty($current_page)) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Value is only used to highlight the active admin menu item.
-			$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+			$current_page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
 		}
 
 		$sidebar_path = PRODUCT_SCRAPER_PLUGIN_PATH . 'templates/admin/sidebar.php';
-		if ( file_exists( $sidebar_path ) ) {
+		if (file_exists($sidebar_path)) {
 			include $sidebar_path;
 		}
 	}
@@ -1224,18 +1255,19 @@ class ProductScraper {
 	/**
 	 * Get initial chart data to prevent empty charts
 	 */
-	private function get_chart_initial_data() {
+	private function get_chart_initial_data()
+	{
 		$analytics = new ProductScraperAnalytics();
-		$stats     = $analytics->get_dashboard_stats();
+		$stats = $analytics->get_dashboard_stats();
 
 		// Use chart manager to get real initial data
 		$chart_manager = new ProductScraper_Chart_Manager();
 
 		return array(
-			'traffic_trend'       => $chart_manager->get_traffic_trend_data(),
+			'traffic_trend' => $chart_manager->get_traffic_trend_data(),
 			'keyword_performance' => $chart_manager->get_keyword_performance_data(),
 			'competitor_analysis' => $chart_manager->get_competitor_analysis_data(),
-			'seo_health'          => $chart_manager->get_seo_health_data(),
+			'seo_health' => $chart_manager->get_seo_health_data(),
 		);
 	}
 

@@ -1,439 +1,242 @@
 <?php
 
-class ProductScraper_Chart_Manager {
+class ProductScraper_Chart_Manager
+{
 
+	/**
+	 * @var ProductScraper_API_Integrations
+	 */
+	private $api;
 
-	private $api_integrations;
-
-	public function __construct() {
-		$this->api_integrations = new ProductScraper_API_Integrations();
-		add_action( 'wp_ajax_get_chart_data', array( $this, 'ajax_get_chart_data' ) );
+	public function __construct()
+	{
+		$this->api = new ProductScraper_API_Integrations();
+		add_action('wp_ajax_get_chart_data', [$this, 'ajax_get_chart_data']);
 	}
 
-	public function get_traffic_trend_data( $period = '30d' ) {
-		$data = $this->api_integrations->get_seo_dashboard_data();
+	/* -------------------------------------------------------------------------
+	 * TRAFFIC TREND (GSC ONLY)
+	 * ---------------------------------------------------------------------- */
 
-		error_log( 'Traffic Trend Data: ' . print_r( $data, true ) );
+	public function get_traffic_trend_data($period = '30d', $post_id = null)
+	{
 
-		// Use actual data only
-		$current_traffic  = $data['organic_traffic']['current'];
-		$previous_traffic = $data['organic_traffic']['previous'];
+		$dates = $this->resolve_period_dates($period);
 
-		// Generate realistic trend based on actual data
-		$traffic_data  = $this->generate_realistic_trend( $current_traffic, $period );
-		$previous_data = $this->generate_realistic_trend( $previous_traffic, $period );
-
-		return array(
-			'labels'   => $this->generate_date_labels( $period ),
-			'datasets' => array(
-				array(
-					'label'           => 'Organic Traffic',
-					'data'            => $traffic_data,
-					'borderColor'     => '#4CAF50',
-					'backgroundColor' => 'rgba(76, 175, 80, 0.1)',
-					'tension'         => 0.4,
-					'fill'            => true,
-				),
-				array(
-					'label'       => 'Previous Period',
-					'data'        => $previous_data,
-					'borderColor' => '#9E9E9E',
-					'borderDash'  => array( 5, 5 ),
-					'tension'     => 0.4,
-					'fill'        => false,
-				),
-			),
+		$rows = $this->api->get_gsc_traffic_timeseries(
+			$dates['start'],
+			$dates['end'],
+			$post_id
 		);
+
+		if (empty($rows)) {
+			return $this->get_empty_timeseries_chart();
+		}
+
+		return [
+			'labels' => array_column($rows, 'date'),
+			'datasets' => [
+				[
+					'label' => 'Clicks',
+					'data' => array_column($rows, 'clicks'),
+					'borderColor' => '#4CAF50',
+					'backgroundColor' => 'rgba(76,175,80,0.15)',
+					'fill' => true,
+					'tension' => 0.3,
+				],
+				[
+					'label' => 'Impressions',
+					'data' => array_column($rows, 'impressions'),
+					'borderColor' => '#2196F3',
+					'fill' => false,
+					'tension' => 0.3,
+				],
+			],
+		];
 	}
 
-	public function get_keyword_performance_data() {
-		$data     = $this->api_integrations->get_seo_dashboard_data();
-		$keywords = $data['top_keywords'];
+	/* -------------------------------------------------------------------------
+	 * KEYWORD PERFORMANCE (GSC QUERIES)
+	 * ---------------------------------------------------------------------- */
 
-		error_log( 'Keyword Data: ' . print_r( $keywords, true ) );
+	public function get_keyword_performance_data($period = '30d', $post_id = null)
+	{
 
-		// Use actual keyword data or return empty structure
-		if ( empty( $keywords ) ) {
+		$dates = $this->resolve_period_dates($period);
+
+		$queries = $this->api->get_gsc_top_queries(
+			$dates['start'],
+			$dates['end'],
+			$post_id
+		);
+
+		if (empty($queries)) {
 			return $this->get_empty_keyword_data();
 		}
 
-		$labels         = array_column( $keywords, 'phrase' );
-		$volumes        = array_column( $keywords, 'volume' );
-		$traffic_shares = array_column( $keywords, 'traffic_share' );
-
-		return array(
-			'labels'   => array_slice( $labels, 0, 8 ), // Show top 8
-			'datasets' => array(
-				array(
-					'label'           => 'Search Volume',
-					'data'            => array_slice( $volumes, 0, 8 ),
-					'backgroundColor' => 'rgba(54, 162, 235, 0.8)',
-					'borderColor'     => 'rgba(54, 162, 235, 1)',
-					'borderWidth'     => 1,
-					'yAxisID'         => 'y',
-				),
-				array(
-					'label'           => 'Traffic Share %',
-					'data'            => array_slice( $traffic_shares, 0, 8 ),
-					'type'            => 'line',
-					'borderColor'     => 'rgba(255, 99, 132, 1)',
-					'backgroundColor' => 'rgba(255, 99, 132, 0.1)',
-					'yAxisID'         => 'y1',
-				),
-			),
-		);
+		return [
+			'labels' => array_column($queries, 'query'),
+			'datasets' => [
+				[
+					'label' => 'Clicks',
+					'data' => array_column($queries, 'clicks'),
+					'backgroundColor' => 'rgba(54,162,235,0.7)',
+				],
+				[
+					'label' => 'Impressions',
+					'type' => 'line',
+					'data' => array_column($queries, 'impressions'),
+					'borderColor' => '#FF6384',
+					'fill' => false,
+				],
+			],
+		];
 	}
 
-	public function get_competitor_analysis_data() {
-		$domain          = wp_parse_url( get_site_url(), PHP_URL_HOST );
-		$data            = $this->api_integrations->get_seo_dashboard_data();
-		$competitor_data = $data['competitor_analysis'];
+	/* -------------------------------------------------------------------------
+	 * COMPETITOR ANALYSIS (DISABLED — GSC CANNOT PROVIDE THIS)
+	 * ---------------------------------------------------------------------- */
 
-		error_log( 'Competitor Data: ' . print_r( $competitor_data, true ) );
+	public function get_competitor_analysis_data()
+	{
 
-		$metrics  = array( 'Domain Authority', 'Referring Domains', 'Organic Traffic', 'Content Score', 'Social Score' );
-		$datasets = array();
-
-		// Site data (using actual data where available)
-		$site_data = array(
-			floatval( $data['referring_domains']['domain_rating'] ) * 10, // Convert to 0-100 scale
-			$this->normalize_value( intval( $data['referring_domains']['count'] ), 1000 ), // Normalize
-			$this->normalize_value( intval( $data['organic_traffic']['current'] ), 10000 ), // Normalize
-			intval( $data['digital_score'] ), // Your actual digital score
-			$this->calculate_social_score( $data ), // Calculate from available data
-		);
-
-		$datasets[] = array(
-			'label'                => $domain,
-			'data'                 => $site_data,
-			'backgroundColor'      => 'rgba(75, 192, 192, 0.2)',
-			'borderColor'          => 'rgba(75, 192, 192, 1)',
-			'pointBackgroundColor' => 'rgba(75, 192, 192, 1)',
-		);
-
-		// Get actual competitors array - FIXED: Access the correct nested array
-		$competitors = isset( $competitor_data['competitors'] ) ? $competitor_data['competitors'] : array();
-
-		// Competitor data with proper validation
-		if ( is_array( $competitors ) && ! empty( $competitors ) ) {
-			$colors = array( '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF' );
-
-			foreach ( $competitors as $index => $competitor ) {
-				// Skip if competitor is not an array or is the primary site
-				if ( ! is_array( $competitor ) || ( isset( $competitor['is_primary'] ) && $competitor['is_primary'] ) ) {
-					continue;
-				}
-
-				// Validate and sanitize competitor data with proper fallbacks
-				$comp_domain = isset( $competitor['domain'] ) ? sanitize_text_field( $competitor['domain'] ) : 'Unknown Domain';
-				$authority   = isset( $competitor['authority'] ) ? floatval( $competitor['authority'] ) : 0;
-				$ref_domains = isset( $competitor['ref_domains'] ) ? intval( $competitor['ref_domains'] ) : 0;
-				$traffic     = isset( $competitor['traffic'] ) ? intval( $competitor['traffic'] ) : 0;
-				$keywords    = isset( $competitor['keywords'] ) ? intval( $competitor['keywords'] ) : 0;
-
-				// Only add competitors with actual data (not all zeros)
-				if ( $authority > 0 || $ref_domains > 0 || $traffic > 0 ) {
-					$int_index   = intval( $index );
-					$color_index = $int_index % count( $colors );
-					$color       = $colors[ $color_index ] ?? '#CCCCCC';
-
-					$datasets[] = array(
-						'label'                => $comp_domain,
-						'data'                 => array(
-							$authority * 10,
-							$this->normalize_value( $ref_domains, 1000 ),
-							$this->normalize_value( $traffic, 10000 ),
-							$this->calculate_content_score_from_competitor( $competitor ),
-							$this->calculate_social_score_from_competitor( $competitor ),
-						),
-						'backgroundColor'      => $this->hexToRgba( $color, 0.2 ),
-						'borderColor'          => $color,
-						'pointBackgroundColor' => $color,
-					);
-				}
-			}
-		}
-
-		// If no competitors found, return empty structure to avoid chart errors
-		if ( count( $datasets ) <= 1 ) {
-			return $this->get_empty_competitor_data( $metrics );
-		}
-
-		return array(
-			'labels'   => $metrics,
-			'datasets' => $datasets,
-		);
+		return [
+			'labels' => [
+				'Domain Authority',
+				'Referring Domains',
+				'Organic Traffic',
+				'Content Score',
+				'Social Score',
+			],
+			'datasets' => [],
+		];
 	}
 
-	private function get_empty_competitor_data( $metrics ) {
-		$domain = wp_parse_url( get_site_url(), PHP_URL_HOST );
+	/* -------------------------------------------------------------------------
+	 * SEO HEALTH (PAGESPEED ONLY)
+	 * ---------------------------------------------------------------------- */
 
-		return array(
-			'labels'   => $metrics,
-			'datasets' => array(
-				array(
-					'label'                => $domain,
-					'data'                 => array( 0, 0, 0, 0, 0 ),
-					'backgroundColor'      => 'rgba(75, 192, 192, 0.2)',
-					'borderColor'          => 'rgba(75, 192, 192, 1)',
-					'pointBackgroundColor' => 'rgba(75, 192, 192, 1)',
-				),
-			),
-		);
-	}
+	public function get_seo_health_data()
+	{
 
-	private function calculate_content_score_from_competitor( $competitor ) {
-		// Only calculate if we have real data
-		$keywords = isset( $competitor['keywords'] ) ? intval( $competitor['keywords'] ) : 0;
-		$traffic  = isset( $competitor['traffic'] ) ? intval( $competitor['traffic'] ) : 0;
+		$scores = $this->api->get_pagespeed_scores();
 
-		if ( $keywords > 0 || $traffic > 0 ) {
-			$keywords_score = $this->normalize_value( $keywords, 1000 );
-			$traffic_score  = $this->normalize_value( $traffic, 10000 );
-			return round( ( $keywords_score + $traffic_score ) / 2 );
-		}
-
-		return 0; // Return 0 instead of estimating
-	}
-
-
-
-	public function get_seo_health_data() {
-		$data   = $this->api_integrations->get_seo_dashboard_data();
-		$health = $data['site_health'];
-
-		error_log( 'SEO Health Data: ' . print_r( $health, true ) );
-
-		// Use only real site health scores
-		$scores = $health['scores'];
-
-		// If we have no real health data, return empty structure
-		if ( array_sum( $scores ) === 0 ) {
+		if (empty($scores)) {
 			return $this->get_empty_seo_health_data();
 		}
 
-		return array(
-			'labels'   => array( 'Performance', 'Accessibility', 'Best Practices', 'SEO' ),
-			'datasets' => array(
-				array(
-					'label'           => 'Score',
-					'data'            => array(
+		return [
+			'labels' => ['Performance', 'Accessibility', 'Best Practices', 'SEO'],
+			'datasets' => [
+				[
+					'label' => 'Score',
+					'data' => [
 						$scores['performance'],
 						$scores['accessibility'],
 						$scores['best_practices'],
 						$scores['seo'],
-					),
-					'backgroundColor' => array(
-						'rgba(255, 99, 132, 0.6)',
-						'rgba(54, 162, 235, 0.6)',
-						'rgba(255, 206, 86, 0.6)',
-						'rgba(75, 192, 192, 0.6)',
-					),
-					'borderColor'     => array(
-						'rgb(255, 99, 132)',
-						'rgb(54, 162, 235)',
-						'rgb(255, 206, 86)',
-						'rgb(75, 192, 192)',
-					),
-					'borderWidth'     => 1,
-				),
-			),
-		);
+					],
+					'backgroundColor' => [
+						'rgba(255,99,132,0.6)',
+						'rgba(54,162,235,0.6)',
+						'rgba(255,206,86,0.6)',
+						'rgba(75,192,192,0.6)',
+					],
+				],
+			],
+		];
 	}
 
-	private function get_empty_seo_health_data() {
-		return array(
-			'labels'   => array( 'Performance', 'Accessibility', 'Best Practices', 'SEO' ),
-			'datasets' => array(
-				array(
-					'label'           => 'Score',
-					'data'            => array( 0, 0, 0, 0 ),
-					'backgroundColor' => array(
-						'rgba(255, 99, 132, 0.3)',
-						'rgba(54, 162, 235, 0.3)',
-						'rgba(255, 206, 86, 0.3)',
-						'rgba(75, 192, 192, 0.3)',
-					),
-					'borderColor'     => array(
-						'rgb(255, 99, 132)',
-						'rgb(54, 162, 235)',
-						'rgb(255, 206, 86)',
-						'rgb(75, 192, 192)',
-					),
-					'borderWidth'     => 1,
-				),
-			),
-		);
-	}
+	/* -------------------------------------------------------------------------
+	 * AJAX
+	 * ---------------------------------------------------------------------- */
 
-	public function ajax_get_chart_data() {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'product_scraper_charts' ) ) {
-			wp_send_json_error( 'Invalid nonce' );
+	public function ajax_get_chart_data()
+	{
+
+		if (
+			empty($_POST['nonce']) ||
+			!wp_verify_nonce($_POST['nonce'], 'product_scraper_charts')
+		) {
+			wp_send_json_error('Invalid nonce');
 		}
 
-		// Check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Insufficient permissions' );
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error('Permission denied');
 		}
 
-		$chart_type = sanitize_text_field( $_POST['chart_type'] );
-		$period     = sanitize_text_field( $_POST['period'] ?? '30d' );
+		$chart_type = sanitize_text_field($_POST['chart_type']);
+		$period = sanitize_text_field($_POST['period'] ?? '30d');
+		$post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : null;
 
-		switch ( $chart_type ) {
+		switch ($chart_type) {
 			case 'traffic_trend':
-				$data = $this->get_traffic_trend_data( $period );
+				$data = $this->get_traffic_trend_data($period, $post_id);
 				break;
+
 			case 'keyword_performance':
-				$data = $this->get_keyword_performance_data();
+				$data = $this->get_keyword_performance_data($period, $post_id);
 				break;
+
 			case 'competitor_analysis':
 				$data = $this->get_competitor_analysis_data();
 				break;
+
 			case 'seo_health':
 				$data = $this->get_seo_health_data();
 				break;
+
 			default:
-				wp_send_json_error( 'Invalid chart type' );
+				wp_send_json_error('Invalid chart type');
 		}
 
-		wp_send_json_success( $data );
+		wp_send_json_success($data);
 	}
 
-	// Helper methods
-	private function generate_date_labels( $period ) {
-		switch ( $period ) {
+	/* -------------------------------------------------------------------------
+	 * HELPERS
+	 * ---------------------------------------------------------------------- */
+
+	private function resolve_period_dates($period)
+	{
+
+		$end = date('Y-m-d');
+
+		switch ($period) {
 			case '7d':
-				$labels = array();
-				for ( $i = 6; $i >= 0; $i-- ) {
-					$labels[] = date( 'D', strtotime( "-$i days" ) );
-				}
-				return $labels;
-
-			case '30d':
-				return array( 'Week 1', 'Week 2', 'Week 3', 'Week 4' );
-
+				$start = date('Y-m-d', strtotime('-7 days'));
+				break;
 			case '90d':
-				return array(
-					date( 'M', strtotime( '-2 months' ) ),
-					date( 'M', strtotime( '-1 month' ) ),
-					date( 'M' ),
-				);
-
+				$start = date('Y-m-d', strtotime('-90 days'));
+				break;
 			default:
-				return array( 'Week 1', 'Week 2', 'Week 3', 'Week 4' );
-		}
-	}
-
-	private function generate_realistic_trend( $base_value, $period ) {
-		if ( $base_value <= 0 ) {
-			return array_fill( 0, $this->get_data_points_count( $period ), 0 );
+				$start = date('Y-m-d', strtotime('-30 days'));
 		}
 
-		$data_points      = $this->get_data_points_count( $period );
-		$trend_data       = array();
-		$weekly_variation = $this->get_weekly_variation_pattern();
-
-		for ( $i = 0; $i < $data_points; $i++ ) {
-			// Add realistic variation based on position in period
-			$variation    = $weekly_variation[ $i % count( $weekly_variation ) ];
-			$value        = round( $base_value * $variation );
-			$trend_data[] = max( 0, $value );
-		}
-
-		return $trend_data;
+		return compact('start', 'end');
 	}
 
-	private function get_data_points_count( $period ) {
-		switch ( $period ) {
-			case '7d':
-				return 7;
-			case '30d':
-				return 4;
-			case '90d':
-				return 3;
-			default:
-				return 4;
-		}
+	private function get_empty_timeseries_chart()
+	{
+		return [
+			'labels' => [],
+			'datasets' => [],
+		];
 	}
 
-	private function get_weekly_variation_pattern() {
-		// Realistic weekly pattern (lower weekends, higher mid-week)
-		return array( 0.9, 1.0, 1.1, 1.05, 0.95, 0.7, 0.8 );
+	private function get_empty_keyword_data()
+	{
+		return [
+			'labels' => [],
+			'datasets' => [],
+		];
 	}
 
-	private function normalize_value( $value, $max_value ) {
-		if ( $max_value <= 0 ) {
-			return 0;
-		}
-		return min( 100, round( ( $value / $max_value ) * 100 ) );
-	}
-
-	private function calculate_social_score( $data ) {
-		// Only calculate if we have real engagement metrics
-		if ( isset( $data['engagement_metrics']['page_views'] ) && $data['engagement_metrics']['page_views'] > 0 ) {
-			$traffic_score    = $this->normalize_value( $data['organic_traffic']['current'], 10000 );
-			$engagement_score = $this->normalize_value( $data['engagement_metrics']['page_views'], 5000 );
-			return round( ( $traffic_score + $engagement_score ) / 2 );
-		}
-
-		return 0; // Return 0 instead of estimating
-	}
-
-	private function calculate_content_score( $competitor ) {
-		// Only calculate if we have real data
-		if ( isset( $competitor['keywords'] ) && isset( $competitor['traffic'] ) ) {
-			$keywords_score = $this->normalize_value( $competitor['keywords'], 1000 );
-			$traffic_score  = $this->normalize_value( $competitor['traffic'], 10000 );
-			return round( ( $keywords_score + $traffic_score ) / 2 );
-		}
-
-		return 0; // Return 0 instead of estimating
-	}
-
-	private function calculate_social_score_from_competitor( $competitor ) {
-		// Only calculate if we have real data
-		$authority = isset( $competitor['authority'] ) ? floatval( $competitor['authority'] ) : 0;
-		$traffic   = isset( $competitor['traffic'] ) ? intval( $competitor['traffic'] ) : 0;
-
-		if ( $authority > 0 || $traffic > 0 ) {
-			$authority_score = $authority * 10;
-			$traffic_score   = $this->normalize_value( $traffic, 10000 );
-			return round( ( $authority_score + $traffic_score ) / 2 );
-		}
-
-		return 0; // Return 0 instead of estimating
-	}
-
-	private function get_empty_keyword_data() {
-		return array(
-			'labels'   => array(),
-			'datasets' => array(
-				array(
-					'label'           => 'Search Volume',
-					'data'            => array(),
-					'backgroundColor' => 'rgba(54, 162, 235, 0.8)',
-					'borderColor'     => 'rgba(54, 162, 235, 1)',
-					'borderWidth'     => 1,
-					'yAxisID'         => 'y',
-				),
-				array(
-					'label'           => 'Traffic Share %',
-					'data'            => array(),
-					'type'            => 'line',
-					'borderColor'     => 'rgba(255, 99, 132, 1)',
-					'backgroundColor' => 'rgba(255, 99, 132, 0.1)',
-					'yAxisID'         => 'y1',
-				),
-			),
-		);
-	}
-
-	private function hexToRgba( $hex, $alpha ) {
-		// Convert hex to rgba
-		$hex = str_replace( '#', '', $hex );
-		$r   = hexdec( substr( $hex, 0, 2 ) );
-		$g   = hexdec( substr( $hex, 2, 2 ) );
-		$b   = hexdec( substr( $hex, 4, 2 ) );
-		return "rgba($r, $g, $b, $alpha)";
+	private function get_empty_seo_health_data()
+	{
+		return [
+			'labels' => ['Performance', 'Accessibility', 'Best Practices', 'SEO'],
+			'datasets' => [],
+		];
 	}
 }
