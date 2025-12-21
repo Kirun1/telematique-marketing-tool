@@ -131,10 +131,10 @@ class ProductScraper_Chart_Manager
 				[
 					'label' => 'Score',
 					'data' => [
-						$scores['performance'],
-						$scores['accessibility'],
-						$scores['best_practices'],
-						$scores['seo'],
+						$scores['performance'] ?? 0,
+						$scores['accessibility'] ?? 0,
+						$scores['best_practices'] ?? 0,
+						$scores['seo'] ?? 0,
 					],
 					'backgroundColor' => [
 						'rgba(255,99,132,0.6)',

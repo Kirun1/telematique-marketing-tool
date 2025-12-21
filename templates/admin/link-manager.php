@@ -8,13 +8,31 @@
  */
 
 // Security check.
-if (! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
 	exit;
 }
 
-// Get link data.
-$internal_links = $this->get_internal_links();
-$external_links = $this->get_external_links();
+
+$api = new ProductScraper_API_Integrations();
+
+// Fetch both internal and external links data from GSC
+try {
+	$links_data = $api->get_gsc_links_data();
+} catch (Exception $e) {
+	if (defined('WP_DEBUG') && WP_DEBUG) {
+		error_log('Error fetching GSC links: ' . $e->getMessage());
+	}
+	$links_data = array(
+		'external_links' => 0,
+		'internal_links' => 0,
+		'top_linking_domains' => [],
+		'top_linked_pages' => [],
+		'count' => 0,
+		'domain_rating' => 0,
+		'broken_links' => 0,
+		'orphaned_pages' => 0,
+	);
+}
 ?>
 
 <div class="wrap">
@@ -49,7 +67,8 @@ $external_links = $this->get_external_links();
 				<!-- Overview Section -->
 				<div class="sa-section">
 					<h2>Link Management & Analysis</h2>
-					<p class="sa-description">Monitor and optimize your internal and external linking structure for better SEO performance.</p>
+					<p class="sa-description">Monitor and optimize your internal and external linking structure for
+						better SEO performance.</p>
 
 					<!-- Link Overview Stats -->
 					<div class="sa-link-overview">
@@ -59,7 +78,8 @@ $external_links = $this->get_external_links();
 									<i data-lucide="link" class="lucide-icon"></i>
 								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html($internal_links['total_internal_links'] ?? 0); ?></div>
+									<div class="stat-value"><?php echo esc_html($links_data['internal_links'] ?? 0); ?>
+									</div>
 									<div class="stat-label">Internal Links</div>
 								</div>
 							</div>
@@ -68,7 +88,8 @@ $external_links = $this->get_external_links();
 									<i data-lucide="globe" class="lucide-icon"></i>
 								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html($external_links['total_external_links'] ?? 0); ?></div>
+									<div class="stat-value"><?php echo esc_html($links_data['external_links'] ?? 0); ?>
+									</div>
 									<div class="stat-label">External Links</div>
 								</div>
 							</div>
@@ -77,7 +98,8 @@ $external_links = $this->get_external_links();
 									<i data-lucide="triangle-alert" class="lucide-icon"></i>
 								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html($external_links['broken_links'] ?? 0); ?></div>
+									<div class="stat-value"><?php echo esc_html($links_data['broken_links'] ?? 0); ?>
+									</div>
 									<div class="stat-label">Broken Links</div>
 								</div>
 							</div>
@@ -86,7 +108,8 @@ $external_links = $this->get_external_links();
 									<i data-lucide="file-text" class="lucide-icon"></i>
 								</div>
 								<div class="stat-content">
-									<div class="stat-value"><?php echo esc_html($internal_links['orphaned_posts'] ?? 0); ?></div>
+									<div class="stat-value"><?php echo esc_html($links_data['orphaned_pages'] ?? 0); ?>
+									</div>
 									<div class="stat-label">Orphaned Pages</div>
 								</div>
 							</div>
@@ -101,15 +124,13 @@ $external_links = $this->get_external_links();
 							<div class="metric-row">
 								<div class="metric-item">
 									<span class="metric-label">Total Internal Links:</span>
-									<span class="metric-value"><?php echo esc_html($internal_links['total_internal_links'] ?? 0); ?></span>
+									<span
+										class="metric-value"><?php echo esc_html($links_data['internal_links'] ?? 0); ?></span>
 								</div>
 								<div class="metric-item">
 									<span class="metric-label">Orphaned Pages:</span>
-									<span class="metric-value"><?php echo esc_html($internal_links['orphaned_posts'] ?? 0); ?></span>
-								</div>
-								<div class="metric-item">
-									<span class="metric-label">Linking Opportunities:</span>
-									<span class="metric-value"><?php echo esc_html($internal_links['linking_opportunities'] ?? 0); ?></span>
+									<span
+										class="metric-value"><?php echo esc_html($links_data['orphaned_pages'] ?? 0); ?></span>
 								</div>
 							</div>
 						</div>
@@ -138,11 +159,23 @@ $external_links = $this->get_external_links();
 									</tr>
 								</thead>
 								<tbody>
-									<tr>
-										<td colspan="5" class="no-links-message">
-											<p>No internal links found. Run a link scan to discover internal links.</p>
-										</td>
-									</tr>
+									<?php if (!empty($links_data['top_linked_pages'])): ?>
+										<?php foreach ($links_data['top_linked_pages'] as $page): ?>
+											<tr>
+												<td><?php echo esc_html($page['source'] ?? ''); ?></td>
+												<td><?php echo esc_html($page['target'] ?? ''); ?></td>
+												<td><?php echo esc_html($page['anchor'] ?? ''); ?></td>
+												<td>Internal</td>
+												<td><!-- Actions --></td>
+											</tr>
+										<?php endforeach; ?>
+									<?php else: ?>
+										<tr>
+											<td colspan="5" class="no-links-message">
+												<p>No internal links found. Run a link scan to discover internal links.</p>
+											</td>
+										</tr>
+									<?php endif; ?>
 								</tbody>
 							</table>
 						</div>
@@ -156,15 +189,13 @@ $external_links = $this->get_external_links();
 							<div class="metric-row">
 								<div class="metric-item">
 									<span class="metric-label">Total External Links:</span>
-									<span class="metric-value"><?php echo esc_html($external_links['total_external_links'] ?? 0); ?></span>
+									<span
+										class="metric-value"><?php echo esc_html($links_data['external_links'] ?? 0); ?></span>
 								</div>
 								<div class="metric-item">
 									<span class="metric-label">Broken Links:</span>
-									<span class="metric-value"><?php echo esc_html($external_links['broken_links'] ?? 0); ?></span>
-								</div>
-								<div class="metric-item">
-									<span class="metric-label">NoFollow Links:</span>
-									<span class="metric-value"><?php echo esc_html($external_links['nofollow_links'] ?? 0); ?></span>
+									<span
+										class="metric-value"><?php echo esc_html($links_data['broken_links'] ?? 0); ?></span>
 								</div>
 							</div>
 						</div>
@@ -194,11 +225,24 @@ $external_links = $this->get_external_links();
 									</tr>
 								</thead>
 								<tbody>
-									<tr>
-										<td colspan="6" class="no-links-message">
-											<p>No external links found. Run a link scan to discover external links.</p>
-										</td>
-									</tr>
+									<?php if (!empty($links_data['top_linking_domains'])): ?>
+										<?php foreach ($links_data['top_linking_domains'] as $domain => $count): ?>
+											<tr>
+												<td><?php echo esc_html($domain); ?></td>
+												<td><?php echo esc_html($count); ?></td>
+												<td><!-- Optional anchor text --></td>
+												<td>External</td>
+												<td><!-- Status --></td>
+												<td><!-- Actions --></td>
+											</tr>
+										<?php endforeach; ?>
+									<?php else: ?>
+										<tr>
+											<td colspan="6" class="no-links-message">
+												<p>No external links found. Run a link scan to discover external links.</p>
+											</td>
+										</tr>
+									<?php endif; ?>
 								</tbody>
 							</table>
 						</div>
@@ -223,7 +267,8 @@ $external_links = $this->get_external_links();
 									</ul>
 								</div>
 								<div class="opportunity-actions">
-									<button class="sa-btn sa-btn-small" onclick="optimizeInternalLinks()">Optimize Now</button>
+									<button class="sa-btn sa-btn-small" onclick="optimizeInternalLinks()">Optimize
+										Now</button>
 								</div>
 							</div>
 
@@ -241,7 +286,8 @@ $external_links = $this->get_external_links();
 									</ul>
 								</div>
 								<div class="opportunity-actions">
-									<button class="sa-btn sa-btn-small" onclick="auditExternalLinks()">Start Audit</button>
+									<button class="sa-btn sa-btn-small" onclick="auditExternalLinks()">Start
+										Audit</button>
 								</div>
 							</div>
 
@@ -286,7 +332,7 @@ $external_links = $this->get_external_links();
 						<?php
 						$link_manager_pages = get_posts(
 							array(
-								'post_type'   => array('post', 'page'),
+								'post_type' => array('post', 'page'),
 								'post_status' => 'publish',
 								'numberposts' => 50,
 							)
@@ -299,11 +345,13 @@ $external_links = $this->get_external_links();
 				</div>
 				<div class="form-group">
 					<label for="link_target">Target URL</label>
-					<input type="url" id="link_target" name="link_target" class="sa-form-control" placeholder="https://example.com">
+					<input type="url" id="link_target" name="link_target" class="sa-form-control"
+						placeholder="https://example.com">
 				</div>
 				<div class="form-group">
 					<label for="link_anchor">Anchor Text</label>
-					<input type="text" id="link_anchor" name="link_anchor" class="sa-form-control" placeholder="Descriptive anchor text">
+					<input type="text" id="link_anchor" name="link_anchor" class="sa-form-control"
+						placeholder="Descriptive anchor text">
 				</div>
 				<div class="form-group">
 					<label for="link_type">Link Type</label>
@@ -671,7 +719,7 @@ $external_links = $this->get_external_links();
 	}
 
 	// Close modal when clicking outside.
-	document.getElementById('addLinkModal').addEventListener('click', function(e) {
+	document.getElementById('addLinkModal').addEventListener('click', function (e) {
 		if (e.target === this) {
 			hideAddLinkModal();
 		}

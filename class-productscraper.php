@@ -146,6 +146,13 @@ class ProductScraper
 	public $ai_title_optimizer;
 
 	/**
+	 * Firecrawl integration service.
+	 *
+	 * @var ProductScraper_Firecrawl_Integration
+	 */
+	public $firecrawl;
+
+	/**
 	 * Bootstrap plugin services and hooks.
 	 */
 	public function __construct()

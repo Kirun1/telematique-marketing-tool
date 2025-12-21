@@ -25,9 +25,8 @@ class ProductScraper_International_SEO
 			}
 		}
 		// Polylang integration
-		elseif (function_exists('pll_get_post')) {
-			$languages = pll_get_post_types(); // All translatable post types
-			$all_langs = pll_get_the_languages();
+		elseif (function_exists('pll_get_post') && function_exists('pll_get_the_languages')) {
+			$all_langs = pll_get_the_languages(); // Get all active languages
 			if (!empty($all_langs)) {
 				foreach ($all_langs as $lang_code => $lang_info) {
 					$translated_id = pll_get_post($product_id, $lang_code);

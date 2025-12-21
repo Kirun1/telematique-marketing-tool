@@ -8,7 +8,7 @@
  */
 
 // Security check.
-if (! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
 	exit;
 }
 ?>
@@ -43,13 +43,15 @@ if (! defined('ABSPATH')) {
 				<!-- Overview Section -->
 				<div class="sa-section">
 					<h2>Complete SEO Analysis</h2>
-					<p class="sa-description">Comprehensive analysis of your website's SEO performance and technical health.</p>
+					<p class="sa-description">Comprehensive analysis of your website's SEO performance and technical
+						health.</p>
 
 					<!-- Overall Score -->
 					<div class="sa-analysis-overview">
 						<div class="overview-score">
 							<div class="score-circle large">
-								<span class="score"><?php echo esc_html($site_analysis['technical']['score'] ?? 0); ?>%</span>
+								<span
+									class="score"><?php echo esc_html($site_analysis['technical']['score'] ?? 0); ?>%</span>
 							</div>
 							<div class="score-details">
 								<h3>Overall SEO Score</h3>
@@ -57,15 +59,18 @@ if (! defined('ABSPATH')) {
 								<div class="score-breakdown">
 									<div class="breakdown-item">
 										<span class="label">Technical:</span>
-										<span class="value"><?php echo esc_html($site_analysis['technical']['score'] ?? 0); ?>%</span>
+										<span
+											class="value"><?php echo esc_html($site_analysis['technical']['score'] ?? 0); ?>%</span>
 									</div>
 									<div class="breakdown-item">
 										<span class="label">Content:</span>
-										<span class="value"><?php echo esc_html($site_analysis['content']['score'] ?? 0); ?>%</span>
+										<span
+											class="value"><?php echo esc_html($site_analysis['content']['score'] ?? 0); ?>%</span>
 									</div>
 									<div class="breakdown-item">
 										<span class="label">Performance:</span>
-										<span class="value"><?php echo esc_html($site_analysis['performance']['score'] ?? 0); ?>%</span>
+										<span
+											class="value"><?php echo esc_html($site_analysis['performance']['score'] ?? 0); ?>%</span>
 									</div>
 								</div>
 							</div>
@@ -83,23 +88,27 @@ if (! defined('ABSPATH')) {
 
 						<div class="analysis-metrics">
 							<div class="metric-card">
-								<div class="metric-value"><?php echo esc_html($site_analysis['technical']['indexable'] ?? 'Unknown'); ?></div>
+								<div class="metric-value">
+									<?php echo esc_html($site_analysis['technical']['indexable'] ?? 'Unknown'); ?></div>
 								<div class="metric-label">Indexable</div>
 							</div>
 							<div class="metric-card">
-								<div class="metric-value"><?php echo esc_html($site_analysis['technical']['permalink_structure'] ?? 'Unknown'); ?></div>
+								<div class="metric-value">
+									<?php echo esc_html($site_analysis['technical']['permalink_structure'] ?? 'Unknown'); ?>
+								</div>
 								<div class="metric-label">Permalink Structure</div>
 							</div>
 							<div class="metric-card">
-								<div class="metric-value"><?php echo esc_html($site_analysis['technical']['ssl'] ?? 'Unknown'); ?></div>
+								<div class="metric-value">
+									<?php echo esc_html($site_analysis['technical']['ssl'] ?? 'Unknown'); ?></div>
 								<div class="metric-label">SSL Enabled</div>
 							</div>
 						</div>
 
 						<div class="analysis-issues">
 							<h4>Technical Issues</h4>
-							<?php if (! empty($site_analysis['technical']['issues'])) : ?>
-								<?php foreach ($site_analysis['technical']['issues'] as $issue) : ?>
+							<?php if (!empty($site_analysis['technical']['issues'])): ?>
+								<?php foreach ($site_analysis['technical']['issues'] as $issue): ?>
 									<div class="issue-item severity-<?php echo esc_attr($issue['severity']); ?>">
 										<span class="issue-icon">⚠️</span>
 										<div class="issue-content">
@@ -109,7 +118,7 @@ if (! defined('ABSPATH')) {
 										</div>
 									</div>
 								<?php endforeach; ?>
-							<?php else : ?>
+							<?php else: ?>
 								<p class="no-issues">No critical technical issues found.</p>
 							<?php endif; ?>
 						</div>
@@ -126,27 +135,35 @@ if (! defined('ABSPATH')) {
 
 						<div class="content-stats-grid">
 							<div class="stat-card">
-								<div class="stat-value"><?php echo esc_html($site_analysis['content']['stats']['total_posts'] ?? 0); ?></div>
+								<div class="stat-value">
+									<?php echo esc_html($site_analysis['content']['stats']['total_posts'] ?? 0); ?>
+								</div>
 								<div class="stat-label">Total Posts</div>
 							</div>
 							<div class="stat-card">
-								<div class="stat-value"><?php echo esc_html($site_analysis['content']['stats']['optimized_posts'] ?? 0); ?></div>
+								<div class="stat-value">
+									<?php echo esc_html($site_analysis['content']['stats']['optimized_posts'] ?? 0); ?>
+								</div>
 								<div class="stat-label">Optimized Posts</div>
 							</div>
 							<div class="stat-card">
-								<div class="stat-value"><?php echo esc_html($site_analysis['content']['stats']['optimization_rate'] ?? 0); ?>%</div>
+								<div class="stat-value">
+									<?php echo esc_html($site_analysis['content']['stats']['optimization_rate'] ?? 0); ?>%
+								</div>
 								<div class="stat-label">Optimization Rate</div>
 							</div>
 							<div class="stat-card">
-								<div class="stat-value"><?php echo esc_html($site_analysis['content']['stats']['avg_readability'] ?? 0); ?>%</div>
+								<div class="stat-value">
+									<?php echo esc_html($site_analysis['content']['stats']['avg_readability'] ?? 0); ?>%
+								</div>
 								<div class="stat-label">Avg Readability</div>
 							</div>
 						</div>
 
 						<div class="content-recommendations">
 							<h4>Content Recommendations</h4>
-							<?php if (! empty($site_analysis['content']['recommendations'])) : ?>
-								<?php foreach ($site_analysis['content']['recommendations'] as $rec) : ?>
+							<?php if (!empty($site_analysis['content']['recommendations'])): ?>
+								<?php foreach ($site_analysis['content']['recommendations'] as $rec): ?>
 									<div class="recommendation-item">
 										<span class="rec-icon">💡</span>
 										<div class="rec-content">
@@ -156,7 +173,7 @@ if (! defined('ABSPATH')) {
 										</div>
 									</div>
 								<?php endforeach; ?>
-							<?php else : ?>
+							<?php else: ?>
 								<p>No specific content recommendations at this time.</p>
 							<?php endif; ?>
 						</div>
@@ -172,23 +189,26 @@ if (! defined('ABSPATH')) {
 
 						<div class="performance-metrics">
 							<div class="metric-card">
-								<div class="metric-value"><?php echo esc_html($site_analysis['performance']['score'] ?? 0); ?>%</div>
+								<div class="metric-value">
+									<?php echo esc_html($site_analysis['performance']['score'] ?? 0); ?>%</div>
 								<div class="metric-label">Performance Score</div>
 							</div>
 							<div class="metric-card">
-								<div class="metric-value"><?php echo esc_html($site_analysis['performance']['load_time'] ?? 'N/A'); ?></div>
+								<div class="metric-value">
+									<?php echo esc_html($site_analysis['performance']['load_time'] ?? 'N/A'); ?></div>
 								<div class="metric-label">Load Time</div>
 							</div>
 							<div class="metric-card">
-								<div class="metric-value"><?php echo esc_html($site_analysis['performance']['page_size'] ?? 'N/A'); ?></div>
+								<div class="metric-value">
+									<?php echo esc_html($site_analysis['performance']['page_size'] ?? 'N/A'); ?></div>
 								<div class="metric-label">Page Size</div>
 							</div>
 						</div>
 
 						<div class="performance-recommendations">
 							<h4>Performance Recommendations</h4>
-							<?php if (! empty($site_analysis['performance']['recommendations'])) : ?>
-								<?php foreach ($site_analysis['performance']['recommendations'] as $rec) : ?>
+							<?php if (!empty($site_analysis['performance']['recommendations'])): ?>
+								<?php foreach ($site_analysis['performance']['recommendations'] as $rec): ?>
 									<div class="recommendation-item">
 										<span class="rec-icon">⚡</span>
 										<div class="rec-content">
@@ -198,7 +218,7 @@ if (! defined('ABSPATH')) {
 										</div>
 									</div>
 								<?php endforeach; ?>
-							<?php else : ?>
+							<?php else: ?>
 								<p>No performance recommendations at this time.</p>
 							<?php endif; ?>
 						</div>
@@ -209,7 +229,7 @@ if (! defined('ABSPATH')) {
 						<h3>
 							<span class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
 								<i data-lucide="clipboard" class="lucide-icon"></i>
-							</span> 
+							</span>
 							SEO Action Plan
 						</h3>
 
@@ -271,7 +291,9 @@ if (! defined('ABSPATH')) {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: conic-gradient(#4CAF50 <?php echo esc_attr($site_analysis['technical']['score'] ?? 0); ?>%, #e0e0e0 0%);
+		background: conic-gradient(#4CAF50
+				<?php echo esc_attr($site_analysis['technical']['score'] ?? 0); ?>
+				%, #e0e0e0 0%);
 	}
 
 	.score-circle.large .score {

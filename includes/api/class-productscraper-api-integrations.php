@@ -541,7 +541,7 @@ class ProductScraper_API_Integrations
 	 * @return array
 	 * @throws Exception If API call fails.
 	 */
-	private function get_gsc_links_data()
+	public function get_gsc_links_data()
 	{
 		if (!$this->google_api_available()) {
 			throw new Exception('Google API not available');
@@ -581,12 +581,12 @@ class ProductScraper_API_Integrations
 			$internal_links = $this->get_gsc_internal_links($webmasters, $site_url);
 
 			return array(
-				'count' => $external_links['referring_domains'],
-				'domain_rating' => $this->calculate_domain_authority($external_links['referring_domains']),
-				'external_links' => $external_links['total_links'],
-				'internal_links' => $internal_links['total_links'],
-				'top_linking_domains' => $external_links['top_domains'],
-				'top_linked_pages' => $internal_links['top_pages'],
+				'count' => $external_links['referring_domains'] ?? 0,
+				'domain_rating' => $this->calculate_domain_authority($external_links['referring_domains'] ?? 0),
+				'external_links' => $external_links['total_links'] ?? 0,
+				'internal_links' => $internal_links['total_links'] ?? 0,
+				'top_linking_domains' => $external_links['top_domains'] ?? array(),
+				'top_linked_pages' => $internal_links['top_pages'] ?? array(),
 				'trend' => 'neutral',
 				'change' => 0,
 				'source' => 'google_search_console',
@@ -603,7 +603,7 @@ class ProductScraper_API_Integrations
 	/**
 	 * Get external links data from GSC
 	 */
-	private function get_gsc_external_links($webmasters, $site_url)
+	public function get_gsc_external_links($webmasters, $site_url)
 	{
 		try {
 			$response = $webmasters->sites->listSites();
@@ -622,7 +622,7 @@ class ProductScraper_API_Integrations
 			}
 
 			// Get external links count (simplified - actual implementation would use links API)
-			// Note: GSC API for links is more complex and may require additional setup
+			// TODO: GSC API may require additional setup
 
 			$external_links_data = array(
 				'referring_domains' => 0,
@@ -636,14 +636,16 @@ class ProductScraper_API_Integrations
 			return $external_links_data;
 
 		} catch (Exception $e) {
-			throw new Exception('GSC External Links Error: ' . $e->getMessage());
+			error_log('GSC External Links Error: ' . $e->getMessage());
+			$external_links = array(); // fallback
+			return $external_links;
 		}
 	}
 
 	/**
 	 * Get internal links data from GSC
 	 */
-	private function get_gsc_internal_links($webmasters, $site_url)
+	public function get_gsc_internal_links($webmasters, $site_url)
 	{
 		try {
 			// Simplified internal links implementation

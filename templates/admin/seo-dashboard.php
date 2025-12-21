@@ -6,9 +6,28 @@
  * @package ProductScraper
  */
 
-if (! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
 	exit;
 }
+
+// Initialize API Integration
+$api = new ProductScraper_API_Integrations();
+
+// Fetch site content stats (posts, readability, keywords, etc.)
+$site_health = $api->get_site_health_metrics();
+$stats = [
+	'total_posts' => $site_health['content']['total_posts'] ?? 0,
+	'optimized_posts' => $site_health['content']['optimized_posts'] ?? 0,
+	'optimization_rate' => $site_health['content']['optimization_rate'] ?? 0,
+	'avg_readability' => $site_health['content']['avg_readability'] ?? 0,
+	'posts_without_meta' => $site_health['content']['posts_without_meta'] ?? 0,
+	'low_content_posts' => $site_health['content']['low_content_posts'] ?? 0,
+	'posts_with_focus_keyword' => $site_health['content']['posts_with_focus_keyword'] ?? 0,
+];
+
+// Fetch recent content analysis
+$dashboard_data = $api->get_seo_dashboard_data();
+$recent_analysis = $dashboard_data['recent_content_analysis'] ?? [];
 ?>
 
 <div class="wrap">
@@ -29,12 +48,15 @@ if (! defined('ABSPATH')) {
 
 					<!-- SEO Stats Grid -->
 					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-						<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+						<div
+							class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 							<div class="flex items-start justify-between">
 								<div class="flex-1">
 									<div class="text-sm font-medium text-gray-500 mb-1">Optimized Posts</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['optimized_posts'])); ?></div>
-									<span class="text-xs font-medium text-slate-600"><?php echo esc_html(absint($stats['optimization_rate'])) . '%'; ?></span>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(absint($stats['optimized_posts'])); ?></div>
+									<span
+										class="text-xs font-medium text-slate-600"><?php echo esc_html(absint($stats['optimization_rate'])) . '%'; ?></span>
 									Total Posts: <?php echo esc_html(absint($stats['total_posts'])); ?>
 								</div>
 								<div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
@@ -43,11 +65,13 @@ if (! defined('ABSPATH')) {
 							</div>
 						</div>
 
-						<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+						<div
+							class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 							<div class="flex items-start justify-between">
 								<div class="flex-1">
 									<div class="text-sm font-medium text-gray-500 mb-1">Readability Score</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['avg_readability'])) . '%'; ?></div>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(absint($stats['avg_readability'])) . '%'; ?></div>
 									<?php
 									$readability_score = $stats['avg_readability'];
 									if ($readability_score >= 70) {
@@ -65,11 +89,14 @@ if (! defined('ABSPATH')) {
 							</div>
 						</div>
 
-						<div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+						<div
+							class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 							<div class="flex items-start justify-between">
 								<div class="flex-1">
 									<div class="text-sm font-medium text-gray-500 mb-1">SEO Issues</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['posts_without_meta']) + absint($stats['low_content_posts'])); ?></div>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(absint($stats['posts_without_meta']) + absint($stats['low_content_posts'])); ?>
+									</div>
 									<div class="text-sm font-medium text-slate-600">
 										<?php echo esc_html(absint($stats['posts_without_meta'])); ?> without meta,
 										<?php echo esc_html(absint($stats['low_content_posts'])); ?> low content
@@ -82,11 +109,13 @@ if (! defined('ABSPATH')) {
 						</div>
 
 						<!-- Additional stat card for keyword optimization -->
-						<div class=" rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
+						<div
+							class=" rounded-xl border border-slate-100 bg-white text-slate-900 shadow p-6 hover:shadow-md transition-shadow duration-200">
 							<div class="flex items-start justify-between">
 								<div class="flex-1">
 									<div class="text-sm font-medium text-gray-500 mb-1">Keyword Usage</div>
-									<div class="text-2xl font-bold tracking-tight mb-1"><?php echo esc_html(absint($stats['posts_with_focus_keyword'])); ?></div>
+									<div class="text-2xl font-bold tracking-tight mb-1">
+										<?php echo esc_html(absint($stats['posts_with_focus_keyword'])); ?></div>
 									<div class="text-sm font-medium text-slate-600">
 										<?php
 										$keyword_percentage = 0;
@@ -113,9 +142,12 @@ if (! defined('ABSPATH')) {
 					<div class="sa-chart-section mt-6">
 						<div class="text-sm font-medium text-gray-500 mb-1">Content Analysis</div>
 						<div class="content-analysis-tool">
-							<textarea id="content-to-analyze" class="mb-4" placeholder="Paste your content here to analyze..." rows="10" style="width: 100%; padding: 15px;"></textarea>
+							<textarea id="content-to-analyze" class="mb-4"
+								placeholder="Paste your content here to analyze..." rows="10"
+								style="width: 100%; padding: 15px;"></textarea>
 							<div class="analysis-controls">
-								<input type="text" id="focus-keyword" placeholder="Focus keyword (optional)" style="padding: 10px; margin-right: 10px;">
+								<input type="text" id="focus-keyword" placeholder="Focus keyword (optional)"
+									style="padding: 10px; margin-right: 10px;">
 								<button id="analyze-content" class="sa-btn sa-btn-primary">Analyze Content</button>
 							</div>
 							<div id="analysis-results" style="display: none; margin-top: 20px;"></div>
@@ -123,7 +155,7 @@ if (! defined('ABSPATH')) {
 					</div>
 
 					<!-- Recent Analysis Section -->
-					<?php if (! empty($recent_analysis)) : ?>
+					<?php if (!empty($recent_analysis)): ?>
 						<div class="sa-table-section">
 							<h3>Recent Content Analysis</h3>
 							<div class="sa-table-container">
@@ -138,13 +170,14 @@ if (! defined('ABSPATH')) {
 										</tr>
 									</thead>
 									<tbody>
-										<?php foreach ($recent_analysis as $analysis) : ?>
+										<?php foreach ($recent_analysis as $analysis): ?>
 											<tr>
 												<td>
 													<strong><?php echo esc_html($analysis['title']); ?></strong>
 												</td>
 												<td>
-													<div class="score-circle" data-score="<?php echo esc_attr($analysis['analysis']['score'] ?? 0); ?>">
+													<div class="score-circle"
+														data-score="<?php echo esc_attr($analysis['analysis']['score'] ?? 0); ?>">
 														<?php echo esc_html(($analysis['analysis']['score'] ?? 0) . '%'); ?>
 													</div>
 												</td>
@@ -161,7 +194,8 @@ if (! defined('ABSPATH')) {
 													?>
 												</td>
 												<td>
-													<a href="<?php echo esc_url($analysis['edit_url']); ?>" class="sa-btn sa-btn-small">Edit</a>
+													<a href="<?php echo esc_url($analysis['edit_url']); ?>"
+														class="sa-btn sa-btn-small">Edit</a>
 												</td>
 											</tr>
 										<?php endforeach; ?>
@@ -192,7 +226,8 @@ if (! defined('ABSPATH')) {
 							</div>
 							<div class="quick-action-card">
 								<h4>Fix SEO Issues</h4>
-								<p>Address <?php echo esc_html(absint($stats['posts_without_meta'])); ?> posts without meta descriptions</p>
+								<p>Address <?php echo esc_html(absint($stats['posts_without_meta'])); ?> posts without
+									meta descriptions</p>
 								<button class="sa-btn sa-btn-secondary">Fix Issues</button>
 							</div>
 						</div>
@@ -325,9 +360,9 @@ if (! defined('ABSPATH')) {
 </style>
 
 <script>
-	jQuery(document).ready(function($) {
+	jQuery(document).ready(function ($) {
 		// Content analysis functionality.
-		$('#analyze-content').on('click', function() {
+		$('#analyze-content').on('click', function () {
 			var content = $('#content-to-analyze').val();
 			var keyword = $('#focus-keyword').val();
 
@@ -349,7 +384,7 @@ if (! defined('ABSPATH')) {
 					keyword: keyword,
 					nonce: '<?php echo esc_js(wp_create_nonce('product_scraper_nonce')); ?>'
 				},
-				success: function(response) {
+				success: function (response) {
 					button.text(originalText).prop('disabled', false);
 
 					if (response.success) {
@@ -358,7 +393,7 @@ if (! defined('ABSPATH')) {
 						alert('Error analyzing content: ' + response.data);
 					}
 				},
-				error: function() {
+				error: function () {
 					button.text(originalText).prop('disabled', false);
 					alert('Error analyzing content. Please try again.');
 				}
@@ -377,7 +412,7 @@ if (! defined('ABSPATH')) {
 				html += '<div class="analysis-section issues">';
 				html += '<h5>Issues to Fix:</h5>';
 				html += '<ul>';
-				analysis.issues.forEach(function(issue) {
+				analysis.issues.forEach(function (issue) {
 					html += '<li class="severity-' + issue.severity + '">' + issue.message + '</li>';
 				});
 				html += '</ul>';
@@ -388,7 +423,7 @@ if (! defined('ABSPATH')) {
 				html += '<div class="analysis-section improvements">';
 				html += '<h5>Suggested Improvements:</h5>';
 				html += '<ul>';
-				analysis.improvements.forEach(function(improvement) {
+				analysis.improvements.forEach(function (improvement) {
 					html += '<li class="severity-' + improvement.severity + '">' + improvement.message + '</li>';
 				});
 				html += '</ul>';
@@ -399,7 +434,7 @@ if (! defined('ABSPATH')) {
 				html += '<div class="analysis-section good">';
 				html += '<h5>Good Practices:</h5>';
 				html += '<ul>';
-				analysis.good.forEach(function(good) {
+				analysis.good.forEach(function (good) {
 					html += '<li class="severity-' + good.severity + '">' + good.message + '</li>';
 				});
 				html += '</ul>';
